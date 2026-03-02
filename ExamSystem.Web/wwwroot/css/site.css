@@ -49,8 +49,9 @@ body {
 }
 
 /* Link Menu: Màu trắng, hover ra màu vàng */
+
 .nav-link {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: #555 !important;
     font-weight: 500;
     transition: all 0.3s ease;
     position: relative;
@@ -75,6 +76,15 @@ body {
     .nav-link:hover::after {
         width: 100%;
     }
+    .nav-link.active {
+        color: #ffffff !important; /* Chữ màu trắng */
+        background-color: #0d6efd !important; /* Nền màu xanh dương (Mã màu xanh chuẩn của Bootstrap) */
+    }
+
+        /* (Tùy chọn) Ẩn hiệu ứng gạch chân đi khi nút đã có nền xanh dương để đỡ rối mắt */
+        .nav-link.active::after {
+            display: none;
+        }
 
 /* --- XỬ LÝ MENU TRÊN ĐIỆN THOẠI (QUAN TRỌNG) --- */
 @media (max-width: 991.98px) {
