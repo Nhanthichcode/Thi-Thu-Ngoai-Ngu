@@ -1,29 +1,96 @@
 ﻿/* Main Container của Học viên */
+/*.student-container {
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+    min-height: 80vh;
+}*/
+
+/* Card Style cho trang làm bài / lịch sử */
+/*.student-card {
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-top: 4px solid transparent;*/ /* Chuẩn bị cho hiệu ứng hover */
+/*}
+
+    .student-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-top-color: var(--brand-red);*/ /* Hover hiện viền đỏ đồng bộ thương hiệu */
+    /*}*/
+
+/* Các tiện ích riêng của trang học viên nếu có (Ví dụ: đồng hồ đếm ngược, v.v...) */
+/*.exam-timer {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--brand-red);
+}*/
+
+/* =========================================================
+   GIAO DIỆN HỌC VIÊN: SẠCH, TỐI GIẢN (WHITE - ORANGE - GREEN)
+   ========================================================= */
+
+/* Main Container của Học viên */
 .student-container {
     margin-top: 2rem;
     margin-bottom: 3rem;
     min-height: 80vh;
 }
 
-/* Card Style cho trang làm bài / lịch sử */
+/* Card Style chung cho trang học viên */
 .student-card {
     background: #fff;
     border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
-    border-top: 4px solid transparent; /* Chuẩn bị cho hiệu ứng hover */
+    border-radius: var(--radius-card); /* Lấy từ site.css (16px) */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-top: 4px solid transparent;
 }
 
     .student-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border-top-color: var(--brand-red); /* Hover hiện viền đỏ đồng bộ thương hiệu */
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        border-top-color: var(--brand-orange); /* Hover lên hiện viền cam */
     }
 
-/* Các tiện ích riêng của trang học viên nếu có (Ví dụ: đồng hồ đếm ngược, v.v...) */
+/* Thanh Navbar Học viên */
+.student-navbar {
+    background-color: #ffffff;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--brand-green-light);
+}
+
+.student-brand {
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--brand-orange) !important; /* Chữ Logo màu Cam */
+    letter-spacing: -0.5px;
+}
+
+.student-navbar .nav-link {
+    font-weight: 600;
+    color: #64748b;
+    margin: 0 10px;
+    transition: all 0.2s;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+}
+
+    .student-navbar .nav-link:hover, .student-navbar .nav-link.active {
+        color: var(--brand-green) !important; /* Đổi sang màu xanh lá khi hover/active */
+        background-color: var(--brand-green-light);
+    }
+
+/* Đồng hồ đếm ngược trang thi */
 .exam-timer {
     font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--brand-red);
+    font-weight: 900;
+    color: var(--brand-orange);
+    background: var(--brand-orange-light);
+    padding: 5px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(249, 115, 22, 0.2);
 }

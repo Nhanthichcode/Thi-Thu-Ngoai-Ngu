@@ -8,8 +8,6 @@
     int globalIndex = 1;
     var currentUser = await UserManager.GetUserAsync(User);
     string studentName = currentUser?.FullName ?? User.Identity?.Name ?? "Thí sinh tự do";
-
-    // Sắp xếp: Listening -> Reading -> Writing -> Speaking
     var orderedParts = Model.ExamParts.OrderBy(p => p.SkillType).ThenBy(p => p.OrderIndex).ToList();
 }
 
@@ -18,7 +16,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@Model.Title - Computer Based Test</title>
+    <title>@Model.Title - Anh Ngữ SP</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/pages/exam-take.css" asp-append-version="true" />
@@ -27,13 +25,19 @@
 
     <header class="exam-header">
         <div class="d-flex align-items-center gap-2">
-            <div class="bg-danger rounded-circle p-2 text-white lh-1"><i class="bi bi-mic-fill"></i></div>
-            <div class="fw-bold text-dark">@studentName</div>
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="background-color: var(--brand-yellow); color: var(--brand-red); width: 40px; height: 40px; font-size: 1.2rem;">
+                @(studentName.Substring(0, 1).ToUpper())
+            </div>
+            <div class="fw-bold text-dark fs-5">@studentName</div>
         </div>
-        <div class="timer-box shadow-sm">
-            <span class="timer-text small me-2 opacity-75">TIME LEFT</span> <span id="countdown">00:00</span>
+
+        <div class="timer-box">
+            <span class="timer-text small me-2 opacity-75 fw-normal">THỜI GIAN:</span> <span id="countdown">00:00</span>
         </div>
-        <button onclick="submitExam()" class="btn btn-primary px-4 fw-bold rounded-pill">Nộp bài</button>
+
+        <button onclick="submitExam()" class="btn btn-brand-red px-4 py-2 fw-bold rounded-pill shadow-sm">
+            <i class="bi bi-send-check-fill me-1"></i> Nộp Bài
+        </button>
     </header>
 
     <form id="examForm" asp-action="Submit" method="post" enctype="multipart/form-data" class="exam-body">
@@ -46,8 +50,8 @@
                     var part = orderedParts[i];
                     <div class="exam-section" id="section-@i">
 
-                        <div class="mb-3 border-bottom pb-2">
-                            <h5 class="fw-bold text-primary m-0">@part.SkillType - @part.Name</h5>
+                        <div class="mb-4 border-bottom pb-3">
+                            <h4 class="fw-bold m-0" style="color: var(--brand-red);">@part.SkillType.ToString().ToUpper() - @part.Name</h4>
                         </div>
 
                         @* 1. LISTENING *@
@@ -57,16 +61,15 @@
                             if (audio != null)
                             {
                                 <div class="audio-container">
-                                    <i class="bi bi-play-circle-fill fs-2 me-3"></i>
+                                    <i class="bi bi-headphones fs-1 me-3" style="color: var(--brand-yellow);"></i>
                                     <div class="flex-grow-1">
-                                        <div class="fw-bold mb-1">Audio Track</div>
+                                        <div class="fw-bold mb-1 fs-5">Audio Track</div>
                                         <audio controls controlsList="nodownload"><source src="@audio.AudioUrl"></audio>
                                     </div>
                                 </div>
                             }
                             foreach (var eq in part.ExamQuestions)
                             {
-
                                 @RenderSingleQuestion(eq, part.SkillType)
                             }
                         }
@@ -76,11 +79,11 @@
                         {
                             var passage = part.ExamQuestions.FirstOrDefault()?.Question?.ReadingPassage;
                             <div class="reading-layout">
-                                <div class="reading-text">
+                                <div class="reading-text shadow-sm">
                                     @if (passage != null)
                                     {
-                                        <h5 class="fw-bold text-center mb-3">@passage.Title</h5> 
-                                        @Html.Raw(passage.Content)
+                                        <h5 class="fw-bold text-center mb-4 text-dark border-bottom pb-3">@passage.Title</h5>
+                                        <div style="font-size: 1.05rem; line-height: 1.8;">@Html.Raw(passage.Content)</div>
                                     }
                                 </div>
                                 <div class="reading-questions">
@@ -99,25 +102,22 @@
                             {
                                 int currentIdx = globalIndex++;
                                 bool hasImage = !string.IsNullOrEmpty(eq.Question.MediaUrl);
-
                                 if (hasImage)
                                 {
-                                    @* CÓ ẢNH: ẢNH LỚN + CÂU HỎI BÊN DƯỚI (Cột Trái 80%) | GHI ÂM (Cột Phải 20%) *@
-                                    <div class="speaking-layout-img mb-4" style="height: 70vh;">
+                                    <div class="speaking-layout-img mb-5" style="height: 75vh;">
                                         <div class="speaking-image-col shadow-sm">
                                             <img src="@eq.Question.MediaUrl" class="speaking-img" />
-
                                             <div class="speaking-question-text">
-                                                <h5 class="fw-bold text-primary mb-2">Câu hỏi @currentIdx:</h5>
-                                                <div class="fs-5">@eq.Question.Content</div>
+                                                <h5 class="fw-bold mb-2" style="color: var(--brand-red);">CÂU HỎI @currentIdx:</h5>
+                                                <div class="fs-5 text-dark fw-medium">@eq.Question.Content</div>
                                             </div>
                                         </div>
 
                                         <div class="speaking-control-col">
-                                            <div class="card border-0 shadow-sm w-100">
+                                            <div class="card border-0 shadow-sm w-100 bg-white p-2">
                                                 <div class="card-body">
                                                     @RenderRecorderUI(eq.QuestionId)
-                                                    <textarea class="form-control mt-3 small bg-light" rows="4" placeholder="Ghi chú nháp..."></textarea>
+                                                    <textarea class="form-control mt-4 bg-light border-0 p-3" rows="5" placeholder="Ghi chú nháp (Không chấm điểm)..."></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -125,17 +125,16 @@
                                 }
                                 else
                                 {
-                                    @* KHÔNG CÓ ẢNH: Giao diện thường *@
-                                    <div class="question-block">
-                                        <div class="q-title">QUESTION @currentIdx: @eq.Question.Content</div>
+                                    <div class="question-block bg-white p-4 rounded-4 shadow-sm border mb-4">
+                                        <div class="q-title fs-5 mb-4" style="color: var(--brand-red);">CÂU HỎI @currentIdx: <span class="text-dark fw-medium">@eq.Question.Content</span></div>
                                         @RenderRecorderUI(eq.QuestionId)
-                                        <textarea class="form-control mt-3 w-100" rows="3" placeholder="Ghi chú nháp (không chấm điểm)..."></textarea>
+                                        <textarea class="form-control mt-4 bg-light border-0 p-3 w-100" rows="3" placeholder="Ghi chú nháp..."></textarea>
                                     </div>
                                 }
                             }
                         }
 
-                        @* 4. WRITING (VÀ CÁC DẠNG KHÁC) *@
+                        @* 4. WRITING & OTHER *@
                         else
                         {
                             foreach (var eq in part.ExamQuestions)
@@ -150,17 +149,22 @@
     </form>
 
     <footer class="exam-footer">
-        <button class="btn btn-outline-secondary rounded-pill px-4 me-2" id="btn-prev" onclick="navStep(-1)"><i class="bi bi-arrow-left"></i> Quay lại</button>
-        <div class="d-flex gap-2 overflow-auto" style="max-width: 60%;">
+        <button class="btn btn-outline-secondary rounded-pill px-4 py-2 me-2 fw-bold" id="btn-prev" onclick="navStep(-1)"><i class="bi bi-chevron-left me-1"></i> Quay lại</button>
+
+        <div class="d-flex gap-2 overflow-auto py-2" style="max-width: 60%;">
             @for (int i = 0; i < orderedParts.Count; i++)
             {
-                <button type="button" class="part-nav-btn @(i == 0 ? "active" : "")" onclick="goToSection(@i)" id="nav-btn-@i">Part @(i + 1) <div style="font-size:0.7em;opacity:0.8">@orderedParts[i].SkillType</div></button>
+                <button type="button" class="part-nav-btn @(i == 0 ? "active" : "")" onclick="goToSection(@i)" id="nav-btn-@i">
+                    Phần @(i + 1)
+                    <div style="font-size:0.75em; opacity:0.9; margin-top:2px;">@orderedParts[i].SkillType</div>
+                </button>
             }
         </div>
-        <button class="btn btn-success rounded-pill px-4 ms-2" id="btn-next" onclick="navStep(1)">Tiếp tục <i class="bi bi-arrow-right"></i></button>
+
+        <button class="btn btn-brand-red rounded-pill px-4 py-2 ms-2 fw-bold shadow-sm" id="btn-next" onclick="navStep(1)">Tiếp tục <i class="bi bi-chevron-right ms-1"></i></button>
     </footer>
 
-    @* --- HELPER 1: RENDER CÂU HỎI THƯỜNG (WRITING CÓ NÂNG CẤP) --- *@
+    @* --- HELPER 1: RENDER CÂU HỎI THƯỜNG --- *@
     @{
         Microsoft.AspNetCore.Html.IHtmlContent RenderSingleQuestion(ExamSystem.Core.Entities.ExamQuestion eq, ExamSkill skill)
         {
@@ -169,35 +173,27 @@
 
             if (skill == ExamSkill.Writing)
             {
-                // WRITING: Đề bài nổi bật
-                sb.Write($"<div class='mb-4' id='q-wrapper-{qIdx}'>");
-
-                // Khung đề bài Writing nổi bật
-                sb.Write($"<div class='writing-prompt-box'>");
-                sb.Write($"<h6 class='fw-bold text-primary mb-2'><i class='bi bi-pencil-square'></i> QUESTION {qIdx}:</h6>");
+                sb.Write($"<div class='mb-5' id='q-wrapper-{qIdx}'>");
+                sb.Write($"<div class='writing-prompt-box shadow-sm'>");
+                sb.Write($"<h6 class='fw-bold mb-3' style='color: var(--brand-red); font-size: 1.1rem;'><i class='bi bi-pencil-square me-2'></i>CÂU HỎI {qIdx}:</h6>");
                 sb.Write($"<div class='writing-content'>{eq.Question.Content}</div>");
                 sb.Write($"</div>");
-
-                // Textarea
-                sb.Write($"<textarea class='form-control' rows='12' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' style='border-bottom-left-radius:0; border-bottom-right-radius:0;' onkeyup=\"countWords(this, 'wc-{qIdx}')\"></textarea>");
-
-                // Footer đếm từ
+                sb.Write($"<textarea class='form-control border-secondary p-4 fs-6' rows='14' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' style='border-bottom-left-radius:0; border-bottom-right-radius:0; resize: vertical;' onkeyup=\"countWords(this, 'wc-{qIdx}')\"></textarea>");
                 sb.Write($"<div class='word-count-footer'>");
-                sb.Write($"<span id='wc-{qIdx}'><i class='bi bi-fonts'></i> Số từ: 0</span>");
-                sb.Write($"<span><i class='bi bi-keyboard'></i> Trình soạn thảo văn bản</span>");
+                sb.Write($"<span id='wc-{qIdx}' class='text-dark'><i class='bi bi-fonts me-1'></i> Số từ: 0</span>");
+                sb.Write($"<span><i class='bi bi-keyboard me-1'></i> Trình soạn thảo văn bản</span>");
                 sb.Write($"</div>");
-
                 sb.Write("</div>");
             }
             else if (skill != ExamSkill.Speaking) // Trắc nghiệm
             {
                 sb.Write($"<div class='question-block' id='q-wrapper-{qIdx}'>");
-                sb.Write($"<div class='q-title'>QUESTION {qIdx}: {eq.Question.Content}</div>");
+                sb.Write($"<div class='q-title'>CÂU HỎI {qIdx}: <span class='fw-normal'>{eq.Question.Content}</span></div>");
                 if (eq.Question.Answers != null)
                 {
                     foreach (var ans in eq.Question.Answers)
                     {
-                        sb.Write($"<div class='form-check mb-2'><input class='form-check-input' type='radio' name='answers[{eq.QuestionId}]' value='{ans.Id}' id='ans_{ans.Id}'><label class='form-check-label' for='ans_{ans.Id}'>{ans.Content}</label></div>");
+                        sb.Write($"<div class='form-check mb-3 ms-2'><input class='form-check-input' type='radio' name='answers[{eq.QuestionId}]' value='{ans.Id}' id='ans_{ans.Id}'><label class='form-check-label' for='ans_{ans.Id}'>{ans.Content}</label></div>");
                     }
                 }
                 sb.Write("</div>");
@@ -206,7 +202,7 @@
         }
     }
 
-    @* --- HELPER 2: RENDER GIAO DIỆN GHI ÂM (Dùng chung) --- *@
+    @* --- HELPER 2: RENDER GIAO DIỆN GHI ÂM --- *@
     @{
         Microsoft.AspNetCore.Html.IHtmlContent RenderRecorderUI(int questionId)
         {
@@ -215,11 +211,11 @@
             sb.Write($"<button type='button' class='btn-record start' onclick='toggleRecording({questionId})'><i class='bi bi-mic-fill'></i></button>");
             sb.Write($"<div class='recorder-info'>");
             sb.Write($"<div class='d-flex justify-content-between align-items-center mb-1'>");
-            sb.Write($"<span class='status-text fw-bold text-muted'>Nhấn Mic để nói</span>");
+            sb.Write($"<span class='status-text fw-bold text-dark fs-6'>Nhấn Mic để bắt đầu nói</span>");
             sb.Write($"<span class='recording-pulse' id='pulse-{questionId}'></span>");
             sb.Write($"</div>");
-            sb.Write($"<div class='small text-secondary' id='timer-{questionId}'>00:00</div>");
-            sb.Write($"<audio id='playback-{questionId}' controls class='w-100 mt-2 d-none' style='height:30px'></audio>");
+            sb.Write($"<div class='fw-bold' style='color: var(--brand-red); font-size: 1.1rem;' id='timer-{questionId}'>00:00</div>");
+            sb.Write($"<audio id='playback-{questionId}' controls class='w-100 mt-3 d-none' style='height:40px'></audio>");
             sb.Write($"<input type='file' name='audioAnswers[{questionId}]' id='file-input-{questionId}' class='d-none' accept='audio/*' />");
             sb.Write($"</div>");
             sb.Write("</div>");
@@ -229,14 +225,13 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
-        // --- 1. COUNT WORDS (WRITING) ---
+        // JS giữ nguyên như bản gốc của bạn, chỉ update các DOM selector class/color nếu có
         function countWords(textarea, displayId) {
             let text = textarea.value.trim();
             let count = text.length === 0 ? 0 : text.split(/\s+/).length;
-            document.getElementById(displayId).innerHTML = `<i class='bi bi-fonts'></i> Số từ: ${count}`;
+            document.getElementById(displayId).innerHTML = `<i class='bi bi-fonts me-1'></i> Số từ: ${count}`;
         }
 
-        // --- 2. NAVIGATION ---
         let currentIndex = 0;
         const totalSections = @orderedParts.Count;
 
@@ -248,12 +243,10 @@
 
             document.getElementById('btn-prev').disabled = (index === 0);
             if(index === totalSections - 1) {
-                document.getElementById('btn-next').innerText = "Hoàn thành";
-                document.getElementById('btn-next').classList.replace('btn-success', 'btn-primary');
+                document.getElementById('btn-next').innerHTML = '<i class="bi bi-send-check-fill me-1"></i> Nộp Bài';
                 document.getElementById('btn-next').onclick = function() { submitExam(); };
             } else {
-                document.getElementById('btn-next').innerHTML = 'Tiếp tục <i class="bi bi-arrow-right"></i>';
-                document.getElementById('btn-next').classList.replace('btn-primary', 'btn-success');
+                document.getElementById('btn-next').innerHTML = 'Tiếp tục <i class="bi bi-chevron-right ms-1"></i>';
                 document.getElementById('btn-next').onclick = function() { navStep(1); };
             }
             currentIndex = index;
@@ -264,7 +257,6 @@
             if (newIndex >= 0 && newIndex < totalSections) goToSection(newIndex);
         }
 
-        // --- 3. TIMER ---
         let timeLeft = @Model.DurationMinutes * 60;
         setInterval(() => {
             if (timeLeft <= 0) { submitExam(); return; }
@@ -274,7 +266,6 @@
             timeLeft--;
         }, 1000);
 
-        // --- 4. RECORDING ---
         let recorders = {};
         let chunks = {};
 
@@ -302,7 +293,6 @@
                 chunks[qId] = [];
 
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks[qId].push(e.data); };
-
                 mediaRecorder.onstop = () => {
                     const blob = new Blob(chunks[qId], { type: 'audio/webm' });
                     const audioUrl = URL.createObjectURL(blob);
@@ -318,8 +308,9 @@
                     btn.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i>';
                     pulse.style.display = 'none';
                     ui.classList.remove('recording');
-                    statusText.innerText = "Đã lưu.";
+                    statusText.innerText = "Đã lưu thành công.";
                     statusText.classList.add('text-success');
+                    statusText.classList.remove('text-danger');
                     stream.getTracks().forEach(track => track.stop());
                 };
 
@@ -329,7 +320,8 @@
                 btn.innerHTML = '<i class="bi bi-stop-fill"></i>';
                 pulse.style.display = 'inline-block';
                 statusText.innerText = "Đang ghi âm...";
-                statusText.classList.remove('text-success');
+                statusText.classList.add('text-danger');
+                statusText.classList.remove('text-success', 'text-dark');
 
                 let recTime = 0;
                 timerEl.innerText = "00:00";
@@ -339,12 +331,11 @@
                     let rs = recTime % 60;
                     timerEl.innerText = `${rm < 10 ? '0'+rm : rm}:${rs < 10 ? '0'+rs : rs}`;
                 }, 1000);
-
-            } catch (err) { alert("Lỗi Micro: " + err); }
+            } catch (err) { alert("Vui lòng cấp quyền Micro cho trình duyệt!"); }
         }
 
         function submitExam() {
-            if(confirm("Nộp bài ngay?")) {
+            if(confirm("Bạn có chắc chắn muốn nộp bài?")) {
                 document.body.style.opacity = '0.5';
                 document.body.style.pointerEvents = 'none';
                 document.getElementById('examForm').submit();

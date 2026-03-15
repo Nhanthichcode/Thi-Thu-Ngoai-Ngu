@@ -3,9 +3,9 @@
    ========================================================= */
 
 /* 1. CẤU TRÚC KHUNG (SKELETON) */
-body {
-    overflow-x: hidden; /* Ngăn chặn thanh cuộn ngang toàn trang */
-}
+/*body {
+    overflow-x: hidden;*/ /* Ngăn chặn thanh cuộn ngang toàn trang */
+/*}
 
 #wrapper {
     display: flex;
@@ -15,64 +15,64 @@ body {
 
 #sidebar-wrapper {
     min-height: 100vh;
-    width: 17rem; /* Độ rộng sidebar */
-    margin-left: -17rem; /* Mặc định ẩn trên Mobile */
-    transition: margin 0.25s ease-out;
+    width: 17rem;*/ /* Độ rộng sidebar */
+    /*margin-left: -17rem;*/ /* Mặc định ẩn trên Mobile */
+    /*transition: margin 0.25s ease-out;
     background-color: white;
     border-right: 1px solid #dee2e6;
-    position: fixed; /* Cố định sidebar để scroll nội dung độc lập */
-    z-index: 1000;
+    position: fixed;*/ /* Cố định sidebar để scroll nội dung độc lập */
+    /*z-index: 1000;
     top: 0;
     bottom: 0;
-    overflow-y: auto; /* Cho phép scroll dọc sidebar nếu menu dài */
-}
+    overflow-y: auto;*/ /* Cho phép scroll dọc sidebar nếu menu dài */
+/*}
 
 #page-content-wrapper {
     width: 100%;
-    min-width: 0; /* [QUAN TRỌNG] Ngăn Flex item bị vỡ khi có nội dung dài */
-    transition: all 0.25s ease-out;
+    min-width: 0;*/ /* [QUAN TRỌNG] Ngăn Flex item bị vỡ khi có nội dung dài */
+    /*transition: all 0.25s ease-out;*/
     /* Mặc định trên mobile nội dung full màn hình */
-    margin-left: 0;
-}
+    /*margin-left: 0;
+}*/
 
 /* 2. RESPONSIVE LOGIC */
 
 /* --- TRÊN MÁY TÍNH (Màn hình > 768px) --- */
-@media (min-width: 768px) {
+/*@media (min-width: 768px) {
     #sidebar-wrapper {
-        margin-left: 0; /* Hiện sidebar */
-        position: sticky; /* Hoặc static tùy nhu cầu, sticky giúp footer luôn ở dưới */
-        height: 100vh;
+        margin-left: 0;*/ /* Hiện sidebar */
+        /*position: sticky;*/ /* Hoặc static tùy nhu cầu, sticky giúp footer luôn ở dưới */
+        /*height: 100vh;
     }
 
-    #page-content-wrapper {
+    #page-content-wrapper {*/
         /* Không cần set margin vì flexbox tự đẩy */
-        flex: 1; /* Chiếm hết khoảng trống còn lại */
-    }
+        /*flex: 1;*/ /* Chiếm hết khoảng trống còn lại */
+    /*}*/
 
     /* Khi bấm nút Toggle trên Desktop -> Ẩn sidebar */
-    body.sb-sidenav-toggled #sidebar-wrapper {
+    /*body.sb-sidenav-toggled #sidebar-wrapper {
         margin-left: -17rem;
     }
-}
+}*/
 
 /* --- TRÊN ĐIỆN THOẠI (Màn hình < 768px) --- */
-@media (max-width: 767.98px) {
+/*@media (max-width: 767.98px) {*/
     /* Khi bấm nút Toggle trên Mobile -> Hiện sidebar */
-    body.sb-sidenav-toggled #sidebar-wrapper {
+    /*body.sb-sidenav-toggled #sidebar-wrapper {
         margin-left: 0;
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Bóng đổ để tách biệt */
-    }
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);*/ /* Bóng đổ để tách biệt */
+    /*}*/
 
     /* Làm mờ nền khi mở menu trên mobile (Tùy chọn) */
-    body.sb-sidenav-toggled #page-content-wrapper {
+    /*body.sb-sidenav-toggled #page-content-wrapper {
         opacity: 0.5;
-        pointer-events: none; /* Không cho bấm vào nội dung khi đang mở menu */
-    }
-}
+        pointer-events: none;*/ /* Không cho bấm vào nội dung khi đang mở menu */
+    /*}
+}*/
 
 /* 3. GIAO DIỆN BRANDING (ĐỎ - VÀNG) */
-.sidebar-heading {
+/*.sidebar-heading {
     padding: 1.2rem 1rem;
     font-size: 1.2rem;
     background-color: var(--brand-red);
@@ -90,25 +90,25 @@ body {
 
 .brand-sp {
     color: var(--brand-yellow);
-}
+}*/
 
 /* 4. MENU ITEMS */
-.list-group-item {
+/*.list-group-item {
     border: none;
     padding: 12px 20px;
     font-weight: 500;
     color: #495057;
-    border-left: 4px solid transparent; /* Chuẩn bị cho hover/active */
-}
+    border-left: 4px solid transparent;*/ /* Chuẩn bị cho hover/active */
+/*}
 
     .list-group-item i {
         width: 25px;
         text-align: center;
         margin-right: 5px;
-    }
+    }*/
 
     /* Active State */
-    .list-group-item.active {
+    /*.list-group-item.active {
         background-color: #fff5f5;
         color: var(--brand-red);
         border-left-color: var(--brand-red);
@@ -129,18 +129,161 @@ body {
     color: #adb5bd;
     text-transform: uppercase;
     padding: 1.5rem 1.25rem 0.5rem;
-}
+}*/
 
 /* 5. FOOTER & UTILS */
-.admin-footer {
+/*.admin-footer {
     background-color: white;
     border-top: 1px solid #e9ecef;
     padding: 1rem;
-    margin-top: auto; /* Đẩy footer xuống đáy */
-}
+    margin-top: auto;*/ /* Đẩy footer xuống đáy */
+/*}*/
 
 /* Fix bảng bị tràn trên mobile */
-.table-responsive {
+/*.table-responsive {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+}*/
+
+/* =========================================================
+   GIAO DIỆN ADMIN MỚI: TRẮNG - CAM - XANH LÁ
+   ========================================================= */
+body {
+    overflow-x: hidden;
+}
+
+#wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* 1. SIDEBAR TRẮNG TỐI GIẢN */
+#sidebar-wrapper {
+    min-height: 100vh;
+    width: 17rem;
+    margin-left: -17rem;
+    transition: margin 0.25s ease-out;
+    background-color: #ffffff;
+    border-right: 1px solid #f1f5f9;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.02); /* Đổ bóng sang phải */
+}
+
+#page-content-wrapper {
+    width: 100%;
+    min-width: 0;
+    transition: all 0.25s ease-out;
+    margin-left: 0;
+}
+
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+        position: sticky;
+        height: 100vh;
+    }
+
+    #page-content-wrapper {
+        flex: 1;
+    }
+
+    body.sb-sidenav-toggled #sidebar-wrapper {
+        margin-left: -17rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    body.sb-sidenav-toggled #sidebar-wrapper {
+        margin-left: 0;
+        box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+    }
+
+    body.sb-sidenav-toggled #page-content-wrapper {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+}
+
+/* 2. HEADER SIDEBAR (MÀU CAM) */
+.sidebar-heading {
+    padding: 1.2rem 1rem;
+    font-size: 1.2rem;
+    background-color: var(--brand-orange); /* Chuyển sang nền Cam */
+    text-align: center;
+}
+
+.brand-text {
+    font-weight: 900;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: white;
+    letter-spacing: 1px;
+}
+
+.brand-sp {
+    color: white; /* SP màu trắng nổi trên nền cam */
+}
+
+/* 3. MENU ITEMS (BO GÓC NẰM GỌN TRONG SIDEBAR) */
+.list-group {
+    padding: 10px;
+}
+/* Đẩy menu vào trong 1 chút để tạo khoảng trống bo góc */
+
+.list-group-item {
+    border: none;
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #64748b;
+    border-radius: 10px; /* Bo góc từng menu item */
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+    .list-group-item i {
+        width: 25px;
+        text-align: center;
+        margin-right: 5px;
+        color: #94a3b8;
+    }
+
+    /* Nút Active: Nền Cam Nhạt, Chữ Cam, Có vạch xanh lá bên trái */
+    .list-group-item.active {
+        background-color: var(--brand-orange-light);
+        color: var(--brand-orange);
+        font-weight: 700;
+        border-left: 4px solid var(--brand-green); /* Điểm nhấn xanh lá */
+    }
+
+        .list-group-item.active i {
+            color: var(--brand-orange);
+        }
+
+.list-group-item-action:hover:not(.active) {
+    background-color: #f8fafc;
+    color: var(--brand-orange);
+}
+
+    .list-group-item-action:hover:not(.active) i {
+        color: var(--brand-orange);
+    }
+
+.sidebar-group-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    padding: 1.5rem 10px 0.5rem;
+}
+
+/* 4. NAVBAR TRÊN CÙNG */
+.navbar {
+    background-color: rgba(255,255,255,0.9) !important;
+    backdrop-filter: blur(10px);
 }
