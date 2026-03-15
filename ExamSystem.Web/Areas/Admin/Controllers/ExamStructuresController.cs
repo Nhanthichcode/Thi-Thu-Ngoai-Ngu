@@ -48,7 +48,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Edit), new { id = model.Id });
             }
             return View(model);
-        }
+        }    
 
         // 2. EDIT (Sửa cấu trúc) - Thêm thông báo lỗi/thành công qua TempData
         public async Task<IActionResult> Edit(int? id)
@@ -199,27 +199,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Đã xóa phần thi.";
                 return RedirectToAction(nameof(Edit), new { id = structureId });
-            }
-            return RedirectToAction(nameof(Index));
-        }
-        // 4. XÓA CẤU TRÚC
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-            var structure = await _context.ExamStructures.FirstOrDefaultAsync(m => m.Id == id);
-            if (structure == null) return NotFound();
-            return View(structure);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var structure = await _context.ExamStructures.FindAsync(id);
-            if (structure != null)
-            {
-                _context.ExamStructures.Remove(structure);
-                await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));
         }

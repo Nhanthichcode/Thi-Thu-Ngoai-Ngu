@@ -9,6 +9,20 @@
     var currentUser = await UserManager.GetUserAsync(User);
     string studentName = currentUser?.FullName ?? User.Identity?.Name ?? "Thí sinh tự do";
     var orderedParts = Model.ExamParts.OrderBy(p => p.SkillType).ThenBy(p => p.OrderIndex).ToList();
+
+    int totalQuestions = orderedParts.Sum(p => p.ExamQuestions.Count);
+
+    // Map câu hỏi với Section để bản đồ hoạt động trơn tru
+    var questionSectionMap = new Dictionary<int, int>();
+    int tempQIdx = 1;
+    for (int i = 0; i < orderedParts.Count; i++)
+    {
+        foreach (var q in orderedParts[i].ExamQuestions)
+        {
+            questionSectionMap[tempQIdx] = i;
+            tempQIdx++;
+        }
+    }
 }
 
 <!DOCTYPE html>
@@ -16,77 +30,489 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@Model.Title - Anh Ngữ SP</title>
+    <title>@Model.Title - ExamPortal</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="~/css/pages/exam-take.css" asp-append-version="true" />
+
+    <style>
+        :root {
+            --brand-red: #d32f2f;
+            --brand-red-hover: #b71c1c;
+            --answered-color: #0d6efd;
+            --bg-light: #f4f6f9;
+            --header-h: 46px;
+            --toolbar-h: 52px;
+            --sidebar-w: 260px; /* Định nghĩa biến width cho sidebar */
+        }
+
+        body {
+            background-color: var(--bg-light);
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* --- 1. TOP HEADER (THU NHỎ) --- */
+        .top-header {
+            background-color: #ffffff;
+            height: var(--header-h);
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .brand-logo {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--brand-red);
+            text-transform: uppercase;
+        }
+
+        .exam-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        /* --- 2. TOOLBAR GOM NHÓM TAB (COMPACT) --- */
+        .action-toolbar {
+            background-color: #ffffff;
+            min-height: var(--toolbar-h);
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .part-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-group {
+            display: flex;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            overflow: hidden;
+            height: 32px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+
+        .skill-name {
+            background: #e9ecef;
+            padding: 0 10px;
+            font-weight: 700;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            border-right: 1px solid #ced4da;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .tab-btn {
+            background: #fff;
+            border: none;
+            border-right: 1px solid #e9ecef;
+            padding: 0 14px;
+            font-weight: 700;
+            height: 100%;
+            color: #495057;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+
+            .tab-btn:last-child {
+                border-right: none;
+            }
+
+            .tab-btn:hover {
+                background: #f8f9fa;
+                color: var(--brand-red);
+            }
+
+            .tab-btn.active {
+                background: #61ff17;
+                color: #fff;
+            }
+
+        .skill-group.active-skill {
+            border-color: var(--brand-red);
+        }
+
+            .skill-group.active-skill .skill-name {
+                background: #f47b25;
+                color: #fff;
+                border-right-color: var(--brand-red);
+            }
+
+        .timer-display {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--brand-red);
+            font-family: monospace;
+        }
+
+        /* --- 3. MAIN WORKSPACE --- */
+        .exam-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 16px;
+            scroll-behavior: smooth;
+            transition: padding-right 0.3s ease;
+        }
+
+        .exam-section {
+            display: none;
+        }
+
+            .exam-section.active {
+                display: block;
+                animation: fadeIn 0.2s;
+            }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* --- 4. SIDEBAR CÂU HỎI VÀ TOGGLE BTN --- */
+        .sidebar-wrapper {
+            position: relative;
+            display: flex;
+            height: 100%;
+        }
+
+        .sidebar-toggle-btn {
+            position: absolute;
+            left: -28px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 60px;
+            background-color: #d2ffef;
+            border: 1px solid #e0e0e0;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            color: #6c757d;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.03);
+            transition: all 0.2s;
+        }
+
+            .sidebar-toggle-btn:hover {
+                background-color: #f8f9fa;
+                color: var(--brand-red);
+            }
+
+        .sidebar-container {
+            width: var(--sidebar-w);
+            background: #ffffff;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: width 0.3s ease; /* Hiệu ứng đóng mở */
+            overflow: hidden;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.02);
+        }
+
+            .sidebar-container.collapsed {
+                width: 0;
+                border-left: none;
+            }
+
+        .sidebar-inner {
+            width: var(--sidebar-w); /* Khóa width nội dung để không bị vỡ khi resize */
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .sidebar-header {
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .map-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ced4da;
+            background: #ffffff;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            padding: 0;
+        }
+
+            .map-btn:hover {
+                border-color: var(--brand-red);
+                color: var(--brand-red);
+            }
+
+            .map-btn.answered {
+                background: var(--answered-color);
+                color: #ffffff;
+                border-color: var(--answered-color);
+            }
+
+            .map-btn.active-view {
+                border: 2px solid var(--brand-red);
+                color: var(--brand-red);
+                background: #fff5f5;
+            }
+
+        .legend-box {
+            padding: 12px;
+            border-top: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            font-size: 0.85rem;
+        }
+
+        /* --- 5. BÀI ĐỌC & CÂU HỎI --- */
+        .reading-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .passage-box {
+            flex: 1;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            line-height: 1.7;
+            font-size: 1rem;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+        }
+
+        .questions-box {
+            flex: 1;
+        }
+
+        .question-card {
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .q-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+        }
+
+        .q-number {
+            color: var(--brand-red);
+            margin-right: 5px;
+        }
+
+        .radio-option {
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: flex-start;
+            font-size: 0.95rem;
+        }
+
+            .radio-option:hover {
+                background-color: #f8f9fa;
+            }
+
+            .radio-option input[type="radio"] {
+                margin-top: 5px;
+                margin-right: 10px;
+                transform: scale(1.1);
+                cursor: pointer;
+            }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ced4da;
+            border-radius: 10px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #adb5bd;
+            }
+    </style>
 </head>
 <body>
 
-    <header class="exam-header">
-        <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="background-color: var(--brand-yellow); color: var(--brand-red); width: 40px; height: 40px; font-size: 1.2rem;">
-                @(studentName.Substring(0, 1).ToUpper())
+    <header class="top-header">
+        <div class="d-flex align-items-center gap-3">
+            <div class="brand-logo">LÀM BÀI</div>
+            <div class="exam-title text-muted border-start ps-3 ms-2">@Model.Title</div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold bg-secondary" style="width: 28px; height: 28px; font-size: 0.8rem;">
+                    @(studentName.Substring(0, 1).ToUpper())
+                </div>
+                <span class="fw-bold text-dark" style="font-size: 0.9rem;">@studentName</span>
             </div>
-            <div class="fw-bold text-dark fs-5">@studentName</div>
         </div>
-
-        <div class="timer-box">
-            <span class="timer-text small me-2 opacity-75 fw-normal">THỜI GIAN:</span> <span id="countdown">00:00</span>
-        </div>
-
-        <button onclick="submitExam()" class="btn btn-brand-red px-4 py-2 fw-bold rounded-pill shadow-sm">
-            <i class="bi bi-send-check-fill me-1"></i> Nộp Bài
-        </button>
     </header>
 
-    <form id="examForm" asp-action="Submit" method="post" enctype="multipart/form-data" class="exam-body">
-        <input type="hidden" name="examId" value="@Model.Id" />
+    <div class="action-toolbar">
+        <div class="part-tabs">
+            @foreach (var group in orderedParts.GroupBy(p => p.SkillType))
+            {
+                <div class="skill-group">
+                    <div class="skill-name">@group.Key.ToString()</div>
+                    @{
+                        int partNumber = 1;
+                        foreach (var part in group)
+                        {
+                            int globalIndexForPart = orderedParts.IndexOf(part);
+                            <button type="button" class="tab-btn part-btn-@globalIndexForPart" onclick="goToSection(@globalIndexForPart)">
+                                @partNumber
+                            </button>
+                            partNumber++;
+                        }
+                    }
+                </div>
+            }
+        </div>
 
-        <div class="question-paper">
-            <div class="scroll-area">
+        <div class="d-flex align-items-center gap-3">
+            <div class="timer-display" id="countdown">00:00</div>
+            <button type="button" onclick="submitExam()" class="btn btn-danger btn-sm fw-bold px-3 py-1" style="background-color: var(--brand-red);">
+                NỘP BÀI
+            </button>
+        </div>
+    </div>
+
+    <div class="exam-container">
+
+        <main class="main-content" id="mainContent">
+            <form id="examForm" asp-action="Submit" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="examId" value="@Model.Id" />
+
+                @{
+                    int currentSkillPartNum = 1;
+                    ExamSkill? currentSkill = null;
+                }
+
                 @for (int i = 0; i < orderedParts.Count; i++)
                 {
                     var part = orderedParts[i];
-                    <div class="exam-section" id="section-@i">
 
-                        <div class="mb-4 border-bottom pb-3">
-                            <h4 class="fw-bold m-0" style="color: var(--brand-red);">@part.SkillType.ToString().ToUpper() - @part.Name</h4>
-                        </div>
+                    if (part.SkillType != currentSkill)
+                    {
+                        currentSkill = part.SkillType;
+                        currentSkillPartNum = 1;
+                    }
+                    else
+                    {
+                        currentSkillPartNum++;
+                    }
 
-                        @* 1. LISTENING *@
+                    <div class="exam-section @(i == 0 ? "active" : "")" id="section-@i">
+                        <h6 class="fw-bold text-secondary mb-3 text-uppercase border-bottom pb-2">@part.SkillType.ToString() - PHẦN @currentSkillPartNum</h6>
+
+                        @* --- LISTENING --- *@
                         @if (part.SkillType == ExamSkill.Listening)
                         {
                             var audio = part.ExamQuestions.FirstOrDefault()?.Question?.ListeningResource;
                             if (audio != null)
                             {
-                                <div class="audio-container">
-                                    <i class="bi bi-headphones fs-1 me-3" style="color: var(--brand-yellow);"></i>
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold mb-1 fs-5">Audio Track</div>
-                                        <audio controls controlsList="nodownload"><source src="@audio.AudioUrl"></audio>
-                                    </div>
+                                <div class="question-card text-center bg-light">
+                                    <div class="fw-bold text-secondary mb-2" style="font-size: 0.9rem;"><i class="bi bi-headphones me-1"></i> Audio Track</div>
+                                    <audio controls class="w-100 mx-auto" style="max-width: 450px; height: 40px;" controlsList="nodownload"><source src="@audio.AudioUrl"></audio>
                                 </div>
                             }
-                            foreach (var eq in part.ExamQuestions)
+                            @foreach (var eq in part.ExamQuestions)
                             {
                                 @RenderSingleQuestion(eq, part.SkillType)
                             }
                         }
 
-                        @* 2. READING *@
+                        @* --- READING --- *@
                         else if (part.SkillType == ExamSkill.Reading)
                         {
                             var passage = part.ExamQuestions.FirstOrDefault()?.Question?.ReadingPassage;
                             <div class="reading-layout">
-                                <div class="reading-text shadow-sm">
-                                    @if (passage != null)
-                                    {
-                                        <h5 class="fw-bold text-center mb-4 text-dark border-bottom pb-3">@passage.Title</h5>
-                                        <div style="font-size: 1.05rem; line-height: 1.8;">@Html.Raw(passage.Content)</div>
-                                    }
-                                </div>
-                                <div class="reading-questions">
+                                @if (passage != null)
+                                {
+                                    <div class="passage-box">
+                                        <h6 class="fw-bold text-center mb-3">@passage.Title</h6>
+                                        <div class="text-dark text-justify">@Html.Raw(passage.Content)</div>
+                                    </div>
+                                }
+                                <div class="questions-box">
                                     @foreach (var eq in part.ExamQuestions)
                                     {
                                         @RenderSingleQuestion(eq, part.SkillType)
@@ -95,168 +521,197 @@
                             </div>
                         }
 
-                        @* 3. SPEAKING *@
-                        else if (part.SkillType == ExamSkill.Speaking)
-                        {
-                            foreach (var eq in part.ExamQuestions)
-                            {
-                                int currentIdx = globalIndex++;
-                                bool hasImage = !string.IsNullOrEmpty(eq.Question.MediaUrl);
-                                if (hasImage)
-                                {
-                                    <div class="speaking-layout-img mb-5" style="height: 75vh;">
-                                        <div class="speaking-image-col shadow-sm">
-                                            <img src="@eq.Question.MediaUrl" class="speaking-img" />
-                                            <div class="speaking-question-text">
-                                                <h5 class="fw-bold mb-2" style="color: var(--brand-red);">CÂU HỎI @currentIdx:</h5>
-                                                <div class="fs-5 text-dark fw-medium">@eq.Question.Content</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="speaking-control-col">
-                                            <div class="card border-0 shadow-sm w-100 bg-white p-2">
-                                                <div class="card-body">
-                                                    @RenderRecorderUI(eq.QuestionId)
-                                                    <textarea class="form-control mt-4 bg-light border-0 p-3" rows="5" placeholder="Ghi chú nháp (Không chấm điểm)..."></textarea>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="question-block bg-white p-4 rounded-4 shadow-sm border mb-4">
-                                        <div class="q-title fs-5 mb-4" style="color: var(--brand-red);">CÂU HỎI @currentIdx: <span class="text-dark fw-medium">@eq.Question.Content</span></div>
-                                        @RenderRecorderUI(eq.QuestionId)
-                                        <textarea class="form-control mt-4 bg-light border-0 p-3 w-100" rows="3" placeholder="Ghi chú nháp..."></textarea>
-                                    </div>
-                                }
-                            }
-                        }
-
-                        @* 4. WRITING & OTHER *@
+                        @* --- WRITING / SPEAKING --- *@
                         else
                         {
-                            foreach (var eq in part.ExamQuestions)
+                            @foreach (var eq in part.ExamQuestions)
                             {
                                 @RenderSingleQuestion(eq, part.SkillType)
                             }
                         }
                     </div>
                 }
+            </form>
+        </main>
+
+        <div class="sidebar-wrapper" id="sidebarWrapper">
+            <div class="sidebar-toggle-btn" onclick="toggleSidebar()">
+                <i class="bi bi-chevron-right" id="sidebarToggleIcon"></i>
             </div>
+
+            <aside class="sidebar-container" id="sidebarContainer">
+                <div class="sidebar-inner">
+                    <div class="sidebar-header">DANH SÁCH CÂU HỎI</div>
+
+                    <div class="map-grid custom-scroll">
+                        @for (int i = 1; i <= totalQuestions; i++)
+                        {
+                            <button type="button" class="map-btn" id="map-btn-@i" onclick="jumpToQuestion(@i)">@i</button>
+                        }
+                    </div>
+
+                    <div class="legend-box">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="rounded-circle me-2" style="width: 14px; height: 14px; border: 1px solid #ced4da; background-color: #fff;"></span> Chưa trả lời
+                        </div>
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="rounded-circle me-2" style="width: 14px; height: 14px; background-color: var(--answered-color);"></span> Đã trả lời
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="rounded-circle me-2" style="width: 14px; height: 14px; border: 2px solid var(--brand-red); background-color: #fff5f5;"></span> Đang xem
+                        </div>
+                    </div>
+                </div>
+            </aside>
         </div>
-    </form>
+    </div>
 
-    <footer class="exam-footer">
-        <button class="btn btn-outline-secondary rounded-pill px-4 py-2 me-2 fw-bold" id="btn-prev" onclick="navStep(-1)"><i class="bi bi-chevron-left me-1"></i> Quay lại</button>
-
-        <div class="d-flex gap-2 overflow-auto py-2" style="max-width: 60%;">
-            @for (int i = 0; i < orderedParts.Count; i++)
-            {
-                <button type="button" class="part-nav-btn @(i == 0 ? "active" : "")" onclick="goToSection(@i)" id="nav-btn-@i">
-                    Phần @(i + 1)
-                    <div style="font-size:0.75em; opacity:0.9; margin-top:2px;">@orderedParts[i].SkillType</div>
-                </button>
-            }
-        </div>
-
-        <button class="btn btn-brand-red rounded-pill px-4 py-2 ms-2 fw-bold shadow-sm" id="btn-next" onclick="navStep(1)">Tiếp tục <i class="bi bi-chevron-right ms-1"></i></button>
-    </footer>
-
-    @* --- HELPER 1: RENDER CÂU HỎI THƯỜNG --- *@
+    
     @{
         Microsoft.AspNetCore.Html.IHtmlContent RenderSingleQuestion(ExamSystem.Core.Entities.ExamQuestion eq, ExamSkill skill)
         {
             var sb = new System.IO.StringWriter();
             var qIdx = globalIndex++;
 
+            sb.Write($"<div class='question-card' id='q-wrapper-{qIdx}'>");
+
+            if (skill == ExamSkill.Speaking && !string.IsNullOrEmpty(eq.Question.MediaUrl))
+            {
+                sb.Write($"<div class='mb-3 text-center'><img src='{eq.Question.MediaUrl}' class='img-fluid rounded border' style='max-height: 220px;'/></div>");
+            }
+
+            sb.Write($"<div class='q-title'><span class='q-number'>Câu {qIdx}:</span> <span class='fw-normal'>{eq.Question.Content}</span></div>");
+
             if (skill == ExamSkill.Writing)
             {
-                sb.Write($"<div class='mb-5' id='q-wrapper-{qIdx}'>");
-                sb.Write($"<div class='writing-prompt-box shadow-sm'>");
-                sb.Write($"<h6 class='fw-bold mb-3' style='color: var(--brand-red); font-size: 1.1rem;'><i class='bi bi-pencil-square me-2'></i>CÂU HỎI {qIdx}:</h6>");
-                sb.Write($"<div class='writing-content'>{eq.Question.Content}</div>");
-                sb.Write($"</div>");
-                sb.Write($"<textarea class='form-control border-secondary p-4 fs-6' rows='14' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' style='border-bottom-left-radius:0; border-bottom-right-radius:0; resize: vertical;' onkeyup=\"countWords(this, 'wc-{qIdx}')\"></textarea>");
-                sb.Write($"<div class='word-count-footer'>");
-                sb.Write($"<span id='wc-{qIdx}' class='text-dark'><i class='bi bi-fonts me-1'></i> Số từ: 0</span>");
-                sb.Write($"<span><i class='bi bi-keyboard me-1'></i> Trình soạn thảo văn bản</span>");
-                sb.Write($"</div>");
-                sb.Write("</div>");
+                sb.Write($"<textarea class='form-control bg-light' rows='8' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' onkeyup=\"markAnswered({qIdx}, this.value.length > 0)\"></textarea>");
             }
-            else if (skill != ExamSkill.Speaking) // Trắc nghiệm
+            else if (skill == ExamSkill.Speaking)
             {
-                sb.Write($"<div class='question-block' id='q-wrapper-{qIdx}'>");
-                sb.Write($"<div class='q-title'>CÂU HỎI {qIdx}: <span class='fw-normal'>{eq.Question.Content}</span></div>");
+                sb.Write(RenderRecorderUI(eq.QuestionId, qIdx).ToString());
+            }
+            else // Multiple Choice
+            {
                 if (eq.Question.Answers != null)
                 {
+                    char alpha = 'A';
                     foreach (var ans in eq.Question.Answers)
                     {
-                        sb.Write($"<div class='form-check mb-3 ms-2'><input class='form-check-input' type='radio' name='answers[{eq.QuestionId}]' value='{ans.Id}' id='ans_{ans.Id}'><label class='form-check-label' for='ans_{ans.Id}'>{ans.Content}</label></div>");
+                        sb.Write($"<label class='radio-option' for='ans_{ans.Id}'>");
+                        sb.Write($"<input type='radio' name='answers[{eq.QuestionId}]' value='{ans.Id}' id='ans_{ans.Id}' onchange='markAnswered({qIdx}, true)'>");
+                        sb.Write($"<div><strong>{alpha}.</strong> {ans.Content}</div>");
+                        sb.Write($"</label>");
+                        alpha++;
                     }
                 }
-                sb.Write("</div>");
             }
-            return Html.Raw(sb.ToString());
-        }
-    }
-
-    @* --- HELPER 2: RENDER GIAO DIỆN GHI ÂM --- *@
-    @{
-        Microsoft.AspNetCore.Html.IHtmlContent RenderRecorderUI(int questionId)
-        {
-            var sb = new System.IO.StringWriter();
-            sb.Write($"<div class='recorder-container' id='recorder-{questionId}'>");
-            sb.Write($"<button type='button' class='btn-record start' onclick='toggleRecording({questionId})'><i class='bi bi-mic-fill'></i></button>");
-            sb.Write($"<div class='recorder-info'>");
-            sb.Write($"<div class='d-flex justify-content-between align-items-center mb-1'>");
-            sb.Write($"<span class='status-text fw-bold text-dark fs-6'>Nhấn Mic để bắt đầu nói</span>");
-            sb.Write($"<span class='recording-pulse' id='pulse-{questionId}'></span>");
-            sb.Write($"</div>");
-            sb.Write($"<div class='fw-bold' style='color: var(--brand-red); font-size: 1.1rem;' id='timer-{questionId}'>00:00</div>");
-            sb.Write($"<audio id='playback-{questionId}' controls class='w-100 mt-3 d-none' style='height:40px'></audio>");
-            sb.Write($"<input type='file' name='audioAnswers[{questionId}]' id='file-input-{questionId}' class='d-none' accept='audio/*' />");
-            sb.Write($"</div>");
             sb.Write("</div>");
             return Html.Raw(sb.ToString());
         }
     }
 
+    @* --- HELPER 2: RENDER GHI ÂM (Thu nhỏ) --- *@
+    @{
+        Microsoft.AspNetCore.Html.IHtmlContent RenderRecorderUI(int questionId, int qIdx)
+        {
+            var sb = new System.IO.StringWriter();
+            sb.Write($"<div class='text-center py-2' id='recorder-{questionId}'>");
+            sb.Write($"<button type='button' class='btn btn-outline-danger rounded-circle p-2 mb-1 btn-record' style='width:50px; height:50px;' onclick='toggleRecording({questionId}, {qIdx})'><i class='bi bi-mic-fill fs-5'></i></button>");
+            sb.Write($"<div class='status-text text-muted small mb-1' style='font-size: 0.8rem;'>Nhấn để ghi âm</div>");
+            sb.Write($"<div class='fw-bold text-danger fs-5' id='timer-{questionId}'>00:00</div>");
+            sb.Write($"<audio id='playback-{questionId}' controls class='w-100 mt-2 d-none' style='height: 35px;'></audio>");
+            sb.Write($"<input type='file' name='audioAnswers[{questionId}]' id='file-input-{questionId}' class='d-none' accept='audio/*' />");
+            sb.Write($"</div>");
+            return Html.Raw(sb.ToString());
+        }
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    
+    @section Scripts {
     <script>
-        // JS giữ nguyên như bản gốc của bạn, chỉ update các DOM selector class/color nếu có
-        function countWords(textarea, displayId) {
-            let text = textarea.value.trim();
-            let count = text.length === 0 ? 0 : text.split(/\s+/).length;
-            document.getElementById(displayId).innerHTML = `<i class='bi bi-fonts me-1'></i> Số từ: ${count}`;
+        const questionSectionMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(questionSectionMap));
+        let currentIndex = 0;
+
+        // --- 0. TOGGLE SIDEBAR (ẨN/HIỆN MENU) ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebarContainer');
+            const icon = document.getElementById('sidebarToggleIcon');
+            sidebar.classList.toggle('collapsed');
+
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.replace('bi-chevron-right', 'bi-chevron-left');
+            } else {
+                icon.classList.replace('bi-chevron-left', 'bi-chevron-right');
+            }
         }
 
-        let currentIndex = 0;
-        const totalSections = @orderedParts.Count;
+        // Cấu hình ban đầu
+        window.onload = function() { goToSection(0); };
 
+        // --- 1. THEO DÕI VÀ ĐIỀU HƯỚNG BẢN ĐỒ CÂU HỎI ---
+        function jumpToQuestion(qIdx) {
+            let secIdx = questionSectionMap[qIdx];
+            if (currentIndex !== secIdx) {
+                goToSection(secIdx);
+            }
+            setTimeout(() => {
+                let qEl = document.getElementById('q-wrapper-' + qIdx);
+                if(qEl) {
+                    qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    highlightMapBtn(qIdx);
+                }
+            }, 100);
+        }
+
+        function highlightMapBtn(qIdx) {
+            document.querySelectorAll('.map-btn').forEach(b => b.classList.remove('active-view'));
+            let btn = document.getElementById('map-btn-' + qIdx);
+            if(btn) btn.classList.add('active-view');
+        }
+
+        function markAnswered(qIdx, hasValue) {
+            let btn = document.getElementById('map-btn-' + qIdx);
+            if(btn) {
+                if(hasValue) btn.classList.add('answered');
+                else btn.classList.remove('answered');
+            }
+        }
+
+        // Tự động phát hiện câu đang xem khi cuộn chuột
+        let observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    let qId = entry.target.id.split('-').pop();
+                    highlightMapBtn(qId);
+                }
+            });
+        }, { root: document.getElementById('mainContent'), threshold: 0.5 });
+
+        document.querySelectorAll('[id^="q-wrapper-"]').forEach(el => observer.observe(el));
+
+        // --- 2. ĐIỀU HƯỚNG TABS GOM NHÓM ---
         function goToSection(index) {
+            // Đổi content
             document.querySelectorAll('.exam-section').forEach(el => el.classList.remove('active'));
             document.getElementById('section-' + index).classList.add('active');
-            document.querySelectorAll('.part-nav-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('nav-btn-' + index).classList.add('active');
 
-            document.getElementById('btn-prev').disabled = (index === 0);
-            if(index === totalSections - 1) {
-                document.getElementById('btn-next').innerHTML = '<i class="bi bi-send-check-fill me-1"></i> Nộp Bài';
-                document.getElementById('btn-next').onclick = function() { submitExam(); };
-            } else {
-                document.getElementById('btn-next').innerHTML = 'Tiếp tục <i class="bi bi-chevron-right ms-1"></i>';
-                document.getElementById('btn-next').onclick = function() { navStep(1); };
+            // Xóa toàn bộ active ở các nút tab và nhóm
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.skill-group').forEach(el => el.classList.remove('active-skill'));
+
+            // Kích hoạt tab được chọn và nhóm chứa nó
+            let activeBtn = document.querySelector('.part-btn-' + index);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.closest('.skill-group').classList.add('active-skill');
             }
+
             currentIndex = index;
+            document.getElementById('mainContent').scrollTop = 0;
         }
 
-        function navStep(step) {
-            let newIndex = currentIndex + step;
-            if (newIndex >= 0 && newIndex < totalSections) goToSection(newIndex);
-        }
-
+        // --- 3. ĐỒNG HỒ VÀ NỘP BÀI ---
         let timeLeft = @Model.DurationMinutes * 60;
         setInterval(() => {
             if (timeLeft <= 0) { submitExam(); return; }
@@ -266,13 +721,20 @@
             timeLeft--;
         }, 1000);
 
+        function submitExam() {
+            if(confirm("Bạn có chắc chắn muốn nộp bài?")) {
+                document.body.style.opacity = '0.5';
+                document.body.style.pointerEvents = 'none';
+                document.getElementById('examForm').submit();
+            }
+        }
+
+        // --- 4. GHI ÂM (SPEAKING) ---
         let recorders = {};
         let chunks = {};
-
-        async function toggleRecording(qId) {
+        async function toggleRecording(qId, qIdx) {
             const ui = document.getElementById(`recorder-${qId}`);
             const btn = ui.querySelector('.btn-record');
-            const pulse = document.getElementById(`pulse-${qId}`);
             const timerEl = document.getElementById(`timer-${qId}`);
             const statusText = ui.querySelector('.status-text');
             const fileInput = document.getElementById(`file-input-${qId}`);
@@ -295,30 +757,29 @@
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks[qId].push(e.data); };
                 mediaRecorder.onstop = () => {
                     const blob = new Blob(chunks[qId], { type: 'audio/webm' });
-                    const audioUrl = URL.createObjectURL(blob);
                     const file = new File([blob], `ans_${qId}.webm`, { type: "audio/webm" });
                     const container = new DataTransfer();
                     container.items.add(file);
                     fileInput.files = container.files;
 
-                    document.getElementById(`playback-${qId}`).src = audioUrl;
+                    document.getElementById(`playback-${qId}`).src = URL.createObjectURL(blob);
                     document.getElementById(`playback-${qId}`).classList.remove('d-none');
 
-                    btn.classList.remove('stop'); btn.classList.add('start');
-                    btn.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i>';
-                    pulse.style.display = 'none';
-                    ui.classList.remove('recording');
-                    statusText.innerText = "Đã lưu thành công.";
+                    btn.classList.replace('btn-danger', 'btn-outline-success');
+                    btn.innerHTML = '<i class="bi bi-arrow-counterclockwise fs-5"></i>';
+
+                    statusText.innerText = "Đã lưu bản thu thành công.";
                     statusText.classList.add('text-success');
-                    statusText.classList.remove('text-danger');
+                    statusText.classList.remove('text-danger', 'text-dark');
                     stream.getTracks().forEach(track => track.stop());
+
+                    markAnswered(qIdx, true);
                 };
 
                 mediaRecorder.start();
-                ui.classList.add('recording');
-                btn.classList.remove('start'); btn.classList.add('stop');
-                btn.innerHTML = '<i class="bi bi-stop-fill"></i>';
-                pulse.style.display = 'inline-block';
+                btn.classList.replace('btn-outline-danger', 'btn-danger');
+                btn.innerHTML = '<i class="bi bi-stop-fill fs-5 text-white"></i>';
+
                 statusText.innerText = "Đang ghi âm...";
                 statusText.classList.add('text-danger');
                 statusText.classList.remove('text-success', 'text-dark');
@@ -327,20 +788,12 @@
                 timerEl.innerText = "00:00";
                 ui.dataset.timer = setInterval(() => {
                     recTime++;
-                    let rm = Math.floor(recTime / 60);
-                    let rs = recTime % 60;
+                    let rm = Math.floor(recTime / 60); let rs = recTime % 60;
                     timerEl.innerText = `${rm < 10 ? '0'+rm : rm}:${rs < 10 ? '0'+rs : rs}`;
                 }, 1000);
             } catch (err) { alert("Vui lòng cấp quyền Micro cho trình duyệt!"); }
         }
-
-        function submitExam() {
-            if(confirm("Bạn có chắc chắn muốn nộp bài?")) {
-                document.body.style.opacity = '0.5';
-                document.body.style.pointerEvents = 'none';
-                document.getElementById('examForm').submit();
-            }
-        }
     </script>
+}
 </body>
 </html>

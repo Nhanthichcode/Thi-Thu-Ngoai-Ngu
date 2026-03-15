@@ -1,6 +1,10 @@
-﻿@model ExamSystem.Web.Models.RegisterVM
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<AppUser> SignInManager
+@model ExamSystem.Web.Models.RegisterVM
 @{
     ViewData["Title"] = "Đăng ký";
+    var schemes = await SignInManager.GetExternalAuthenticationSchemesAsync();
+    var loginProviders = schemes.ToList();
 }
 
 <style>
@@ -52,8 +56,7 @@
         <div class="col-md-6 col-lg-5">
             <div class="card auth-card">
                 <div class="auth-header">
-                    <h3 class="fw-bold text-uppercase m-0">Đăng Ký Tài Khoản</h3>
-                    <small class="opacity-75">Trở thành thành viên của Anh Ngữ SP</small>
+                    <h3 class="fw-bold text-black text-uppercase m-0">Đăng Ký Tài Khoản</h3>                  
                 </div>
 
                 <div class="card-body p-4 pt-4">
@@ -112,6 +115,23 @@
                         </button>
                     </form>
 
+                    @if (loginProviders.Count > 0)
+                    {
+                        <div class="text-center my-3 position-relative">
+                            <hr class="text-muted opacity-25">
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted">Hoặc</span>
+                        </div>
+
+                        <form asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="text-center">
+                            @foreach (var provider in loginProviders)
+                            {
+                                <button type="submit" class="btn btn-outline-danger w-100 fw-bold py-2 mb-2 d-flex align-items-center justify-content-center"
+                                        name="provider" value="@provider.Name">
+                                    <i class="bi bi-google me-2"></i> Đăng ký bằng @provider.DisplayName
+                                </button>
+                            }
+                        </form>
+                    }
                     <div class="text-center mt-4">
                         <small class="text-muted">Đã có tài khoản?</small>
                         <a asp-action="Login" class="fw-bold text-decoration-none ms-1 text-danger">Đăng nhập</a>

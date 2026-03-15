@@ -21,7 +21,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark navbar-brand-sp sticky-top">
+        <nav class="navbar navbar-expand-lg sticky-top py-2">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     Thi Thử <span class="brand-highlight">Ngoại Ngữ</span>
@@ -112,12 +112,8 @@
                         }
                         else
                         {
-                            <li class="nav-item">
-                                <a class="btn btn-brand-outline btn-sm px-3 rounded-pill" asp-controller="Account" asp-action="Login">Đăng nhập</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="btn btn-brand-primary btn-sm px-4 rounded-pill shadow-sm" asp-controller="Account" asp-action="Register">Đăng ký ngay</a>
-                            </li>
+                            <a class="btn btn-outline-secondary btn-sm px-4 rounded-pill" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            <a class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm" asp-controller="Account" asp-action="Register">Đăng ký ngay</a>
                         }
                     </ul>
                 </div>
