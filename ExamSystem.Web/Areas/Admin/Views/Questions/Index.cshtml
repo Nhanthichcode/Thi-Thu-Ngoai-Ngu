@@ -59,7 +59,7 @@
 
         .badge {
             font-size: 0.75rem;
-        }
+        }      
     </style>
 }
 
@@ -281,7 +281,7 @@ else
         <a asp-action="Create" class="btn btn-primary mt-2">Soạn câu hỏi mới</a>
     </div>
 }
-
+@section Scripts{
 <script>
     // 1. Tự động submit khi chọn Level
     document.getElementById('levelSelect').addEventListener('change', function() {
@@ -308,3 +308,4 @@ else
         });
     }
 </script>
+}
