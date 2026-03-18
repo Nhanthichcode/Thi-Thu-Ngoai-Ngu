@@ -29,6 +29,25 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             return View(attempts);
         }
 
+        // POST: Admin/ExamResults/Delete/20
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var examResult = await _context.TestAttempts.FindAsync(id);
+
+            if (examResult == null)
+            {
+                // Trả về mã lỗi 404 cho AJAX
+                return NotFound();
+            }
+
+            _context.TestAttempts.Remove(examResult);
+            await _context.SaveChangesAsync();
+
+            // Trả về mã thành công 200 OK cho AJAX
+            return Ok();
+        }
+
         // Trang chi tiết để giáo viên xem file và chấm điểm
         public async Task<IActionResult> Grade(int id)
         {

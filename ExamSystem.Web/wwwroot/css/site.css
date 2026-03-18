@@ -1,328 +1,106 @@
 ﻿/* =========================================
-   1. BẢNG MÀU & CẤU HÌNH CHUNG
-   ========================================= */
-/*:root {
-    --brand-red: #C60000;*/ /* Đỏ cờ */
-    /*--brand-yellow: #FFDE00;*/ /* Vàng tươi */
-    /*--brand-dark-red: #900000;*/ /* Đỏ đậm */
-/*}
-
-html {
-    position: relative;
-    min-height: 100%;
-    font-size: 14px;
-}
-
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
-}
-
-body {
-    background-color: #f5f5f5;
-    font-family: 'Roboto', 'Segoe UI', sans-serif;
-    color: #333;
-    margin-bottom: 60px;*/ /* Khoảng trống cho footer */
-/*}*/
-
-/* =========================================
-   2. NAVBAR (THANH ĐIỀU HƯỚNG)
-   ========================================= */
-/*.navbar-brand-sp {
-    background-color: var(--brand-red);
-    box-shadow: 0 4px 12px rgba(198, 0, 0, 0.3);
-    padding-top: 0.8rem;
-    padding-bottom: 0.8rem;
-}
-
-.navbar-brand {
-    font-weight: 900;
-    font-size: 1.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: white !important;
-}
-
-.brand-highlight {
-    color: var(--brand-yellow) !important;
-}*/
-
-/* Link Menu: Màu trắng, hover ra màu vàng */
-
-/*.nav-link {
-    color: #FFDE00 !important;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-    .nav-link:hover {
-        color: var(--brand-yellow) !important;
-    }*/
-
-    /* Hiệu ứng gạch chân khi hover */
-    /*.nav-link::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 3px;
-        bottom: 0;
-        left: 0;
-        background-color: var(--brand-yellow);
-        transition: width 0.3s;
-    }
-
-    .nav-link:hover::after {
-        width: 100%;
-    }
-    .nav-link.active {
-        color: #ffffff !important;*/ /* Chữ màu trắng */
-        /*background-color: #0d6efd !important;*/ /* Nền màu xanh dương (Mã màu xanh chuẩn của Bootstrap) */
-    /*}*/
-
-        /* (Tùy chọn) Ẩn hiệu ứng gạch chân đi khi nút đã có nền xanh dương để đỡ rối mắt */
-        /*.nav-link.active::after {
-            display: none;
-        }*/
-
-/* --- XỬ LÝ MENU TRÊN ĐIỆN THOẠI (QUAN TRỌNG) --- */
-/*@media (max-width: 991.98px) {
-    .navbar-collapse {        
-        background-color: var(--brand-red);
-        border-top: 1px solid rgba(255,255,255,0.1);
-        padding: 10px 0;
-        z-index: 1000;
-    }*/
-
-    /* Menu con trên mobile cũng phải nền đỏ/tối */
-    /*.dropdown-menu {
-        background-color: #a00000;
-        border: none;
-        margin-left: 1rem;
-        margin-right: 1rem;
-    }
-
-    .dropdown-item {
-        color: white !important;
-    }
-
-        .dropdown-item:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-}*/
-
-/* --- MENU TRÊN MÁY TÍNH --- */
-/*@media (min-width: 992px) {
-    .dropdown-menu {
-        border: none;
-        border-top: 4px solid var(--brand-red);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-        border-radius: 0 0 8px 8px;
-    }
-
-    .dropdown-item:active, .dropdown-item:hover {
-        background-color: #fff5f5;
-        color: var(--brand-red);
-        font-weight: 600;
-    }
-}*/
-
-/* =========================================
-   3. BUTTONS & UI ELEMENTS
-   ========================================= */
-/*.btn-brand-primary {
-    background-color: var(--brand-yellow);
-    color: var(--brand-red);
-    font-weight: 700;
-    border: none;
-    transition: all 0.3s;
-}
-
-    .btn-brand-primary:hover {
-        background-color: #ffe64d;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        color: var(--brand-red);
-    }
-
-.btn-brand-outline {
-    border: 2px solid rgba(255,255,255,0.4);
-    color: white;
-    font-weight: 600;
-}
-
-    .btn-brand-outline:hover {
-        border-color: var(--brand-yellow);
-        color: var(--brand-yellow);
-        background-color: transparent;
-    }
-
-.user-avatar {
-    width: 35px;
-    height: 35px;
-    background-color: var(--brand-yellow) !important;
-    color: var(--brand-red) !important;
-    font-weight: bold;
-}*/
-
-/* =========================================
-   4. FOOTER
-   ========================================= */
-/*footer {
-    background-color: var(--brand-red);
-    color: white;
-    border-top: 5px solid var(--brand-yellow);
-}*/
-
-/* =========================================
-   5. RESPONSIVE & UTILITIES
-   ========================================= */
-/*.btn:focus, .btn:active:focus, .form-control:focus, .form-check-input:focus {*/
-    /* Đổi màu focus mặc định xanh của Bootstrap sang đỏ/cam */
-    /*box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem rgba(198, 0, 0, 0.25);
-    border-color: var(--brand-red);
-}*/
-
-/* Fix hiển thị bảng trên mobile */
-/*@media (max-width: 768px) {
-    .container, .container-fluid {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    .card {
-        margin-bottom: 15px !important;
-    }
-
-    .table-responsive {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .table {
-        min-width: 800px;*/ /* Giữ bảng không vỡ layout */
-    /*}
-
-    .btn {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.9rem;
-    }
-}*/
-
-/* =========================================
-   1. BẢNG MÀU & CẤU HÌNH CHUNG (THEME MỚI)
+   1. GHI ĐÈ BẢNG MÀU BOOTSTRAP (GLOBAL THEME)
    ========================================= */
 :root {
-    /* Màu chủ đạo */
-    --brand-orange: #F97316; /* Cam hiện đại (Tailwind Orange-500) */
-    --brand-orange-hover: #EA580C; /* Cam đậm khi hover */
-    --brand-orange-light: #FFF7ED; /* Cam rất nhạt cho nền Active/Hover */
-
-    --brand-green: #10B981; /* Xanh lá ngọc (Tailwind Emerald-500) */
-    --brand-green-hover: #059669; /* Xanh lá đậm khi hover */
-    --brand-green-light: #ECFDF5; /* Xanh lá rất nhạt */
-
-    --bg-body: #F8FAFC; /* Trắng xám nhạt (Màu nền toàn trang) */
-    --text-main: #334155; /* Xám than (Dễ đọc hơn màu đen tuyền) */
-    /* Cấu hình Bo góc (Rounded) */
-    --radius-card: 16px;
-    --radius-btn: 10px;
-    --radius-input: 10px;
-}
-
-html {
-    position: relative;
-    min-height: 100%;
-    font-size: 15px;
+    /* Đổi màu Primary thành Cam */
+    --bs-primary: #f47b25;
+    --bs-primary-rgb: 244, 123, 37;
+    /* Đổi màu Success thành Xanh lá ngọc */
+    --bs-success: #10b981;
+    --bs-success-rgb: 16, 185, 129;
+    /* Nền toàn trang và màu chữ */
+    --bs-body-bg: #f8f7f5;
+    --bs-body-color: #334155;
+    --bs-border-color: #e2e8f0;
+    /* Bo góc chuẩn xác như bản thiết kế */
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
 }
 
 body {
-    background-color: var(--bg-body);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    color: var(--text-main);
-    margin-bottom: 60px;
+    font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bs-body-bg);
 }
 
 /* =========================================
-   2. KHUNG CARD & BÓNG ĐỔ (SOFT UI)
-   ========================================= */
-.card {
-    border-radius: var(--radius-card);
-    border: none;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); /* Bóng đổ rất mờ và mềm */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Các form input */
-.form-control, .form-select {
-    border-radius: var(--radius-input);
-    border: 1px solid #E2E8F0;
-    padding: 0.6rem 1rem;
-}
-
-    .form-control:focus, .form-select:focus {
-        border-color: var(--brand-orange);
-        box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.15);
-    }
-
-/* =========================================
-   3. NÚT BẤM (BUTTONS) - Bo góc, Đổi màu
+   2. TÙY CHỈNH NÚT BẤM (BUTTONS)
    ========================================= */
 .btn {
-    border-radius: var(--radius-btn);
+    border-radius: var(--border-radius-sm);
     font-weight: 600;
-    padding: 0.5rem 1.2rem;
+    padding: 0.5rem 1.25rem;
     transition: all 0.2s ease;
 }
 
-/* Nút Cam (Hành động chính: Lưu, Đăng nhập, Thêm mới) */
-.btn-brand-orange {
-    background-color: var(--brand-orange);
-    color: white;
-    border: none;
-    box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(244, 123, 37, 0.2);
 }
 
-    .btn-brand-orange:hover {
-        background-color: var(--brand-orange-hover);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(249, 115, 22, 0.35);
+    .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+        background-color: #e0691b !important;
+        border-color: #e0691b !important;
+        box-shadow: 0 6px 15px rgba(244, 123, 37, 0.3) !important;
     }
 
-/* Nút Xanh lá (Hoàn thành, Thành công, File Excel) */
-.btn-brand-green {
-    background-color: var(--brand-green);
-    color: white;
-    border: none;
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+/* =========================================
+   3. TÙY CHỈNH CARD & FORM
+   ========================================= */
+.card {
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    background-color: #ffffff;
 }
 
-    .btn-brand-green:hover {
-        background-color: var(--brand-green-hover);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
+.form-control, .form-select {
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--bs-border-color);
+    padding: 0.6rem 1rem;
+    box-shadow: none !important;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(244, 123, 37, 0.15) !important;
     }
 
-/* Text & Bg Colors Ultilities */
-.text-orange {
-    color: var(--brand-orange) !important;
+/* =========================================
+   4. TÙY CHỈNH NAVBAR CHUNG
+   ========================================= */
+.navbar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid var(--bs-border-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
 }
 
-.text-green {
-    color: var(--brand-green) !important;
+.navbar-brand {
+    font-weight: 800;
+    color: #334155 !important;
 }
 
-.bg-orange {
-    background-color: var(--brand-orange) !important;
-    color: white;
+.brand-highlight {
+    color: var(--bs-primary); /* Chữ nổi bật màu cam */
 }
 
-.bg-green {
-    background-color: var(--brand-green) !important;
-    color: white;
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }

@@ -5,7 +5,7 @@
 }
 
 <div class="container-fluid px-4">
-    <h1 class="mt-4">Quản lý Kết quả Thi</h1>
+    <h1 class="mt-4 text-primary">Quản lý Kết quả Thi</h1>
 
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-white py-3">
@@ -95,19 +95,41 @@
 
 @section Scripts {
     <script>
-        function confirmDelete(id) {
+               function confirmDelete(id) {
             Swal.fire({
                 title: 'Xóa kết quả?',
                 text: "Dữ liệu bài làm này sẽ bị xóa vĩnh viễn!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Xóa ngay',
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Gọi action xóa nếu bạn có cài đặt
-                    window.location.href = `/Admin/ExamResults/Delete/${id}`;
+
+                    // Dùng Fetch API gửi request POST
+                    fetch(`/Admin/ExamResults/Delete/${id}`, {
+                        method: 'POST'
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            Swal.fire(
+                                'Đã xóa!',
+                                'Dữ liệu bài làm đã được xóa.',
+                                'success'
+                            ).then(() => {
+                                // Tải lại trang để cập nhật danh sách
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xóa.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Lỗi!', 'Không thể kết nối tới máy chủ.', 'error');
+                    });
+
                 }
             })
         }
