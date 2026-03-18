@@ -1,70 +1,147 @@
 ﻿@{
-    ViewData["Title"] = "Import Dữ Liệu";
+    ViewData["Title"] = "Nhập Dữ Liệu";
 }
 
-<div class="container py-5">
+@section Styles {
+    <style>
+        /* Hiệu ứng hover nổi lên */
+        .hover-up {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .hover-up:hover:not(:disabled) {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+            }
+
+        /* Style cho khung tải file */
+        .custom-file-upload {
+            border: 2px dashed #cbd5e1;
+            border-radius: 1rem;
+            padding: 1.5rem 1rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+
+            .custom-file-upload:hover, .custom-file-upload:focus-within {
+                border-color: var(--bs-primary, #f47b25);
+                background-color: #fffaf6;
+            }
+
+        /* Nút bị vô hiệu hóa */
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Tùy chỉnh thanh cuộn bảng lỗi */
+        .error-table-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .error-table-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .error-table-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* Hiệu ứng nhịp đập cho nút thành công */
+        @@keyframes pulse-success {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse-success 2s infinite;
+        }
+    </style>
+}
+
+<div class="container py-4 px-lg-5">
     <div class="text-center mb-5">
-        <h2 class="fw-bold text-primary"><i class="fa fa-cloud-upload me-2"></i>Import Dữ Liệu Từ Excel</h2>
-        <p class="text-muted">Hệ thống hỗ trợ nhập câu hỏi Grammar, Reading, Listening và Writing.</p>
+        <h2 class="fw-bold mb-2" style="color: var(--bs-primary, #f47b25);">
+            <i class="bi bi-cloud-arrow-up-fill me-2"></i>Nhập Dữ Liệu Từ Excel
+        </h2>
+        <p class="text-muted">Hệ thống hỗ trợ nhập câu hỏi Grammar, Reading, Listening, Writing và Speaking.</p>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-5 mb-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white py-3 border-bottom-0">
-                    <h5 class="fw-bold text-primary mb-0"><i class="fa fa-upload me-2"></i>Tải file lên</h5>
+    <div class="row justify-content-center g-4">
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center rounded-top-4">
+                    <i class="bi bi-file-earmark-spreadsheet-fill fs-4 me-2" style="color: var(--bs-success, #10b981);"></i>
+                    <h5 class="fw-bold text-dark mb-0">Tải file lên</h5>
                 </div>
+
                 <div class="card-body p-4">
                     <form id="uploadForm">
                         @Html.AntiForgeryToken()
 
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-dark">Chọn file Excel (.xlsx)</label>
-                            <div class="input-group input-group-lg">
-                                <input type="file" id="fileInput" name="file" class="form-control" accept=".xlsx" required onchange="resetState()" />
+                            <label class="form-label fw-bold text-muted small text-uppercase">Chọn file Excel (.xlsx)</label>
+                            <div class="custom-file-upload text-center">
+                                <i class="bi bi-file-earmark-excel text-muted fs-1 mb-2 d-block opacity-50"></i>
+                                <input type="file" id="fileInput" name="file" class="form-control border-0 bg-transparent shadow-none" accept=".xlsx" required onchange="resetState()" />
                             </div>
-                            <div class="form-text mt-2"><i class="fa fa-info-circle text-info"></i> Hệ thống tự nhận diện loại câu hỏi qua ô <strong>A6</strong>.</div>
+                            <div class="form-text mt-2 small text-muted">
+                                <i class="bi bi-info-circle-fill text-info me-1"></i> Hệ thống tự nhận diện loại câu hỏi qua ô <strong>A6</strong>.
+                            </div>
                         </div>
 
                         <div class="d-grid gap-3">
-                            <button type="button" onclick="submitAjax('check')" class="btn btn-warning btn-lg fw-bold text-dark shadow-sm hover-up">
-                                <i class="fa fa-stethoscope me-2"></i> KIỂM TRA LỖI
+                            <button type="button" onclick="submitAjax('check')" class="btn text-white btn-lg fw-bold shadow-sm rounded-pill hover-up" style="background-color: var(--bs-primary, #f47b25);">
+                                <i class="bi bi-shield-check me-2 fs-5 align-middle"></i> KIỂM TRA LỖI
                             </button>
 
-                            <button type="button" id="btnSave" onclick="submitAjax('save')" class="btn btn-secondary btn-lg fw-bold shadow-sm" disabled>
-                                <i class="fa fa-save me-2"></i> NHẬP DỮ LIỆU
+                            <button type="button" id="btnSave" onclick="submitAjax('save')" class="btn btn-secondary btn-lg fw-bold shadow-sm rounded-pill" disabled>
+                                <i class="bi bi-database-fill-up me-2 fs-5 align-middle"></i> NHẬP DỮ LIỆU
                             </button>
                         </div>
                     </form>
 
-                    <hr class="my-4 opacity-25">
+                    <hr class="my-4 opacity-10">
 
                     <div>
-                        <h6 class="fw-bold text-secondary mb-3"><i class="fa fa-download me-1"></i> Tải file mẫu chuẩn:</h6>
+                        <h6 class="fw-bold text-dark mb-3 small text-uppercase"><i class="bi bi-download me-1"></i> Tải file mẫu chuẩn:</h6>
                         <div class="row g-2">
                             <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Grammar" })" class="btn btn-outline-secondary w-100 text-start btn-sm">
-                                    <i class="fa fa-font me-2 text-primary"></i> Grammar
+                                <a href="@Url.Action("DownloadTemplate", new { type = "Grammar" })" class="btn btn-light border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
+                                    <i class="bi bi-cursor-text me-2 fs-6 align-middle" style="color: var(--bs-primary);"></i> Grammar
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Reading" })" class="btn btn-outline-secondary w-100 text-start btn-sm">
-                                    <i class="fa fa-book me-2 text-warning"></i> Reading
+                                <a href="@Url.Action("DownloadTemplate", new { type = "Reading" })" class="btn btn-light border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
+                                    <i class="bi bi-book me-2 fs-6 align-middle text-warning"></i> Reading
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Listening" })" class="btn btn-outline-secondary w-100 text-start btn-sm">
-                                    <i class="fa fa-headphones me-2 text-danger"></i> Listening
+                                <a href="@Url.Action("DownloadTemplate", new { type = "Listening" })" class="btn btn-light border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
+                                    <i class="bi bi-headphones me-2 fs-6 align-middle text-danger"></i> Listening
                                 </a>
                             </div>
                             <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Writing" })" class="btn btn-outline-secondary w-100 text-start btn-sm">
-                                    <i class="fa fa-pencil me-2 text-success"></i> Writing
+                                <a href="@Url.Action("DownloadTemplate", new { type = "Writing" })" class="btn btn-light border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
+                                    <i class="bi bi-pencil-square me-2 fs-6 align-middle text-success"></i> Writing
                                 </a>
                             </div>
-                            <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Speaking" })" class="btn btn-outline-secondary w-100 text-start btn-sm">
-                                    <i class="fa fa-mic me-2 text-success"></i> Speaking
+                            <div class="col-12">
+                                <a href="@Url.Action("DownloadTemplate", new { type = "Speaking" })" class="btn btn-light border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
+                                    <i class="bi bi-mic me-2 fs-6 align-middle" style="color: #6f42c1;"></i> Speaking
                                 </a>
                             </div>
                         </div>
@@ -74,72 +151,77 @@
         </div>
 
         <div class="col-lg-7 mb-4">
-            <div id="loadingArea" class="text-center py-5 d-none bg-white rounded shadow-sm h-100 d-flex flex-column justify-content-center align-items-center">
-                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-                <h5 class="mt-3 fw-bold text-primary">Đang phân tích dữ liệu...</h5>
+
+            <div id="loadingArea" class="text-center py-5 d-none bg-white rounded-4 shadow-sm border-0 h-100 d-flex flex-column justify-content-center align-items-center">
+                <div class="spinner-border mb-3" style="width: 3.5rem; height: 3.5rem; color: var(--bs-primary, #f47b25);" role="status"></div>
+                <h5 class="fw-bold text-dark">Đang phân tích dữ liệu...</h5>
                 <p class="text-muted">Vui lòng đợi trong giây lát.</p>
             </div>
 
-            <div id="resultArea" class="card shadow-sm border-0 h-100">
-                <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold text-dark mb-0"><i class="fa fa-file-text-o me-2"></i>Kết quả phân tích</h5>
-                    <span id="statusBadge" class="badge bg-secondary rounded-pill px-3">Chờ xử lý</span>
+            <div id="resultArea" class="card shadow-sm border-0 h-100 rounded-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center rounded-top-4">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard2-data-fill me-2" style="color: var(--bs-success, #10b981);"></i>Kết quả phân tích</h5>
+                    <span id="statusBadge" class="badge bg-secondary rounded-pill px-3 py-2 fw-normal">Chờ xử lý</span>
                 </div>
 
-                <div class="card-body p-0 position-relative">
+                <div class="card-body p-4 position-relative">
+
                     <div id="emptyState" class="text-center py-5 px-4 h-100 d-flex flex-column justify-content-center">
-                        <i class="fa fa-arrow-circle-left text-muted fa-4x mb-3 opacity-25"></i>
-                        <h5 class="text-secondary fw-bold">Chưa có dữ liệu</h5>
-                        <p class="text-muted small">Vui lòng chọn file và bấm nút "Kiểm tra lỗi" để bắt đầu.</p>
+                        <i class="bi bi-arrow-left-circle-fill text-muted" style="font-size: 5rem; opacity: 0.15;"></i>
+                        <h5 class="text-dark fw-bold mt-3">Chưa có dữ liệu</h5>
+                        <p class="text-muted small">Vui lòng chọn file và bấm "Kiểm tra lỗi" để bắt đầu.</p>
                     </div>
 
-                    <div id="contentState" class="p-4 d-none">
-                        <div id="messageBox" class="alert d-none mb-4 shadow-sm"></div>
+                    <div id="contentState" class="d-none">
+                        <div id="messageBox" class="alert d-none mb-4 shadow-sm border-0 rounded-3"></div>
 
                         <div id="checkSuccessArea" class="text-center py-4 d-none">
                             <div class="mb-3">
-                                <i class="fa fa-check-circle text-success fa-5x shadow rounded-circle"></i>
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 6rem; text-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);"></i>
                             </div>
                             <h3 class="fw-bold text-success mb-2">File Hợp Lệ 100%!</h3>
-                            <p id="successDetailText" class="text-muted fs-5">Dữ liệu chuẩn.</p>
-                            <hr class="w-50 mx-auto my-4 opacity-25">
-                            <button type="button" onclick="submitAjax('save')" class="btn btn-success btn-lg px-5 shadow fw-bold hover-up animate__animated animate__pulse animate__infinite">
-                                <i class="fa fa-cloud-upload me-2"></i> NHẬP NGAY
+                            <p id="successDetailText" class="text-muted fs-5">Dữ liệu chuẩn, sẵn sàng nhập vào hệ thống.</p>
+
+                            <hr class="w-50 mx-auto my-4 opacity-10">
+
+                            <button type="button" onclick="submitAjax('save')" class="btn text-white btn-lg px-5 shadow-sm fw-bold rounded-pill hover-up pulse-animation" style="background-color: var(--bs-success, #10b981);">
+                                <i class="bi bi-database-fill-up me-2"></i> NHẬP NGAY
                             </button>
                         </div>
 
                         <div id="errorArea" class="d-none">
                             <div class="row g-3 mb-4 text-center">
                                 <div class="col-6">
-                                    <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-3">
+                                    <div class="p-3 bg-danger bg-opacity-10 border-0 rounded-4 shadow-sm">
                                         <h2 class="text-danger fw-bold m-0" id="invalidCount">0</h2>
                                         <small class="text-danger fw-bold text-uppercase">Dòng Lỗi</small>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-3">
+                                    <div class="p-3 bg-success bg-opacity-10 border-0 rounded-4 shadow-sm">
                                         <h2 class="text-success fw-bold m-0" id="validCount">0</h2>
                                         <small class="text-success fw-bold text-uppercase">Dòng Hợp Lệ</small>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="fw-bold text-danger m-0"><i class="fa fa-exclamation-triangle me-1"></i> Chi tiết lỗi:</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-danger m-0"><i class="bi bi-exclamation-triangle-fill me-1"></i> Chi tiết lỗi cần sửa:</h6>
                             </div>
 
-                            <div class="table-responsive border rounded shadow-sm" style="max-height: 350px; overflow-y: auto;">
-                                <table class="table table-hover table-striped mb-0 align-middle">
+                            <div class="table-responsive border border-danger border-opacity-25 rounded-4 shadow-sm error-table-container" style="max-height: 320px; overflow-y: auto;">
+                                <table class="table table-hover mb-0 align-middle">
                                     <thead class="table-light sticky-top">
                                         <tr>
-                                            <th class="text-center bg-light border-bottom" width="80">Dòng</th>
-                                            <th class="bg-light border-bottom">Nội dung lỗi</th>
+                                            <th class="text-center bg-light border-bottom text-muted" width="80">Dòng</th>
+                                            <th class="bg-light border-bottom text-muted">Mô tả lỗi</th>
                                         </tr>
                                     </thead>
                                     <tbody id="errorTableBody"></tbody>
                                 </table>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -149,28 +231,26 @@
 
 @section Scripts {
     <script>
-        // Hàm reset giao diện khi chọn file mới
+        // 1. Hàm reset giao diện khi người dùng đổi file Excel khác
         function resetState() {
-            // 1. Ẩn kết quả cũ
             document.getElementById('contentState').classList.add('d-none');
             document.getElementById('emptyState').classList.remove('d-none');
 
-            // 2. Khóa nút Save
             var btnSave = document.getElementById('btnSave');
             btnSave.disabled = true;
-            btnSave.classList.remove('btn-success', 'animate__animated', 'animate__pulse');
-            btnSave.classList.add('btn-secondary');
+            btnSave.className = "btn btn-secondary btn-lg fw-bold shadow-sm rounded-pill";
+            btnSave.style.backgroundColor = "";
 
-            // 3. Reset Badge
             var badge = document.getElementById('statusBadge');
-            badge.className = "badge bg-secondary rounded-pill px-3";
+            badge.className = "badge bg-secondary rounded-pill px-3 py-2 fw-normal";
             badge.innerText = "Chờ xử lý";
         }
 
+        // 2. Gửi AJAX (Check hoặc Save)
         function submitAjax(mode) {
             var fileInput = document.getElementById('fileInput');
             if (fileInput.files.length === 0) {
-                alert("Vui lòng chọn file Excel trước!");
+                Swal.fire('Chú ý', 'Vui lòng chọn file Excel trước!', 'warning');
                 return;
             }
 
@@ -180,11 +260,10 @@
             formData.append("file", fileInput.files[0]);
             formData.append("mode", mode);
 
-            // CSRF
             var token = document.querySelector('input[name="__RequestVerificationToken"]');
             if (token) formData.append("__RequestVerificationToken", token.value);
 
-            // UI Loading
+            // Giao diện loading
             document.getElementById('loadingArea').classList.remove('d-none');
             document.getElementById('resultArea').classList.add('d-none');
 
@@ -196,16 +275,25 @@
                 renderResult(data, mode);
             })
             .catch(err => {
-                alert("Lỗi kết nối: " + err);
+                Swal.fire('Lỗi kết nối', err.toString(), 'error');
                 document.getElementById('loadingArea').classList.add('d-none');
                 document.getElementById('resultArea').classList.remove('d-none');
             });
         }
 
+        // 3. Xử lý kết quả trả về và hiển thị lên giao diện
         function renderResult(data, mode) {
             if (mode === 'save' && data.redirectUrl) {
-                alert(data.message);
-                window.location.href = data.redirectUrl;
+                // Dùng SweetAlert2 để báo thành công khi lưu xong
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Nhập dữ liệu thành công!',
+                    text: data.message || 'Hệ thống đang chuyển hướng...',
+                    showConfirmButton: false,
+                    timer: 2000
+                }).then(() => {
+                    window.location.href = data.redirectUrl;
+                });
                 return;
             }
 
@@ -215,50 +303,45 @@
             var validCount = data.validCount || data.ValidCount || 0;
             var invalidCount = data.invalidCount || data.InvalidCount || 0;
 
-            // UI Elements
             var btnSave = document.getElementById('btnSave');
             var badge = document.getElementById('statusBadge');
 
-            // Hiện vùng kết quả
             document.getElementById('emptyState').classList.add('d-none');
             document.getElementById('contentState').classList.remove('d-none');
             document.getElementById('messageBox').classList.add('d-none');
             document.getElementById('checkSuccessArea').classList.add('d-none');
             document.getElementById('errorArea').classList.add('d-none');
 
-            // --- LOGIC MỞ KHÓA NÚT SAVE ---
+            // NẾU HỢP LỆ HOÀN TOÀN
             if (isSuccess && mode === 'check') {
-                // 1. Nếu kiểm tra thành công -> Mở khóa nút
                 btnSave.disabled = false;
-                btnSave.classList.remove('btn-secondary');
-                btnSave.classList.add('btn-success', 'animate__animated', 'animate__pulse'); // Thêm hiệu ứng
+                btnSave.className = "btn text-white btn-lg fw-bold shadow-sm rounded-pill hover-up pulse-animation";
+                btnSave.style.backgroundColor = "var(--bs-success, #10b981)";
 
-                // Badge
-                badge.className = "badge bg-success rounded-pill px-3";
-                badge.innerText = "Hợp Lệ";
+                badge.className = "badge bg-success rounded-pill px-3 py-2 fw-normal shadow-sm";
+                badge.innerText = "Hợp Lệ 100%";
 
-                // Show Success Area
                 var successArea = document.getElementById('checkSuccessArea');
                 successArea.classList.remove('d-none');
                 document.getElementById('successDetailText').innerText = message;
             }
+            // NẾU CÓ LỖI HOẶC RỖNG
             else {
-                // 2. Nếu có lỗi hoặc file rỗng -> Khóa nút
                 btnSave.disabled = true;
-                btnSave.classList.remove('btn-success', 'animate__animated', 'animate__pulse');
-                btnSave.classList.add('btn-secondary');
+                btnSave.className = "btn btn-secondary btn-lg fw-bold shadow-sm rounded-pill";
+                btnSave.style.backgroundColor = "";
 
                 if (errors.length > 0) {
-                    badge.className = "badge bg-danger rounded-pill px-3";
-                    badge.innerText = "Có Lỗi";
+                    badge.className = "badge bg-danger rounded-pill px-3 py-2 fw-normal shadow-sm";
+                    badge.innerText = "Phát hiện Lỗi";
 
                     document.getElementById('errorArea').classList.remove('d-none');
                     document.getElementById('validCount').innerText = validCount;
                     document.getElementById('invalidCount').innerText = invalidCount;
 
                     var msgBox = document.getElementById('messageBox');
-                    msgBox.className = "alert alert-danger border-danger border-opacity-25 d-flex align-items-center";
-                    msgBox.innerHTML = '<i class="fa fa-times-circle me-2 fs-4"></i><div>' + message + '</div>';
+                    msgBox.className = "alert bg-danger bg-opacity-10 border-0 d-flex align-items-center rounded-3 shadow-sm";
+                    msgBox.innerHTML = `<i class="bi bi-x-circle-fill text-danger me-3 fs-4"></i><div class="text-danger fw-bold">${message}</div>`;
                     msgBox.classList.remove('d-none');
 
                     var tbody = document.getElementById('errorTableBody');
@@ -267,33 +350,22 @@
                         var r = err.row || err.Row;
                         var m = err.errorMessage || err.ErrorMessage;
                         tbody.innerHTML += `<tr>
-                            <td class="text-center fw-bold text-danger border-end">${r}</td>
-                            <td class="text-danger"><i class="fa fa-bug me-2 opacity-50"></i>${m}</td>
+                            <td class="text-center fw-bold text-danger border-end bg-white">#${r}</td>
+                            <td class="text-danger bg-white"><i class="bi bi-bug-fill me-2 opacity-50"></i>${m}</td>
                         </tr>`;
                     });
-                } else {
-                    badge.className = "badge bg-warning text-dark rounded-pill px-3";
+                }
+                // CẢNH BÁO KHÁC (VD file trống)
+                else {
+                    badge.className = "badge bg-warning text-dark rounded-pill px-3 py-2 fw-normal shadow-sm";
                     badge.innerText = "Cảnh báo";
+
                     var msgBox = document.getElementById('messageBox');
-                    msgBox.className = "alert alert-warning border-warning border-opacity-25 d-flex align-items-center";
-                    msgBox.innerHTML = '<i class="fa fa-exclamation-triangle me-2 fs-4"></i><div>' + message + '</div>';
+                    msgBox.className = "alert bg-warning bg-opacity-10 border-0 d-flex align-items-center rounded-3 shadow-sm";
+                    msgBox.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning me-3 fs-4"></i><div class="text-dark fw-bold">${message}</div>`;
                     msgBox.classList.remove('d-none');
                 }
             }
         }
     </script>
-    <style>
-        .hover-up {
-            transition: transform 0.2s;
-        }
-
-            .hover-up:hover {
-                transform: translateY(-3px);
-            }
-        /* Style cho nút bị disable */
-        .btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-    </style>
 }

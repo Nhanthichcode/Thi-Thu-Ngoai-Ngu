@@ -203,7 +203,31 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Thêm vào ExamStructuresController.cs
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {          
+            var examStructure = await _context.ExamStructures
+                .Include(e => e.Parts)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (examStructure == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy cấu trúc này!" });
+            }
+
+            try
+            {
+                // Khi xóa ExamStructure, EF Core sẽ tự động xóa các StructurePart bên trong
+                _context.ExamStructures.Remove(examStructure);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> GenerateStructureAjax(int structureId, int skillType)
@@ -259,7 +283,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             _context.StructureParts.AddRange(newParts);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = $"Đã thêm {newParts.Count} phần thi mẫu cho {skill}!" });
+            return Json(new { success = true });
         }
 
         [HttpPost]
@@ -274,13 +298,13 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
             if (!partsToDelete.Any())
             {
-                return Json(new { success = false, message = $"Không tìm thấy phần thi {skill} nào để xóa." });
+                return Json(new { success = false, message = "Không tồn tại phần thi cần xóa" });
             }
 
             _context.StructureParts.RemoveRange(partsToDelete);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = $"Đã xóa sạch các phần thi thuộc {skill}!" });
+            return Json(new { success = true, message="Xóa các phần thi thành công"});
         }
 
     }

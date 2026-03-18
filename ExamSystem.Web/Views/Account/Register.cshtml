@@ -7,125 +7,63 @@
     var loginProviders = schemes.ToList();
 }
 
-<style>
-    /* Dùng chung style với Login để đồng bộ */
-    .auth-card {
-        border: none;
-        border-radius: 1rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        overflow: hidden;
-    }
-
-    .auth-header {
-        background: linear-gradient(135deg, var(--brand-red) 0%, #a00000 100%);
-        padding: 2rem 1rem;
-        text-align: center;
-        color: white;
-    }
-
-    .input-icon {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #adb5bd;
-        z-index: 4;
-    }
-
-    .password-toggle {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        cursor: pointer;
-        color: var(--brand-red);
-        z-index: 4;
-    }
-
-    .form-floating > .form-control {
-        padding-left: 2.5rem;
-    }
-
-    .form-floating > label {
-        padding-left: 2.5rem;
-    }
-</style>
-
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
+        <div class="col-md-7 col-lg-6 col-xl-5">
             <div class="card auth-card">
-                <div class="auth-header">
-                    <h3 class="fw-bold text-black text-uppercase m-0">Đăng Ký Tài Khoản</h3>                  
+                <div class="auth-header mb-4">
+                    <h3 class="fw-bold mb-1">Tạo Tài Khoản Mới</h3>
+                    <p class="mb-0 text-white-50 small">Tham gia hệ thống thi trực tuyến ngay hôm nay!</p>
                 </div>
 
-                <div class="card-body p-4 pt-4">
-                    <form asp-action="Register" method="post">
+                <div class="card-body p-4 pt-0">
+                    <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center"></div>
 
-                        @if (!ViewData.ModelState.IsValid)
-                        {
-                            <div class="alert alert-danger border-0 bg-danger bg-opacity-10 d-flex align-items-center mb-3">
-                                <i class="bi bi-exclamation-octagon-fill text-danger fs-4 me-3"></i>
-                                <div class="small text-danger fw-bold">
-                                    Vui lòng kiểm tra lại thông tin bên dưới.
-                                    <div asp-validation-summary="ModelOnly" class="m-0 text-danger"></div>
-                                </div>
-                            </div>
-                        }
-
-                        <div class="form-floating mb-3">
-                            <i class="bi bi-person-fill input-icon"></i>
-                            <input asp-for="FullName" class="form-control" placeholder="Họ và tên" />
-                            <label asp-for="FullName">Họ và tên</label>
-                            <span asp-validation-for="FullName" class="text-danger small ms-2"></span>
+                        <div class="mb-3 position-relative">
+                            <i class="bi bi-person-vcard-fill input-icon"></i>
+                            <input asp-for="FullName" class="form-control form-control-lg bg-light" placeholder="Họ và tên của bạn" />
+                            <span asp-validation-for="FullName" class="text-danger small mt-1 d-block"></span>
                         </div>
 
-                        <div class="form-floating mb-3">
+                        <div class="mb-3 position-relative">
                             <i class="bi bi-envelope-fill input-icon"></i>
-                            <input asp-for="Email" class="form-control" placeholder="Email" />
-                            <label asp-for="Email">Địa chỉ Email</label>
-                            <span asp-validation-for="Email" class="text-danger small ms-2"></span>
+                            <input asp-for="Email" class="form-control form-control-lg bg-light" placeholder="Địa chỉ Email" />
+                            <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
                         </div>
 
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <i class="bi bi-lock-fill input-icon"></i>
-                                    <input asp-for="Password" type="password" class="form-control" id="regPass" placeholder="Mật khẩu" />
-                                    <label asp-for="Password">Mật khẩu</label>
-                                    <i class="bi bi-eye-slash-fill password-toggle" onclick="togglePass('regPass', 'iconPass')"></i>
-                                    <i class="bi bi-eye-slash-fill d-none" id="iconPass"></i>
-                                </div>
+                        <div class="row">
+                            <div class="col-sm-6 mb-3 position-relative">
+                                <i class="bi bi-shield-lock-fill input-icon"></i>
+                                <input asp-for="Password" class="form-control form-control-lg bg-light" placeholder="Mật khẩu" id="Password" type="password" />
+                                <i class="bi bi-eye-slash-fill password-toggle" id="togglePass1" onclick="togglePass('Password', 'togglePass1')"></i>
+                                <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <i class="bi bi-shield-lock-fill input-icon"></i>
-                                    <input asp-for="ConfirmPassword" type="password" class="form-control" id="regConfirm" placeholder="Nhập lại" />
-                                    <label asp-for="ConfirmPassword">Nhập lại</label>
-                                    <i class="bi bi-eye-slash-fill password-toggle" onclick="togglePass('regConfirm', 'iconConfirm')"></i>
-                                    <i class="bi bi-eye-slash-fill d-none" id="iconConfirm"></i>
-                                </div>
+
+                            <div class="col-sm-6 mb-4 position-relative">
+                                <i class="bi bi-shield-check input-icon"></i>
+                                <input asp-for="ConfirmPassword" class="form-control form-control-lg bg-light" placeholder="Nhập lại mật khẩu" id="ConfirmPassword" type="password" />
+                                <i class="bi bi-eye-slash-fill password-toggle" id="togglePass2" onclick="togglePass('ConfirmPassword', 'togglePass2')"></i>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small mt-1 d-block"></span>
                             </div>
                         </div>
-                        <span asp-validation-for="Password" class="text-danger small d-block mb-1"></span>
-                        <span asp-validation-for="ConfirmPassword" class="text-danger small d-block mb-3"></span>
 
-                        <button type="submit" class="btn btn-brand-primary w-100 fw-bold py-2 mt-2 shadow-sm text-uppercase">
-                            <i class="bi bi-person-plus-fill me-2"></i> Đăng Ký Ngay
+                        <button type="submit" class="btn btn-brand w-100 fw-bold py-3 mb-3 shadow-sm" style="border-radius: 0.5rem;">
+                            ĐĂNG KÝ NGAY
                         </button>
                     </form>
 
-                    @if (loginProviders.Count > 0)
+                    @if (loginProviders.Any())
                     {
-                        <div class="text-center my-3 position-relative">
-                            <hr class="text-muted opacity-25">
-                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted">Hoặc</span>
+                        <div class="position-relative text-center mb-3 mt-2">
+                            <hr class="text-muted">
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted fw-bold">HOẶC</span>
                         </div>
 
                         <form asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="text-center">
                             @foreach (var provider in loginProviders)
                             {
-                                <button type="submit" class="btn btn-outline-danger w-100 fw-bold py-2 mb-2 d-flex align-items-center justify-content-center"
+                                <button type="submit" class="btn btn-outline-success w-100 fw-bold py-2 mb-2 d-flex align-items-center justify-content-center"
                                         name="provider" value="@provider.Name">
                                     <i class="bi bi-google me-2"></i> Đăng ký bằng @provider.DisplayName
                                 </button>
@@ -134,7 +72,7 @@
                     }
                     <div class="text-center mt-4">
                         <small class="text-muted">Đã có tài khoản?</small>
-                        <a asp-action="Login" class="fw-bold text-decoration-none ms-1 text-danger">Đăng nhập</a>
+                        <a asp-action="Login" class="fw-bold text-decoration-none ms-1 auth-link">Đăng nhập</a>
                     </div>
                 </div>
             </div>
@@ -143,13 +81,9 @@
 </div>
 
 <script>
-    // Hàm toggle chung cho cả 2 ô mật khẩu
     function togglePass(inputId, iconId) {
-        // Tìm đúng icon vừa click (dựa trên event click, hoặc logic DOM đơn giản hơn)
         const input = document.getElementById(inputId);
-        // Tìm icon anh em (sibling) hoặc querySelector
-        // Cách đơn giản nhất: dùng this trong onclick, nhưng ở đây dùng selector
-        const icon = document.querySelector(`[onclick="togglePass('${inputId}', '${iconId}')"]`);
+        const icon = document.getElementById(iconId);
 
         if (input.type === "password") {
             input.type = "text";

@@ -67,36 +67,62 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
         // 2. Xóa file hoặc thư mục
         [HttpPost]
+        [ValidateAntiForgeryToken] // Thêm bảo vệ CSRF
         public IActionResult Delete(string path)
         {
             if (string.IsNullOrEmpty(path)) return BadRequest();
 
-            var uploadsRoot = Path.Combine(_env.WebRootPath, "uploads");
-            var fullPath = Path.Combine(uploadsRoot, path);
+            // 1. Dùng Path.GetFullPath để chuẩn hóa triệt để đường dẫn gốc
+            var uploadsRoot = Path.GetFullPath(Path.Combine(_env.WebRootPath, "uploads"));
 
-            // Bảo mật
-            if (!fullPath.StartsWith(uploadsRoot)) return BadRequest();
+            // 2. Dùng Path.GetFullPath để giải quyết các ký tự ../ nếu có trong biến path
+            var fullPath = Path.GetFullPath(Path.Combine(uploadsRoot, path));
+
+            // 3. Bảo mật: Chặn Path Traversal an toàn tuyệt đối
+            // Sử dụng StringComparison.OrdinalIgnoreCase để chặn việc lách luật viết hoa/thường trên Windows
+            if (!fullPath.StartsWith(uploadsRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Truy cập bị từ chối.");
+            }
 
             if (System.IO.File.Exists(fullPath))
             {
-                System.IO.File.Delete(fullPath);
-                TempData["SuccessMessage"] = "Đã xóa file.";
+                try
+                {
+                    System.IO.File.Delete(fullPath);
+                    TempData["SuccessMessage"] = "Đã xóa file thành công.";
+                }
+                catch (Exception) // Thêm Try-Catch cho File
+                {
+                    TempData["ErrorMessage"] = "Không thể xóa file (file có thể đang được sử dụng).";
+                }
             }
             else if (Directory.Exists(fullPath))
             {
                 try
                 {
                     Directory.Delete(fullPath, true); // true = xóa đệ quy cả file bên trong
-                    TempData["SuccessMessage"] = "Đã xóa thư mục.";
+                    TempData["SuccessMessage"] = "Đã xóa thư mục thành công.";
                 }
-                catch
+                catch (Exception)
                 {
-                    TempData["ErrorMessage"] = "Không thể xóa thư mục (có thể đang được sử dụng).";
+                    TempData["ErrorMessage"] = "Không thể xóa thư mục (có thể đang có file được sử dụng bên trong).";
                 }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy file hoặc thư mục cần xóa.";
             }
 
             // Quay lại thư mục cha
             var parentDir = Path.GetDirectoryName(path);
+
+            // Xử lý khi xóa file/thư mục ở ngay ngoài cùng (uploads/), parentDir sẽ bị null
+            if (string.IsNullOrEmpty(parentDir))
+            {
+                parentDir = "";
+            }
+
             return RedirectToAction(nameof(Index), new { path = parentDir });
         }
     }

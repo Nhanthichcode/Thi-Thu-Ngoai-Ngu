@@ -11,18 +11,21 @@
     }
 </style>
 
-@if (TempData["Error"] != null)
+@if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-success alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+         style="top: 60px; z-index: 1050;" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
-@if (TempData["Success"] != null)
+
+@if (TempData["ErrorMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert alert-danger alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+         style="top: 60px; z-index: 1050;" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
 
@@ -165,7 +168,7 @@
             </div>
 
             <div class="card-footer bg-light" id="addPartSection">
-                <h6 class="fw-bold text-success mb-3"><i class="bi bi-plus-circle"></i> Thêm Phần thi con mới:</h6>
+                <h6 class="fw-bold text-success mb-3"><i class="bi bi-plus-circle"></i> Thêm Phần thi mới:</h6>
 
                 <div id="add-error-msg" class="alert alert-danger py-1 px-2 mb-2 d-none" style="font-size: 0.9rem;"></div>
 
@@ -180,11 +183,11 @@
                     <div class="col-md-2">
                         <label class="small fw-bold">Kỹ năng <span class="text-danger">*</span></label>
                         <select id="add_skillType" class="form-select form-select-sm">
-                            <option value="1">🎧 Listening</option>
-                            <option value="2">📖 Reading</option>
-                            <option value="3">✍️ Writing</option>
-                            <option value="4">🗣️ Speaking</option>
-                            <option value="5">🔤 Grammar</option>
+                            <option value="1">Listening</option>
+                            <option value="2">Reading</option>
+                            <option value="3">Writing</option>
+                            <option value="4">Speaking</option>
+                            <option value="5">Grammar</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -392,8 +395,7 @@
             fetch('/Admin/ExamStructures/GenerateStructureAjax', { method: 'POST', body: formData })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    alert(data.message);
+                if (data.success) {                   
                     window.location.reload();
                 } else {
                     alert("Lỗi: " + data.message);
@@ -408,7 +410,7 @@
         function clearSkill(skillType) {
             const structureId = document.getElementById('add_structureId').value;
 
-            if(!confirm("CẢNH BÁO: Hành động này sẽ XÓA TẤT CẢ các phần thi thuộc kỹ năng bạn chọn.\n\nDữ liệu không thể khôi phục. Bạn có chắc chắn không?")) return;
+            if(!confirm("CẢNH BÁO: Hành động này sẽ XÓA TẤT CẢ các phần thi thuộc kỹ năng bạn chọn.\nDữ liệu không thể khôi phục. Bạn có chắc chắn không?")) return;
 
             const formData = new FormData();
             formData.append('structureId', structureId);
@@ -418,10 +420,13 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    alert(data.message);
-                    window.location.reload();
+                  showNotification(data.message, true);
+            // Xóa phần tử khỏi giao diện (hoặc reload lại trang sau 1 giây)
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
                 } else {
-                    alert("Lỗi: " + data.message);
+                   showNotification(data.message, false);
                 }
             })
             .catch(err => alert("Lỗi kết nối server!"));

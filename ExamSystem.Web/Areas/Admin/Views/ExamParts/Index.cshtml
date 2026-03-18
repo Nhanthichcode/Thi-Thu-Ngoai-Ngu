@@ -5,9 +5,9 @@
 
 <h1>Quản lý Phần thi</h1>
 <p><a asp-action="Create" class="btn btn-primary">Thêm phần thi mới</a></p>
-
-<table class="table table-bordered">
-    <thead>
+<div class="table-responsive border" style="height: calc(90vh - 220px); overflow-y: auto;">
+    <table class="table table-hover mb-0 align-middle" style="min-width: 1000px;">
+        <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
         <tr><th>Tên phần</th><th>Thuộc đề thi</th><th>Thứ tự</th><th>Thao tác</th></tr>
     </thead>
     <tbody>
@@ -29,3 +29,4 @@
         }
     </tbody>
 </table>
+</div>

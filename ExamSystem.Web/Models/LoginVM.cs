@@ -1,5 +1,6 @@
 ﻿using ExamSystem.Core.Entities;
 using ExamSystem.Core.Enums;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace ExamSystem.Web.Models
@@ -13,6 +14,7 @@ namespace ExamSystem.Web.Models
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
+        [DisplayName("Ghi nhớ tôi")]
         public bool RememberMe { get; set; }
     }
 }

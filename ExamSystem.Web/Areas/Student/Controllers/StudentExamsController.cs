@@ -71,8 +71,17 @@ namespace ExamSystem.Web.Areas.Student.Controllers
             Dictionary<int, string> essayAnswers)
         // Lưu ý: Tôi đã bỏ tham số audioAnswers ở đây để tự xử lý bên dưới cho chắc chắn
         {
+            var currentUser = await _userManager.GetUserAsync(User);
             var userId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
+            string studentName = currentUser.FullName ?? currentUser.UserName ?? "ThiSinh";
+
+            // Làm sạch tên sinh viên để dùng làm tên thư mục (thay khoảng trắng bằng dấu gạch dưới, xóa ký tự đặc biệt)
+            string safeStudentName = studentName.Replace(" ", "_");
+            foreach (var c in Path.GetInvalidFileNameChars())
+            {
+                safeStudentName = safeStudentName.Replace(c.ToString(), "");
+            }
 
             // 1. Khởi tạo các Dictionary để tránh Null Reference
             answers = answers ?? new Dictionary<int, int>();
@@ -102,7 +111,11 @@ namespace ExamSystem.Web.Areas.Student.Controllers
 
             // 4. CHUẨN BỊ THƯ MỤC UPLOAD
             // Chỉ tạo khi có file thực sự, nhưng ta cứ lấy đường dẫn trước
-            string uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "student_exams", userId, $"{examId}_{DateTime.Now.Ticks}");
+            string dateTimeStr = DateTime.Now.ToString("dd-MM-yyyy_HH-mm-ss");
+            string folderName = $"{safeStudentName}-{dateTimeStr}";
+
+            // Đường dẫn gốc trên server
+            string uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "student_exams", folderName);
 
             // ==========================================================================================
             // [FIX QUAN TRỌNG]: LẤY FILE THỦ CÔNG TỪ REQUEST

@@ -104,3 +104,109 @@ body {
     ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
     }
+
+
+/*đăng ký / đăng nhập*/
+/* =========================================
+   GIAO DIỆN ĐĂNG NHẬP / ĐĂNG KÝ (AUTH PAGES)
+   ========================================= */
+
+.auth-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+/* Phần Header màu Xanh lá ngọc */
+.auth-header {
+    background: linear-gradient(135deg, var(--bs-success, #10b981) 0%, #059669 100%);
+    padding: 2rem 1rem;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+    /* Mũi tên nhỏ trỏ xuống dưới góc Header */
+    .auth-header::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 10px 10px 0;
+        border-style: solid;
+        border-color: #059669 transparent transparent transparent;
+        z-index: 1;
+    }
+
+/* Tùy chỉnh Input Field */
+.form-control-lg {
+    font-size: 0.95rem;
+    padding-left: 2.5rem; /* Chừa không gian cho icon bên trái */
+    border-radius: 0.5rem;
+}
+
+    .form-control-lg:focus {
+        border-color: var(--bs-primary, #f47b25);
+        box-shadow: 0 0 0 0.25rem rgba(244, 123, 37, 0.25);
+    }
+
+/* Icon bên trong Input (Email, User, Lock...) */
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+    z-index: 4;
+}
+
+/* Nút ẩn/hiện mật khẩu (Con mắt) */
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--bs-success, #10b981);
+    z-index: 4;
+    transition: color 0.2s ease;
+}
+
+    .password-toggle:hover {
+        color: var(--bs-primary, #f47b25);
+    }
+
+/* Nút Submit chính (Cam) */
+.btn-brand {
+    background-color: var(--bs-primary, #f47b25);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+    .btn-brand:hover {
+        background-color: #e0691b;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(244, 123, 37, 0.3);
+    }
+
+/* Link điều hướng phụ (Quên mật khẩu, Đăng ký ngay) */
+.auth-link {
+    color: var(--bs-success, #10b981);
+    transition: color 0.2s ease;
+}
+
+    .auth-link:hover {
+        color: var(--bs-primary, #f47b25);
+    }
+
+.btn-brand-primary {
+    background-color: var( --bs-success);
+    color: var(--bs-body-bg);
+}
+    .btn-brand-primary:hover,active {
+        background-color: var( --bs-primary);
+        color: var(--bs-primary-rgb);
+    }

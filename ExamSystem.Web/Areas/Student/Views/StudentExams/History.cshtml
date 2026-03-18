@@ -18,8 +18,9 @@
     {
         <div class="card shadow-sm">
             <div class="card-body p-0">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light">
+                <div class="table-responsive border" style="height: calc(90vh - 220px); overflow-y: auto;">
+                    <table class="table table-hover mb-0 align-middle" style="min-width: 1000px;">
+                        <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                         <tr>
                             <th>Đề thi</th>
                             <th>Ngày thi</th>
@@ -56,6 +57,7 @@
                         }
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     }

@@ -8,13 +8,14 @@
     <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo Cấu trúc Mới</a>
 </div>
 
-<table class="table table-bordered table-hover">
-    <thead class="table-light">
+<div class="table-responsive border" style="height: calc(90vh - 220px); overflow-y: auto;">
+    <table class="table table-hover mb-0 align-middle" style="min-width: 1000px;">
+        <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
         <tr>
             <th>Tên Cấu trúc</th>
             <th>Mô tả</th>
             <th>Số phần thi</th>
-            <th width="150">Thao tác</th>
+            <th width="200">Thao tác</th>
         </tr>
     </thead>
     <tbody>
@@ -25,9 +26,53 @@
                 <td>@item.Description</td>
                 <td><span class="badge bg-secondary">@item.Parts.Count phần</span></td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Sửa</a>                  
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning"> <i class="bi bi-pencil"></i> Sửa</a>
+                        <button type="button" onclick="confirmDelete(@item.Id, '@item.Name')" class="btn btn-sm btn-danger fw-bold">
+                            <i class="bi bi-trash3"></i> Xóa
+                        </button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+</div>
+
+<script>
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'Xóa cấu trúc đề thi?',
+            html: `Bạn có chắc chắn muốn xóa cấu trúc <b>${name}</b>?<br><span class='text-danger'>Lưu ý: Toàn bộ các phần thi bên trong cũng sẽ bị xóa vĩnh viễn!</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Đồng ý xóa',
+            cancelButtonText: 'Hủy bỏ'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Gửi request POST lên server
+                fetch(`/Admin/ExamStructures/Delete/${id}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire(
+                            'Đã xóa!',
+                            'Cấu trúc đã được xóa thành công.',
+                            'success'
+                        ).then(() => {
+                            // Tải lại trang để cập nhật danh sách
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Lỗi!', 'Không thể kết nối đến máy chủ.', 'error');
+                });
+            }
+        });
+    }
+</script>

@@ -4,8 +4,8 @@
     ViewData["Title"] = "Quản lý Kết quả & Chấm điểm";
 }
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-primary">Quản lý Kết quả Thi</h1>
+<div class="container-fluid px-1">
+    <h1 class="fw-bold text-primary">Quản lý Kết quả Thi</h1>
 
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-white py-3">
@@ -13,8 +13,9 @@
             Danh sách bài làm của thí sinh
         </div>
         <div class="card-body">
-            <table class="table table-hover align-middle" id="resultsTable">
-                <thead class="table-light">
+            <div class="table-responsive border" style="height: calc(90vh - 220px); overflow-y: auto;">
+                <table class="table table-hover mb-0 align-middle" style="min-width: 1000px;">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                     <tr>
                         <th>Thí sinh</th>
                         <th>Đề thi</th>
@@ -71,6 +72,7 @@
                     }
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

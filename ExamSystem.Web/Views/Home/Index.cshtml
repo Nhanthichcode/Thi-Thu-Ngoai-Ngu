@@ -10,12 +10,13 @@
     <style>
         /* --- 1. HERO SECTION --- */
         .hero-section {
-            background: linear-gradient(135deg, #C60000 0%, #800000 100%);
+            /* Thay thế nền đỏ cũ bằng dải màu Xanh lá ngọc dựa trên biến --bs-success */
+            background: linear-gradient(135deg, var(--bs-success) 0%, #059669 100%);
             color: white;
-            border-radius: 16px;
+            border-radius: var(--border-radius-lg, 16px);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(198, 0, 0, 0.25);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
         }
 
         .hero-pattern {
@@ -25,14 +26,15 @@
             bottom: 0;
             left: 0;
             opacity: 0.15;
-            background-image: radial-gradient(circle at 2px 2px, #FFDE00 1.5px, transparent 0);
+            /* Chuyển các chấm bi màu vàng cũ sang màu trắng trong suốt để tinh tế hơn */
+            background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.5) 1.5px, transparent 0);
             background-size: 24px 24px;
         }
 
-        /* --- 2. CARDS --- */
+        /* --- 2. CARDS (Giữ nguyên cấu trúc, cập nhật màu sắc khi hover) --- */
         .feature-card {
-            border: 1px solid rgba(0,0,0,0.05);
-            border-radius: 12px;
+            border: 1px solid var(--bs-border-color);
+            border-radius: var(--border-radius-md, 12px);
             transition: all 0.3s ease;
             height: 100%;
             background: white;
@@ -45,24 +47,24 @@
             }
 
         .card-exam:hover {
-            border-color: #C60000;
-            box-shadow: 0 10px 25px rgba(198, 0, 0, 0.2) !important;
+            border-color: var(--bs-success);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15) !important;
         }
 
         .card-question:hover {
-            border-color: #FFDE00;
-            box-shadow: 0 10px 25px rgba(255, 222, 0, 0.3) !important;
+            border-color: var(--bs-primary);
+            box-shadow: 0 10px 25px rgba(244, 123, 37, 0.15) !important;
         }
 
         .card-history:hover {
             border-color: #0d6efd;
-            box-shadow: 0 10px 25px rgba(13, 110, 253, 0.2) !important;
+            box-shadow: 0 10px 25px rgba(13, 110, 253, 0.15) !important;
         }
 
         .feature-card .icon-wrapper {
             width: 64px;
             height: 64px;
-            border-radius: 12px;
+            border-radius: var(--border-radius-md, 12px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -70,60 +72,39 @@
             margin-bottom: 1.2rem;
             transition: all 0.3s;
         }
+
         /* Icon Colors */
         .card-exam .icon-wrapper {
-            background-color: #C60000;
+            background-color: var(--bs-success);
             color: white;
         }
 
         .card-question .icon-wrapper {
-            background-color: #FFDE00;
-            color: #C60000;
+            background-color: rgba(244, 123, 37, 0.1);
+            color: var(--bs-primary);
         }
 
         .card-history .icon-wrapper {
-            background-color: #0056b3;
-            color: white;
+            background-color: rgba(13, 110, 253, 0.1);
+            color: #0d6efd;
         }
 
-        /* --- 3. BUTTONS --- */
+        /* --- 3. BUTTONS (Đồng bộ với .btn-primary trong site.css) --- */
         .btn-brand-cta {
-            background-color: #FFDE00;
-            color: #C60000;
+            background-color: var(--bs-primary); /* Cam */
+            color: #ffffff;
             border: none;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            transition: all 0.3s ease;
         }
 
             .btn-brand-cta:hover {
-                background-color: #ffe63b;
-                color: #900000;
-                box-shadow: 0 4px 12px rgba(255, 222, 0, 0.4);
-            }
-
-        .btn-solid-red {
-            background-color: #C60000;
-            color: white;
-            border: none;
-        }
-
-            .btn-solid-red:hover {
-                background-color: #a00000;
-                color: white;
-                box-shadow: 0 4px 10px rgba(198, 0, 0, 0.3);
-            }
-
-        .btn-solid-yellow {
-            background-color: #FFDE00;
-            color: #C60000;
-            border: none;
-        }
-
-            .btn-solid-yellow:hover {
-                background-color: #ffe63b;
-                color: #900000;
-                box-shadow: 0 4px 10px rgba(255, 222, 0, 0.4);
+                background-color: #e0691b; /* Màu cam đậm khi hover từ site.css */
+                color: #ffffff;
+                box-shadow: 0 6px 15px rgba(244, 123, 37, 0.4);
+                transform: translateY(-2px);
             }
 
         .stretched-link {
@@ -134,13 +115,13 @@
 }
 
 <div class="container py-4">
-    <div class="p-5 mb-5 hero-section">
+    <div class="p-5 mt-5 mb-5 hero-section">
         <div class="hero-pattern"></div>
         <div class="position-relative z-1 text-center text-lg-start d-flex flex-column flex-lg-row align-items-center justify-content-between">
 
             <div>
                 <h1 class="display-4 fw-bold mb-2 text-white">Hệ thống Thi Trực tuyến</h1>
-                
+
                 <p class="fs-5 mb-4 text-white opacity-75" style="max-width: 600px;">
                     Nền tảng quản lý thi cử chuyên nghiệp. Nâng tầm ngoại ngữ - Vươn tới tương lai.
                 </p>
@@ -162,15 +143,15 @@
                 }
                 else
                 {
-                    <a asp-controller="Account" asp-action="Login" class="btn btn-brand-cta btn-brand-primary btn-lg rounded-pill px-5 py-3 shadow">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-brand-cta btn-lg rounded-pill px-5 py-3 shadow">
                         <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập ngay
                     </a>
                 }
             </div>
 
             <div class="d-none d-lg-block">
-                <i class="bi bi-laptop-fill" style="font-size: 10rem; color: #FFDE00; opacity: 0.2;"></i>
-            </div>  
+                <i class="bi bi-laptop-fill" style="font-size: 10rem; color: rgba(255, 255, 255, 0.25);"></i>
+            </div>
         </div>
     </div>
 </div>
