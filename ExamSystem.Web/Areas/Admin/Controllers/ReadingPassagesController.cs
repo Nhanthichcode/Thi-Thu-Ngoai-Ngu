@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using ExamSystem.Core.Entities;
 using ExamSystem.Infrastructure.Data;
-using ExamSystem.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ExamSystem.Web.Areas.Admin.Controllers
 {
@@ -28,6 +28,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             {
                 _context.Add(readingPassage);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã thêm bài đọc thành công.";
                 return RedirectToAction(nameof(Index));
             }
             return View(readingPassage);
@@ -67,7 +68,9 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var item = await _context.ReadingPassages.FindAsync(id);
-            if (item != null) _context.ReadingPassages.Remove(item);
+            if (item != null) { TempData["SuccessMessage"] = "Đã xóa bài đọc thành công."; }else { TempData["ErrorMessage"] = "Bài đọc không tồn tại"; }
+            _context.ReadingPassages.Remove(item);
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }

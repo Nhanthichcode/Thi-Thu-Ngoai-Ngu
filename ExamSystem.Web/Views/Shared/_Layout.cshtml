@@ -83,6 +83,12 @@
                             var fullName = user?.FullName ?? User.Identity?.Name;
                             var avatarUrl = user?.AvatarUrl;
 
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <button class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                        id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
+                                    <i class="bi bi-sun-fill text-warning"></i>
+                                </button>
+                            </li>
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                                     <div class="rounded-circle d-flex justify-content-center align-items-center me-2 user-avatar">
@@ -97,7 +103,7 @@
                                     </div>
                                     <span class="fw-bold">@fullName</span>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">                                    
                                     <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
@@ -121,22 +127,22 @@
         </nav>
     </header>
 
-    <main role="main" class="flex-grow-1 py-4">
+    <main role="main" class="flex-grow-1 pb-3">
         <div class="container">
             @RenderBody()
         </div>
     </main>
 
-    <footer class="py-4 mt-auto">
+    <footer class="border-top footer text-muted mt-auto">
         <div class="container text-center">
-            <h5 class="fw-bold text-uppercase mb-3">Thi Thử Tiếng Anh</h5>
-            <p class="small text-white-50 mb-2">Nâng tầm ngoại ngữ - Vươn tới tương lai</p>
-            <div class="mb-3">
-                <a href="#" class="text-white me-3"><i class="bi bi-facebook fs-5"></i></a>
-                <a href="#" class="text-white me-3"><i class="bi bi-youtube fs-5"></i></a>
-                <a href="#" class="text-white"><i class="bi bi-tiktok fs-5"></i></a>
-            </div>
-            <span class="text-white-50 small">&copy; @DateTime.Now.Year Thi Thử Tiếng Anh. All rights reserved.</span>
+            <h5 class="fw-bold text-uppercase mb-1">Thi Thử Tiếng Anh</h5>
+            <p class="small text-black-50 mb-2">Nâng tầm ngoại ngữ - Vươn tới tương lai</p>
+            @* <div class="mb-3">
+                <a href="#" class="text-black me-3"><i class="bi bi-facebook fs-5"></i></a>
+                <a href="#" class="text-black me-3"><i class="bi bi-youtube fs-5"></i></a>
+                <a href="#" class="text-black"><i class="bi bi-tiktok fs-5"></i></a>
+            </div> *@
+            <span class="text-black-50 small">&copy; @DateTime.Now.Year Thi Thử Tiếng Anh. All rights reserved.</span>
         </div>
     </footer>
 

@@ -38,12 +38,12 @@
                             <p class="text-muted small">Chọn mẫu cấu trúc để hệ thống tự động tạo các Phần thi (Parts) cho bạn.</p>
 
                             <select name="selectedStructureId" class="form-select form-select-lg border-primary">
-                                <option value="">-- Không dùng mẫu (Tạo thủ công) --</option>
+                                <option value=""> Tạo thủ công </option>
                                 @if (ViewBag.Structures != null)
                                 {
                                     foreach (var s in (List<ExamSystem.Core.Entities.ExamStructure>)ViewBag.Structures)
                                     {
-                                        <option value="@s.Id">📌 @s.Name</option>
+                                        <option value="@s.Id">@s.Name</option>
                                     }
                                 }
                             </select>
@@ -59,9 +59,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

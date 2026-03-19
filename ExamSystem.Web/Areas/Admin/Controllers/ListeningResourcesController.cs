@@ -38,15 +38,11 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             if (audioFile != null && audioFile.Length > 0)
             {
                 listeningResource.AudioUrl = await UploadFile(audioFile);
-            }
-            else
-            {
-                ModelState.AddModelError("AudioUrl", "Vui lòng chọn file âm thanh.");
-                return View(listeningResource);
-            }
+                TempData["SuccessMessage"] = "Đã thêm file âm thanh thành công."; }
+            else { TempData["ErrorMessage"] = "Vui Lòng chọn file âm thanh hợp lệ"; }
 
-            // BƯỚC 3: Lưu vào DB
-            if (ModelState.IsValid)
+                // BƯỚC 3: Lưu vào DB
+                if (ModelState.IsValid)
             {
                 _context.Add(listeningResource);
                 await _context.SaveChangesAsync();
@@ -149,8 +145,9 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     {
                         System.IO.File.Delete(filePath);
                     }
-                }
-
+                
+                TempData["SuccessMessage"] = "Đã xóa file âm thanh thành công."; }
+            else { TempData["ErrorMessage"] = "File âm thanh không tồn tại"; }
                 // 3. Xóa bản ghi trong Database
                 _context.ListeningResources.Remove(listeningResource);
             }

@@ -1,0 +1,69 @@
+﻿@{
+    ViewData["Title"] = "Nhập Danh Sách người dùng";
+}
+
+<div class="container py-4 px-lg-5" style="max-width: 1200px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Nhập Danh Sách Người dùng
+            </h3>
+            <span class="text-muted small">Tạo hàng loạt tài khoản từ file Excel</span>
+        </div>
+        <a asp-action="Index" class="btn btn-light border fw-bold text-muted shadow-sm rounded-pill px-4">
+            <i class="bi bi-arrow-left me-1"></i> Trở về
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4 text-center">
+            @Html.AntiForgeryToken()
+            <label for="excelFile" class="custom-file-upload d-block mb-3">
+                <i class="bi bi-cloud-arrow-up-fill text-muted opacity-50 mb-2 d-block" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold text-dark">Nhấn vào đây để chọn file Excel (.xlsx)</h5>
+                <span class="text-muted small">Cấu trúc cột: Cột 1 (Tên đăng nhập) - Cột 2 (Họ và Tên) - Cột 3 (Mật khẩu)</span>
+            </label>
+            <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls" />
+
+            <div class="alert alert-info border-0 rounded-3 shadow-sm d-inline-block text-start mb-0">
+                <i class="bi bi-info-circle-fill me-2"></i><strong>Lưu ý:</strong> Dòng đầu tiên (Tiêu đề cột) sẽ tự động bị bỏ qua. Hệ thống mặc định gán quyền <b>Học viên (Student)</b> cho các tài khoản này.
+            </div>
+        </div>
+    </div>
+
+    <div id="previewSection" class="card shadow-sm border-0 rounded-4 d-none">
+        <div class="card-header bg-white py-3 border-bottom rounded-top-4 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold text-dark mb-0"><i class="bi bi-table text-success me-2"></i>Xem trước dữ liệu</h6>
+            <span class="badge bg-primary rounded-pill px-3 py-2" id="selectedCountBadge">Đã chọn: 0 dòng</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-container m-3">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light sticky-top shadow-sm">
+                        <tr>
+                            <th class="text-center" style="width: 50px;">
+                                <input class="form-check-input shadow-sm" type="checkbox" id="checkAll_Import" checked>
+                            </th>
+                            <th style="width: 60px;" class="text-center">Dòng</th>
+                            <th>Tên đăng nhập (Email)</th>
+                            <th>Họ và Tên</th>
+                            <th>Mật khẩu</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-footer bg-light border-0 p-4 text-end rounded-bottom-4">
+            <button type="button" id="btnImport" class="btn text-white fw-bold shadow rounded-pill px-5 py-3" style="background-color: var(--bs-success, #10b981); font-size: 1.1rem;">
+                <i class="bi bi-database-fill-up me-2"></i> Tiến hành nhập dữ liệu
+            </button>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="~/js/admin_user.js"></script>

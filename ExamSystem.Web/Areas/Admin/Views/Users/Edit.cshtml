@@ -1,0 +1,114 @@
+﻿@model ExamSystem.Web.Models.EditUserViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa Người dùng";
+}
+
+<div class="container py-4 px-lg-5" style="max-width: 1100px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-person-lines-fill me-2"></i>Chỉnh sửa Người dùng
+            </h3>
+            <span class="text-muted small">Mã định danh (ID): @Model.Id</span>
+        </div>
+        <a asp-action="Index" class="btn btn-light border fw-bold text-muted shadow-sm rounded-pill px-4 hover-up">
+            <i class="bi bi-arrow-left me-1"></i> Trở về danh sách
+        </a>
+    </div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="alert alert-danger bg-danger bg-opacity-10 text-danger border-0 rounded-3 shadow-sm mb-4 fw-bold"></div>
+        }
+
+        <div class="row g-4">
+            <!-- CỘT TRÁI (Thông tin chính) -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-badge-fill text-success me-2"></i>Thông tin cá nhân</h6>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label fw-bold text-muted small text-uppercase">Email đăng nhập</label>
+                            <input asp-for="Email" class="form-control bg-light border-0 rounded-3 text-secondary fw-bold" readonly />
+                            <div class="form-text small mt-1"><i class="bi bi-lock-fill"></i> Không thể sửa Email sau khi tạo.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="FullName" class="form-label fw-bold text-muted small text-uppercase">Họ và Tên</label>
+                            <input asp-for="FullName" class="form-control shadow-sm rounded-3 border-light fw-bold" placeholder="Nhập họ tên đầy đủ..." />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label fw-bold text-muted small text-uppercase">Số điện thoại</label>
+                            <input asp-for="PhoneNumber" class="form-control shadow-sm rounded-3 border-light" placeholder="Nhập SĐT..." />
+                        </div>
+
+                        <hr class="my-5 opacity-10">
+
+                        <!-- KHU VỰC ĐỔI MẬT KHẨU -->
+                        <h6 class="fw-bold text-uppercase mb-3" style="color: var(--bs-primary, #f47b25);"><i class="bi bi-shield-lock-fill me-2"></i>Bảo mật</h6>
+                        <div class="p-4 rounded-4" style="background-color: rgba(244, 123, 37, 0.05); border: 1px dashed rgba(244, 123, 37, 0.4);">
+                            <label asp-for="NewPassword" class="form-label fw-bold text-dark small text-uppercase">Ghi đè mật khẩu mới</label>
+                            <input asp-for="NewPassword" type="text" class="form-control shadow-sm rounded-3 border-0 bg-white" placeholder="Bỏ trống nếu không muốn đổi mật khẩu..." autocomplete="off" />
+                            <div class="form-text small mt-2">Nhập vào đây sẽ <b>xóa mật khẩu cũ</b> và áp dụng mật khẩu mới.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI (Quyền & Khóa) -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-diagram-3-fill text-info me-2"></i>Vai trò & Trạng thái</h6>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+
+                        <!-- CHỌN VAI TRÒ -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-3">Phân quyền tài khoản (Chọn 1)</label>
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var role in Model.AllRoles)
+                                {
+                                    string icon = role == "Admin" ? "bi-award-fill text-danger" : (role == "Teacher" ? "bi-mortarboard-fill text-info" : "bi-person-fill text-primary");
+
+                                    <div class="form-check custom-radio p-0 m-0">
+                                        <input type="radio" asp-for="SelectedRole" value="@role" class="btn-check" id="role_@role" />
+                                        <label class="btn btn-outline-secondary w-100 text-start rounded-3 p-3 fw-bold shadow-sm d-flex align-items-center" for="role_@role">
+                                            <i class="bi @icon fs-4 me-3"></i> @role
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="flex-grow-1"></div>
+
+                        <!-- KHÓA TÀI KHOẢN -->
+                        <div class="mt-4 p-4 rounded-4" style="background-color: #f8d7da; border: 1px solid #f5c2c7;">
+                            <label class="form-label fw-bold text-danger small text-uppercase mb-3"><i class="bi bi-exclamation-triangle-fill me-1"></i> Quản lý truy cập</label>
+                            <div class="form-check form-switch fs-5 d-flex align-items-center gap-2 m-0 p-0">
+                                <input asp-for="IsLocked" class="form-check-input shadow-sm ms-0 mt-0" type="checkbox" role="switch" style="width: 50px; height: 25px; cursor: pointer;">
+                                <label asp-for="IsLocked" class="form-check-label fs-6 fw-bold ms-2 text-danger" style="cursor: pointer;">
+                                    Khóa tài khoản
+                                </label>
+                            </div>
+                            <div class="form-text small mt-2 text-danger opacity-75">Người dùng sẽ không thể đăng nhập nếu bị khóa.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-end">
+            <button type="submit" class="btn text-white fw-bold shadow rounded-pill px-5 py-3 hover-up" style="background-color: var(--bs-success, #10b981); font-size: 1.1rem;">
+                <i class="bi bi-save2-fill me-2"></i> Lưu tất cả thay đổi
+            </button>
+        </div>
+    </form>
+</div>

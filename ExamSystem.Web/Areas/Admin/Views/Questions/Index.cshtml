@@ -4,125 +4,77 @@
 
 @{
     ViewData["Title"] = "Ngân hàng Câu hỏi";
-
     var currentSkill = (ExamSkill?)(ViewData["CurrentSkill"] ?? ExamSystem.Core.Enums.ExamSkill.None);
     var currentLevel = (int?)(ViewData["CurrentLevel"] ?? 0);
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/pages/question-index.css" asp-append-version="true" />
-    <style>
-        /* 1. TỐI ƯU LAYOUT & RESPONSIVE */
-        .page-header-area {
-            /* Cố định phần header để không bị trôi */
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background-color: #f8f9fa; /* Màu nền trùng với body */
-            padding-bottom: 10px;
-            padding-top: 10px;
-        }
-
-        /* Container chứa danh sách câu hỏi: Tự động tính chiều cao còn lại */
-        .question-list-container {
-            /* Chiều cao = 100% màn hình - (Header + Filter Bar + Khoảng đệm) */
-            height: calc(100vh - 220px);
-            overflow-y: auto;
-            overflow-x: hidden; /* Ẩn thanh cuộn ngang của container cha */
-            padding-right: 5px;
-            padding-bottom: 20px;
-        }
-
-            /* Tùy chỉnh thanh cuộn cho đẹp hơn */
-            .question-list-container::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            .question-list-container::-webkit-scrollbar-track {
-                background: #f1f1f1;
-            }
-
-            .question-list-container::-webkit-scrollbar-thumb {
-                background: #c1c1c1;
-                border-radius: 4px;
-            }
-
-                .question-list-container::-webkit-scrollbar-thumb:hover {
-                    background: #a8a8a8;
-                }
-
-        /* Thu nhỏ font chữ trong bảng để hiển thị nhiều thông tin hơn (Fix lỗi zoom 75%) */
-        .table-compact td, .table-compact th {
-            font-size: 0.9rem;
-            padding: 0.5rem 0.5rem; /* Giảm padding */
-        }
-
-        .badge {
-            font-size: 0.75rem;
-        }      
-    </style>
-}
-
-<div class="page-header-area">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="page-header-area px-3 px-lg-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
         <div>
-            <h3 class="fw-bold text-primary m-0"><i class="bi bi-collection"></i> Ngân hàng Câu hỏi</h3>
+            <h3 class="fw-bold mb-1" style="color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-database-fill me-2"></i>Ngân hàng Câu hỏi
+            </h3>
             <span class="text-muted small">Quản lý kho dữ liệu đề thi</span>
         </div>
-        <div>
-            <div class="btn-group me-2 shadow-sm">
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll('show')" title="Mở tất cả">
-                    <i class="bi bi-arrows-expand"></i> <span class="d-none d-md-inline">Mở rộng</span>
+        <div class="d-flex gap-2 align-items-center">
+            <div class="btn-group bg-white rounded-pill shadow-sm p-1 border">
+                <button type="button" id="btnExpandAll" class="btn btn-sm rounded-pill px-3 fw-bold btn-theme-toggle d-none" onclick="toggleAll('show')" title="Mở tất cả">
+                    <i class="bi bi-arrows-expand"></i> <span class="d-none d-md-inline ms-1">Mở rộng</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAll('hide')" title="Thu gọn tất cả">
-                    <i class="bi bi-arrows-collapse"></i> <span class="d-none d-md-inline">Thu gọn</span>
+
+                <button type="button" id="btnCollapseAll" class="btn btn-sm rounded-pill px-3 fw-bold btn-theme-toggle" onclick="toggleAll('hide')" title="Thu gọn tất cả">
+                    <i class="bi bi-arrows-collapse"></i> <span class="d-none d-md-inline ms-1">Thu gọn</span>
                 </button>
             </div>
 
-            <a asp-action="Import" class="btn btn-outline-success btn-sm me-1 shadow-sm">
-                <i class="bi bi-file-earmark-excel"></i> Excel
+            <a asp-action="Import" class="btn bg-white border fw-bold btn-theme-toggle shadow-sm rounded-pill px-3 hover-up">
+                <i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel
             </a>
-            <a asp-action="Create" class="btn btn-primary btn-sm shadow-sm fw-bold px-3">
-                <i class="bi bi-plus-lg"></i> Thêm mới
+            <a asp-action="Create" class="btn text-white shadow-sm rounded-pill fw-bold px-4 hover-up" style="background-color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-plus-circle-fill me-1"></i> Thêm mới
             </a>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-2">
-        <div class="card-body p-2 bg-white rounded">
-            <form asp-action="Index" method="get" id="filterForm" class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="card shadow-sm border-0 rounded-4 mb-2 highlight-card">
+        <div class="card-body p-3">
+            <form asp-action="Index" method="get" id="filterForm" class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <input type="hidden" name="skillType" id="skillTypeHidden" value="@currentSkill" />
 
-                <ul class="nav nav-pills nav-fill flex-grow-1" style="font-size: 0.9rem;">
+                <ul class="nav nav-pills flex-grow-1 gap-2">
                     <li class="nav-item">
-                        <a class="nav-link py-1 @(currentSkill == ExamSkill.None ? "active" : "")"
-                           href="?skillType=@((int)ExamSkill.None)&level=@currentLevel">
-                            <i class="bi bi-grid-fill"></i> Tất cả
+                        <a class="nav-link @(currentSkill == ExamSkill.None ? "active" : "")" href="?skillType=@((int)ExamSkill.None)&level=@currentLevel">
+                            <!-- Đã bỏ điều kiện đổi thành check-circle, luôn giữ bi-grid-fill -->
+                            <i class="bi bi-grid-fill me-1"></i> Tất cả
                         </a>
                     </li>
                     @foreach (ExamSkill skill in Enum.GetValues(typeof(ExamSkill)))
                     {
                         if (skill == ExamSkill.None) continue;
                         <li class="nav-item">
-                            <a class="nav-link py-1 @(currentSkill == skill ? "active" : "")"
-                               href="?skillType=@((int)skill)&level=@currentLevel">
-                                <i class="bi bi-@((skill == ExamSkill.Reading ? "book" : (skill == ExamSkill.Listening ? "headphones" : (skill == ExamSkill.Writing ? "pencil-square" : "mic"))))"></i> @skill.ToString()
+                            <a class="nav-link @(currentSkill == skill ? "active" : "")" href="?skillType=@((int)skill)&level=@currentLevel">
+                                <!-- Chỉ giữ lại logic switch icon theo skill, bỏ điều kiện check-circle -->
+                                <i class="bi @(skill == ExamSkill.Reading ? "bi-book" : (skill == ExamSkill.Listening ? "bi-headphones" : (skill == ExamSkill.Writing ? "bi-pencil-square" : "bi-mic"))) me-1"></i> @skill.ToString()
                             </a>
                         </li>
                     }
                 </ul>
 
                 <div class="d-flex align-items-center border-start ps-3">
-                    <select name="level" id="levelSelect" class="form-select form-select-sm border-secondary" style="width: 130px;">
-                        <option value="0">-- Độ khó --</option>
-                        <option value="1" selected="@(currentLevel == 1)">🟢 Dễ</option>
-                        <option value="2" selected="@(currentLevel == 2)">🟡 Trung bình</option>
-                        <option value="3" selected="@(currentLevel == 3)">🔴 Khó</option>
+                    <select name="level" id="levelSelect" class="form-select bg-light border-0 shadow-none fw-bold text-secondary rounded-pill px-3" style="width: 150px;">
+                        <option value="0"> Độ khó </option>
+                        <option value="1" selected="@(currentLevel == 1)">Dễ</option>
+                        <option value="2" selected="@(currentLevel == 2)">Trung bình</option>
+                        <option value="3" selected="@(currentLevel == 3)">Khó</option>
                     </select>
-                    @if (currentLevel > 0 || currentSkill != ExamSkill.None)
-                    {
-                        <a asp-action="Index" class="btn btn-sm text-danger ms-1" title="Xóa bộ lọc"><i class="bi bi-x-circle-fill"></i></a>
+
+                    <!-- Dùng class invisible để chiếm không gian thay vì xóa hoàn toàn DOM -->
+                    @{
+                        bool hasFilter = currentLevel > 0 || currentSkill != ExamSkill.None;
                     }
+                    <a asp-action="Index" class="btn btn-sm text-danger ms-2 hover-up @(hasFilter ? "" : "invisible")" title="Xóa bộ lọc">
+                        <i class="bi bi-x-circle-fill fs-5"></i>
+                    </a>
                 </div>
             </form>
         </div>
@@ -131,7 +83,7 @@
 
 @if (Model != null && Model.Any())
 {
-    <div class="question-list-container">
+    <div class="question-list-container px-3 px-lg-4">
         @foreach (var group in Model)
         {
             var collapseId = "collapse-" + Guid.NewGuid();
@@ -147,43 +99,44 @@
                 _ => "border-secondary border-start border-4"
             };
 
-            <div class="card shadow-sm mb-3 group-card @groupCss">
-                <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center overflow-hidden" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#@collapseId">
-                        <i class="bi bi-chevron-down text-muted me-2 transition-icon"></i>
+            <div class="card shadow-sm mb-4 border-0 rounded-4 group-card @groupCss overflow-hidden">
 
-                        <div class="text-truncate">
+                <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom-0">
+                    <div class="d-flex align-items-center flex-grow-1" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#@collapseId">
+                        <i class="bi bi-chevron-down text-muted me-3 fs-5 transition-icon collapse-icon"></i>
+
+                        <div class="d-flex align-items-center gap-2 text-truncate">
                             @if (group.GroupType == "Reading")
                             {
-                                <span class="badge bg-info text-dark me-2">READING</span>
+                                <span class="badge bg-info bg-opacity-10 border border-info text-info rounded-pill px-2">READING</span>
                             }
                             else if (group.GroupType == "Listening")
                             {
 
-                                <span class="badge bg-warning text-dark me-2">LISTENING</span>
+                                <span class="badge bg-warning bg-opacity-10 border border-warning text-warning rounded-pill px-2">LISTENING</span>
                             }
                             else if (group.GroupType == "Writing")
                             {
 
-                                <span class="badge bg-success me-2">WRITING</span>
+                                <span class="badge bg-success bg-opacity-10 border border-success text-success rounded-pill px-2">WRITING</span>
                             }
                             else if (group.GroupType == "Speaking")
                             {
 
-                                <span class="badge bg-danger me-2">SPEAKING</span>
+                                <span class="badge bg-danger bg-opacity-10 border border-danger text-danger rounded-pill px-2">SPEAKING</span>
                             }
                             else
                             {
 
-                                <span class="badge bg-secondary me-2">GRAMMAR</span>
+                                <span class="badge bg-secondary bg-opacity-10 border border-secondary text-secondary rounded-pill px-2">GRAMMAR</span>
                             }
 
-                            <span class="fw-bold text-dark">@group.GroupTitle</span>
+                            <span class="fw-bold text-dark fs-5 text-truncate" style="max-width: 600px;" title="@group.GroupTitle">@group.GroupTitle</span>
                         </div>
-                        <span class="badge bg-light text-secondary border ms-2">@group.QuestionCount câu</span>
+                        <span class="badge bg-light text-muted border rounded-pill ms-3 px-3 py-2 shadow-sm">@group.QuestionCount câu</span>
                     </div>
 
-                    <div class="btn-group">
+                    <div class="d-flex gap-2 ms-3">
                         @{
                             string actionName = (group.GroupType == "Reading" || group.GroupType == "Listening") ? "BatchEdit" : "Edit";
                             object routeId = (group.GroupType == "Reading" || group.GroupType == "Listening") ? group.GroupId : group.Questions.FirstOrDefault()?.Id;
@@ -193,7 +146,7 @@
                         @if (routeId != null)
                         {
                             <a asp-controller="@controllerName" asp-action="@actionName" asp-route-id="@routeId" asp-route-type="@group.GroupType"
-                               class="btn btn-sm btn-outline-primary border-0" title="Sửa">
+                               class="btn btn-sm btn-light text-primary rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;" title="Sửa">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
 
@@ -201,26 +154,27 @@
                             else if (group.GroupType == "Listening") { controllerName = "ListeningResources"; routeId = group.GroupId; }
                             else { controllerName = "Questions"; routeId = group.Questions.FirstOrDefault()?.Id; }
 
-                            <a asp-controller="@controllerName" asp-action="Delete" asp-route-id="@routeId"
-                               class="btn btn-sm btn-outline-danger border-0 ms-1"
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa không?');">
-                                <i class="bi bi-trash"></i>
+                            <a href="@Url.Action("Delete", controllerName, new { id = routeId })"
+                               class="btn btn-sm btn-light text-danger rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;"
+                               title="Xóa"
+                               onclick="return confirmDelete(event, this.href, '@group.GroupTitle');">
+                                <i class="bi bi-trash3-fill"></i>
                             </a>
                         }
                     </div>
                 </div>
 
-                <div id="@collapseId" class="collapse show group-collapse-content">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0 align-middle table-compact">
-                                <thead class="table-light text-muted small text-uppercase">
+                <div id="@collapseId" class="collapse show group-collapse-content border-top">
+                    <div class="card-body p-0 bg-white">
+                        <div class="custom-table-scroll mb-3 shadow-sm">
+                            <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+                                <thead class="small">
                                     <tr>
-                                        <th style="width: 40px;" class="text-center">#</th>
-                                        <th>Nội dung câu hỏi</th>
+                                        <th style="width: 50px;" class="text-center">#</th>
+                                        <th class="ps-3">Nội dung câu hỏi</th>
                                         @if (showImageCol)
                                         {
-                                            <th style="width: 80px;" class="text-center">Ảnh</th>
+                                            <th style="width: 100px;" class="text-center">Ảnh</th>
                                         }
                                     </tr>
                                 </thead>
@@ -229,13 +183,13 @@
                                     {
                                         var q = item.value;
                                         <tr>
-                                            <td class="text-center text-muted fw-bold">@(item.i + 1)</td>
-                                            <td>
-                                                <div class="text-truncate" style="max-width: 600px;" title="@q.Content">
+                                            <td class="text-center text-muted fw-bold border-end bg-light">@(item.i + 1)</td>
+                                            <td class="ps-3">
+                                                <div class="text-dark fw-normal mb-1 text-truncate" style="max-width: 700px;" title="@q.Content">
                                                     @Html.Raw(q.Content)
                                                 </div>
-                                                <div class="mt-1 d-flex align-items-center">
-                                                    <span class="badge bg-light text-dark border me-2">Lv.@q.Level</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-light text-secondary border fw-normal px-2"><i class="bi bi-bar-chart-line-fill me-1 opacity-50"></i>Lv.@q.Level</span>
                                                     <small class="text-muted" style="font-size: 0.75rem;">ID: @q.Id</small>
                                                 </div>
                                             </td>
@@ -244,11 +198,10 @@
                                                 <td class="text-center">
                                                     @if (!string.IsNullOrEmpty(q.MediaUrl))
                                                     {
-                                                        <img src="@q.MediaUrl" style="width: 35px; height: 35px; object-fit: cover;" class="rounded border" />
+                                                        <img src="@q.MediaUrl" style="width: 40px; height: 40px; object-fit: cover;" class="rounded border shadow-sm" />
                                                     }
                                                     else
                                                     {
-
                                                         <span class="text-muted small">-</span>
                                                     }
                                                 </td>
@@ -259,12 +212,13 @@
                             </table>
                         </div>
                     </div>
+
                     @if (isResourceGroup)
                     {
-                        <div class="card-footer bg-white border-top-0 py-1 text-center">
+                        <div class="card-footer bg-light border-0 py-3 text-center">
                             <a asp-controller="Questions" asp-action="BatchEdit" asp-route-id="@group.GroupId" asp-route-type="@group.GroupType"
-                               class="text-decoration-none small fw-bold text-primary">
-                                <i class="bi bi-plus-circle"></i> Thêm câu hỏi
+                               class="text-decoration-none fw-bold" style="color: var(--bs-primary, #f47b25);">
+                                <i class="bi bi-plus-circle-fill me-1"></i> Thêm câu hỏi phụ vào nhóm này
                             </a>
                         </div>
                     }
@@ -276,36 +230,14 @@
 else
 {
     <div class="text-center py-5 mt-5">
-        <div class="mb-3"><i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i></div>
-        <h4 class="text-muted">Chưa có câu hỏi nào</h4>
-        <a asp-action="Create" class="btn btn-primary mt-2">Soạn câu hỏi mới</a>
+        <div class="mb-3"><i class="bi bi-inbox text-muted opacity-25" style="font-size: 5rem;"></i></div>
+        <h4 class="fw-bold text-dark">Chưa có câu hỏi nào</h4>
+        <p class="text-muted">Bạn chưa tạo câu hỏi nào hoặc không có dữ liệu khớp với bộ lọc hiện tại.</p>
+        <a asp-action="Create" class="btn text-white fw-bold shadow-sm rounded-pill px-4 py-2 hover-up mt-2" style="background-color: var(--bs-primary, #f47b25);">
+            <i class="bi bi-plus-circle-fill me-2"></i>Soạn câu hỏi mới ngay
+        </a>
     </div>
 }
-@section Scripts{
-<script>
-    // 1. Tự động submit khi chọn Level
-    document.getElementById('levelSelect').addEventListener('change', function() {
-        document.getElementById('filterForm').submit();
-    });
-
-    // 2. Hàm Thu gọn / Mở rộng tất cả (Dùng Bootstrap 5 API)
-    function toggleAll(action) {
-        // Lấy tất cả các phần tử collapse
-        var collapseElementList = [].slice.call(document.querySelectorAll('.group-collapse-content'));
-
-        collapseElementList.forEach(function (collapseEl) {
-            // Khởi tạo đối tượng Collapse của Bootstrap (nếu chưa có)
-            var bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
-            if (!bsCollapse) {
-                bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
-            }
-
-            if (action === 'show') {
-                bsCollapse.show();
-            } else {
-                bsCollapse.hide();
-            }
-        });
-    }
-</script>
+@section Scripts {
+    <script src="~/js/question.js"></script>
 }

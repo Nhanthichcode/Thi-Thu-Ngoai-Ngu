@@ -38,7 +38,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 // Đếm số liệu (Demo logic - bạn thay bằng query DB thực tế)               
                 TotalQuestions = await _context.Questions.CountAsync(),
                 TotalExams = await _context.Exams.CountAsync(),
-
+                TotalStudents = studentCount,
 
                 // Đếm số bài thi có câu tự luận chưa chấm
                 PendingGrades = await _context.TestAttempts

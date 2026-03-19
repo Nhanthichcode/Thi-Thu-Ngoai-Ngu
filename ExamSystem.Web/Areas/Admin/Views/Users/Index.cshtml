@@ -4,81 +4,168 @@
     ViewData["Title"] = "Quản lý Người dùng";
 }
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-primary">Quản lý Người dùng</h1>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <div>
-                <i class="bi bi-people-fill me-1"></i>
-                Danh sách tài khoản hệ thống
-            </div>
+<div class="page-header-area px-1 px-lg-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-people-fill me-2"></i>Quản lý Người dùng
+            </h3>
+            <span class="text-muted small">Danh sách tài khoản hệ thống</span>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+        <div class="d-flex gap-2 align-items-center">
+            <a asp-action="Import" class="btn bg-white border fw-bold text-muted shadow-sm rounded-pill px-3 hover-up">
+                <i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel
+            </a>
+            <a asp-action="Create" class="btn text-white shadow-sm rounded-pill fw-bold px-4 hover-up" style="background-color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-person-plus-fill me-1"></i> Thêm người dùng
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 mb-2 highlight-card">
+        <div class="card-body p-3">
+            <form method="get" asp-action="Index" class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="fw-bold text-dark d-flex align-items-center mb-2 mb-md-0">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2 shadow-sm"
+                         style="width: 36px; height: 36px; background-color: white; color: var(--bs-primary, #f47b25);">
+                        <i class="bi bi-funnel-fill"></i>
+                    </div>
+                    Bộ lọc:
+                </div>
+
+                <div class="d-flex flex-wrap flex-grow-1 gap-2 align-items-center">
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white flex-grow-1" style="min-width: 200px; max-width: 350px;">
+                        <span class="input-group-text border-0 bg-white text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="searchQuery" value="@ViewData["CurrentSearch"]" class="form-control border-0 shadow-none" placeholder="Tìm tên, email...">
+                    </div>
+
+                    <select name="role" class="form-select border-1 shadow-sm rounded-pill text-secondary fw-bold" style="width: 150px; background-color: white;">
+                        <option value=""> Mọi vai trò </option>
+                        <!option value="Admin" @(ViewData["CurrentRole"]?.ToString() == "Admin" ? "selected" : "")>Admin</!option>
+                        <!option value="Teacher" @(ViewData["CurrentRole"]?.ToString() == "Teacher" ? "selected" : "")>Giáo viên</!option>
+                        <!option value="Student" @(ViewData["CurrentRole"]?.ToString() == "Student" ? "selected" : "")>Học viên</!option>
+                    </select>
+
+                    <select name="status" class="form-select border-1 shadow-sm rounded-pill text-secondary fw-bold" style="width: 170px; background-color: white;">
+                        <option value=""> Mọi trạng thái </option>
+                        <!option value="active" @(ViewData["CurrentStatus"]?.ToString() == "active" ? "selected" : "")>Đang hoạt động</!option>
+                        <!option value="locked" @(ViewData["CurrentStatus"]?.ToString() == "locked" ? "selected" : "")>Đang bị khóa</!option>
+                    </select>
+
+                    <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm hover-up fw-bold">Áp dụng</button>
+
+                    @if (!string.IsNullOrEmpty((string)ViewData["CurrentSearch"]) || !string.IsNullOrEmpty((string)ViewData["CurrentRole"]) || !string.IsNullOrEmpty((string)ViewData["CurrentStatus"]))
+                    {
+                        <a asp-action="Index" class="btn btn-light rounded-circle shadow-sm hover-up text-danger d-flex align-items-center justify-content-center" style="width:38px; height:38px;" title="Xóa bộ lọc">
+                            <i class="bi bi-x-lg fw-bold"></i>
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="user-list-container px-3 px-lg-4">
+    <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-0 bg-white">
+            <!-- Thêm table-responsive của Bootstrap để chống tràn viền trên mobile -->
+            <div class="table-responsive custom-table-scroll mb-3 shadow-sm">
+                <table class="table mb-0 align-middle table-hover table-compact table-sticky-header">
+                    <thead class="small text-muted table-light">
                         <tr>
-                            <th>Người dùng</th>
+                            <th class="text-center" style="width: 40px;">
+                                <input class="form-check-input shadow-sm" type="checkbox" id="checkAll_Users">
+                            </th>
+                            <th class="ps-4">Thông tin người dùng</th>
                             <th>Email</th>
                             <th>Vai trò</th>
-                            <th>Trạng thái</th>
-                            <th class="text-end">Hành động</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @if (!Model.Any())
+                        {
+                            <!-- Đã sửa thành colspan="6" -->
+                            <tr><td colspan="6" class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</td></tr>
+                        }
                         @foreach (var user in Model)
                         {
                             <tr>
-                                <td>
+                                <td class="text-center">
+                                    <input class="form-check-input user-checkbox shadow-sm" type="checkbox" value="@user.Id">
+                                </td>
+
+                                <td class="ps-3">
                                     <div class="d-flex align-items-center">
                                         @if (!string.IsNullOrEmpty(user.AvatarUrl))
                                         {
-                                            <img src="@user.AvatarUrl" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;" alt="Avatar">
+                                            <img src="@user.AvatarUrl" class="rounded-circle me-3 shadow-sm border" style="width: 45px; height: 45px; object-fit: cover;" alt="Avatar">
                                         }
                                         else
                                         {
-                                            <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center me-2"
-                                                 style="width: 40px; height: 40px;">
+                                            <div class="rounded-circle d-flex justify-content-center align-items-center me-3 shadow-sm text-white fw-bold fs-5"
+                                                 style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--bs-success, #10b981) 0%, #059669 100%);">
                                                 @user.FullName.Substring(0, 1).ToUpper()
                                             </div>
                                         }
                                         <div>
-                                            <div class="fw-bold">@user.FullName</div>
-                                            <small class="text-muted">ID: @user.Id.Substring(0, 8)...</small>
+                                            <div class="fw-bold text-dark fs-6">@user.FullName</div>
+                                            <small class="text-muted" style="font-size: 0.75rem;">ID: @user.Id.Substring(0, 8)...</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td>@user.Email</td>
+
+                                <td class="text-secondary fw-bold">@user.Email</td>
+
                                 <td>
-                                    @foreach (var role in user.Roles.Split(","))
-                                    {
-                                        <span class="badge bg-info text-dark">@role.Trim()</span>
-                                    }
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var role in user.Roles.Split(","))
+                                        {
+                                            if (string.IsNullOrWhiteSpace(role)) continue;
+                                            string roleColor = role.Trim() == "Admin" ? "bg-danger" : (role.Trim() == "Teacher" ? "bg-info text-dark" : "bg-primary");
+                                            <span class="badge @roleColor bg-opacity-75 rounded-pill px-2 shadow-sm">@role.Trim()</span>
+                                        }
+                                    </div>
                                 </td>
-                                <td>
+
+                                <td class="text-center">
                                     @if (user.IsLocked)
                                     {
-                                        <span class="badge bg-danger"><i class="bi bi-lock-fill me-1"></i>Đang bị khóa</span>
+                                        <span class="badge bg-danger bg-opacity-10 border border-danger text-danger rounded-pill px-3 py-2 fw-normal shadow-sm">
+                                            <i class="bi bi-lock-fill me-1"></i> Bị khóa
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Hoạt động</span>
+                                        <span class="badge bg-success bg-opacity-10 border border-success text-success rounded-pill px-3 py-2 fw-normal shadow-sm">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Hoạt động
+                                        </span>
                                     }
                                 </td>
-                                <td class="text-end">
-                                    <div class="btn-group">
-                                        <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-sm @(user.IsLocked ? "btn-outline-success" : "btn-outline-warning")"
-                                                    title="@(user.IsLocked ? "Mở khóa" : "Khóa tài khoản")">
-                                                <i class="bi @(user.IsLocked ? "bi-unlock" : "bi-lock")"></i>
+
+                                <td class="text-end pe-4">
+                                    <div class="d-flex gap-2 justify-content-end align-items-center">
+                                        <a asp-action="Edit" asp-route-id="@user.Id"
+                                           class="btn btn-sm btn-light text-primary rounded-circle shadow-sm hover-up border"
+                                           style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square fs-6"></i>
+                                        </a>
+
+                                        <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post" class="m-0 p-0 d-inline-block">
+                                            <button type="submit" class="btn btn-sm btn-light @(user.IsLocked ? "text-success" : "text-warning") rounded-circle shadow-sm hover-up border"
+                                                    style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
+                                                    title="@(user.IsLocked ? "Mở khóa tài khoản" : "Khóa tài khoản")">
+                                                <i class="bi @(user.IsLocked ? "bi-unlock-fill" : "bi-lock-fill") fs-6"></i>
                                             </button>
                                         </form>
 
-                                        <form asp-action="Delete" asp-route-id="@user.Id" method="post" class="d-inline"
-                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa người dùng này? Thao tác này không thể hoàn tác!');">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger ms-1" title="Xóa">
-                                                <i class="bi bi-trash"></i>
+                                        <form id="delete-form-@user.Id" asp-action="Delete" asp-route-id="@user.Id" method="post" class="m-0 p-0 d-inline-block">
+                                            <button type="button" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm hover-up border"
+                                                    style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
+                                                    title="Xóa tài khoản" onclick="confirmDelete('@user.Id', '@user.FullName')">
+                                                <i class="bi bi-trash3-fill fs-6"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -91,3 +178,13 @@
         </div>
     </div>
 </div>
+
+<!-- THANH CÔNG CỤ XÓA HÀNG LOẠT (ẨN MẶC ĐỊNH) -->
+<div id="bulkActionContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow-lg rounded-pill bg-white px-4 py-3 d-flex align-items-center gap-3 d-none" style="z-index: 1050; border: 2px solid var(--bs-primary, #f47b25);">
+    <span class="fw-bold text-dark"><i class="bi bi-check2-square text-success me-2 fs-5"></i> Đã chọn <span id="selectedCount" class="text-primary fs-5 mx-1">0</span> tài khoản</span>
+    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultiple()">
+        <i class="bi bi-trash3-fill me-1"></i> Xóa tất cả
+    </button>
+</div>
+
+<script src="~/js/admin.js"></script>

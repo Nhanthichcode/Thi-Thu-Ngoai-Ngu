@@ -1,0 +1,107 @@
+﻿@model ExamSystem.Web.Models.CreateUserViewModel
+@{
+    ViewData["Title"] = "Thêm Người dùng mới";
+}
+
+<div class="container py-4 px-lg-5" style="max-width: 1100px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-person-plus-fill me-2"></i>Thêm Người dùng mới
+            </h3>
+            <span class="text-muted small">Khởi tạo tài khoản hệ thống</span>
+        </div>
+        <a asp-action="Index" class="btn btn-light border fw-bold text-muted shadow-sm rounded-pill px-4 hover-up">
+            <i class="bi bi-arrow-left me-1"></i> Trở về danh sách
+        </a>
+    </div>
+
+    <form asp-action="Create" method="post">
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="alert alert-danger bg-danger bg-opacity-10 text-danger border-0 rounded-3 shadow-sm mb-4 fw-bold"></div>
+        }
+
+        <div class="row g-4">
+            <!-- CỘT TRÁI (Thông tin chính) -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-person-badge-fill text-success me-2"></i>Thông tin tài khoản</h6>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="mb-4">
+                            <label asp-for="Email" class="form-label fw-bold text-muted small text-uppercase">Tên đăng nhập <span class="text-danger">*</span></label>
+                            <input asp-for="Email" type="text" class="form-control shadow-sm rounded-3 border-light fw-bold" placeholder="VD: nguyenvan123" />
+                            <div class="form-text small mt-1">Tên này sẽ được dùng làm <b>tên đăng nhập</b>.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="FullName" class="form-label fw-bold text-muted small text-uppercase">Họ và Tên <span class="text-danger">*</span></label>
+                            <input asp-for="FullName" class="form-control shadow-sm rounded-3 border-light fw-bold" placeholder="Nhập họ tên đầy đủ..." />
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="PhoneNumber" class="form-label fw-bold text-muted small text-uppercase">Số điện thoại</label>
+                            <input asp-for="PhoneNumber" class="form-control shadow-sm rounded-3 border-light" placeholder="Nhập SĐT (Tùy chọn)..." />
+                        </div>
+
+                        <hr class="my-4 opacity-10">
+
+                        <!-- KHU VỰC TẠO MẬT KHẨU -->
+                        <div class="p-4 rounded-4" style="background-color: rgba(16, 185, 129, 0.05); border: 1px dashed rgba(16, 185, 129, 0.4);">
+                            <label asp-for="Password" class="form-label fw-bold text-success small text-uppercase">
+                                <i class="bi bi-key-fill me-1"></i> Mật khẩu khởi tạo <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Password" type="text" class="form-control shadow-sm rounded-3 border-0 bg-white" placeholder="Tối thiểu 6 ký tự..." autocomplete="off" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI (Quyền) -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-diagram-3-fill text-info me-2"></i>Vai trò hệ thống</h6>
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column">
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-3">Phân quyền tài khoản (Chọn 1) <span class="text-danger">*</span></label>
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var role in Model.AllRoles)
+                                {
+                                    string icon = role == "Admin" ? "bi-award-fill text-danger" : (role == "Teacher" ? "bi-mortarboard-fill text-info" : "bi-person-fill text-primary");
+                                    // Mặc định chọn Student nếu có
+                                    bool isChecked = role == "Student";
+
+                                    <div class="form-check custom-radio p-0 m-0">
+                                        <input type="radio" asp-for="SelectedRole" value="@role" class="btn-check" id="role_@role" checked="@isChecked" />
+                                        <label class="btn btn-outline-secondary w-100 text-start rounded-3 p-3 fw-bold shadow-sm d-flex align-items-center" for="role_@role">
+                                            <i class="bi @icon fs-4 me-3"></i> @role
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="flex-grow-1"></div>
+
+                        <div class="alert alert-info border-0 rounded-4 shadow-sm m-0">
+                            <i class="bi bi-info-circle-fill me-2"></i>Tài khoản mới tạo sẽ được <b>kích hoạt ngay lập tức</b> và có thể sử dụng hệ thống.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-end">
+            <button type="submit" class="btn text-white fw-bold shadow rounded-pill px-5 py-3 hover-up" style="background-color: var(--bs-primary, #f47b25); font-size: 1.1rem;">
+                <i class="bi bi-person-plus-fill me-2"></i> Tạo tài khoản
+            </button>
+        </div>
+    </form>
+</div>

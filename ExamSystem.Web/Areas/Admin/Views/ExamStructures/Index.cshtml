@@ -8,26 +8,35 @@
     <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo Cấu trúc Mới</a>
 </div>
 
-<table class="table table-bordered table-hover">
-    <thead class="table-light">
+<div class="custom-table-scroll mb-3 shadow-sm">
+    <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+        <thead class="small">
         <tr>
             <th>Tên Cấu trúc</th>
             <th>Mô tả</th>
             <th>Số phần thi</th>
-            <th width="150">Thao tác</th>
+            <th width="200">Thao tác</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td class="fw-bold text-primary">@item.Name</td>
-                <td>@item.Description</td>
+                    <td class="fw-bold text-dark">@item.Name</td>
+                    <td class="text-dark"> @item.Description</td>
                 <td><span class="badge bg-secondary">@item.Parts.Count phần</span></td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Sửa</a>                  
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning"> <i class="bi bi-pencil"></i> Sửa</a>
+                        <button type="button" onclick="confirmDelete(@item.Id, '@item.Name')" class="btn btn-sm btn-danger fw-bold">
+                            <i class="bi bi-trash3"></i> Xóa
+                        </button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+</div>
+
+@section Scripts {
+    <script src="~/js/examStructures.js"></script>
+}

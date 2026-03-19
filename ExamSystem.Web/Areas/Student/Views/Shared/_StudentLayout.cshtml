@@ -20,10 +20,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/student.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="d-flex flex-column min-vh-100">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+             style="top: 60px; z-index: 1050;" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+             style="top: 60px; z-index: 1050;" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
     <header>
         <nav class="navbar navbar-expand-lg fixed-top py-2">           
             <div class="container">
@@ -58,6 +75,13 @@
                             var fullName = user?.FullName ?? User.Identity?.Name;
                             var avatarUrl = user?.AvatarUrl;
 
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <button class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                        id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
+                                    <i class="bi bi-sun-fill text-warning"></i>
+                                </button>
+                            </li>
+
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                                     <span class="me-2 fw-bold">@fullName</span>
@@ -87,9 +111,9 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <form id="logoutForm" asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                            <button type="submit" class="dropdown-item text-danger fw-bold">
-                                                <i class="bi bi-power me-2"></i>Đăng xuất
+                                        <form id="logoutForm" asp-area="" asp-controller="Account" asp-action="Logout" method="post">                                           
+                                            <button type="button" onclick="confirmLogout()" class="dropdown-item text-danger fw-bold">
+                                                <i class="bi bi-power me-2"></i> Đăng xuất
                                             </button>
                                         </form>
                                     </li>
@@ -108,15 +132,14 @@
         </nav>
     </header>
 
-    <main class="student-container flex-grow-1" style="padding-top: 80px;">
+    <main class="student-container flex-grow-1 pb-3">
         <div class="container mt-4">
             @RenderBody()
         </div>
     </main>
 
-    <footer class="mt-auto py-4">
-        <div class="container text-center">
-            <h5 class="fw-bold text-uppercase mb-3">Thi Thử Tiếng Anh</h5>
+    <footer class="border-top footer text-muted mt-auto">
+        <div class="container text-center">            
             <p class="small mb-0">
                 &copy; @DateTime.Now.Year Thi Thử Tiếng Anh. Chúc bạn đạt kết quả tốt!
             </p>

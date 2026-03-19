@@ -33,381 +33,8 @@
     <title>@Model.Title - ExamPortal</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <style>
-        :root {
-            --brand-red: #d32f2f;
-            --brand-red-hover: #b71c1c;
-            --answered-color: #0d6efd;
-            --bg-light: #f4f6f9;
-            --header-h: 46px;
-            --toolbar-h: 52px;
-            --sidebar-w: 260px; /* Định nghĩa biến width cho sidebar */
-        }
-
-        body {
-            background-color: var(--bg-light);
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            margin: 0;
-        }
-
-        /* --- 1. TOP HEADER (THU NHỎ) --- */
-        .top-header {
-            background-color: #ffffff;
-            height: var(--header-h);
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
-            flex-shrink: 0;
-        }
-
-        .brand-logo {
-            font-size: 1.2rem;
-            font-weight: 900;
-            color: var(--brand-red);
-            text-transform: uppercase;
-        }
-
-        .exam-title {
-            font-size: 1rem;
-            font-weight: bold;
-            color: #333;
-            margin: 0;
-        }
-
-        /* --- 2. TOOLBAR GOM NHÓM TAB (COMPACT) --- */
-        .action-toolbar {
-            background-color: #ffffff;
-            min-height: var(--toolbar-h);
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-            flex-shrink: 0;
-            z-index: 10;
-        }
-
-        .part-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .skill-group {
-            display: flex;
-            align-items: center;
-            background: #fff;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            overflow: hidden;
-            height: 32px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-        }
-
-        .skill-name {
-            background: #e9ecef;
-            padding: 0 10px;
-            font-weight: 700;
-            color: #495057;
-            display: flex;
-            align-items: center;
-            height: 100%;
-            border-right: 1px solid #ced4da;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            transition: all 0.2s;
-        }
-
-        .tab-btn {
-            background: #fff;
-            border: none;
-            border-right: 1px solid #e9ecef;
-            padding: 0 14px;
-            font-weight: 700;
-            height: 100%;
-            color: #495057;
-            font-size: 0.85rem;
-            transition: all 0.15s;
-        }
-
-            .tab-btn:last-child {
-                border-right: none;
-            }
-
-            .tab-btn:hover {
-                background: #f8f9fa;
-                color: var(--brand-red);
-            }
-
-            .tab-btn.active {
-                background: #61ff17;
-                color: #fff;
-            }
-
-        .skill-group.active-skill {
-            border-color: var(--brand-red);
-        }
-
-            .skill-group.active-skill .skill-name {
-                background: #f47b25;
-                color: #fff;
-                border-right-color: var(--brand-red);
-            }
-
-        .timer-display {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: var(--brand-red);
-            font-family: monospace;
-        }
-
-        /* --- 3. MAIN WORKSPACE --- */
-        .exam-container {
-            display: flex;
-            flex-grow: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .main-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 16px;
-            scroll-behavior: smooth;
-            transition: padding-right 0.3s ease;
-        }
-
-        .exam-section {
-            display: none;
-        }
-
-            .exam-section.active {
-                display: block;
-                animation: fadeIn 0.2s;
-            }
-
-        @@keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* --- 4. SIDEBAR CÂU HỎI VÀ TOGGLE BTN --- */
-        .sidebar-wrapper {
-            position: relative;
-            display: flex;
-            height: 100%;
-        }
-
-        .sidebar-toggle-btn {
-            position: absolute;
-            left: -28px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 28px;
-            height: 60px;
-            background-color: #d2ffef;
-            border: 1px solid #e0e0e0;
-            border-right: none;
-            border-radius: 8px 0 0 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 100;
-            color: #6c757d;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.03);
-            transition: all 0.2s;
-        }
-
-            .sidebar-toggle-btn:hover {
-                background-color: #f8f9fa;
-                color: var(--brand-red);
-            }
-
-        .sidebar-container {
-            width: var(--sidebar-w);
-            background: #ffffff;
-            border-left: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            transition: width 0.3s ease; /* Hiệu ứng đóng mở */
-            overflow: hidden;
-            box-shadow: -2px 0 10px rgba(0,0,0,0.02);
-        }
-
-            .sidebar-container.collapsed {
-                width: 0;
-                border-left: none;
-            }
-
-        .sidebar-inner {
-            width: var(--sidebar-w); /* Khóa width nội dung để không bị vỡ khi resize */
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .sidebar-header {
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.95rem;
-            border-bottom: 1px solid #e0e0e0;
-            background: #f8f9fa;
-        }
-
-        .map-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            padding: 16px;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        .map-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #ced4da;
-            background: #ffffff;
-            color: #495057;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-            padding: 0;
-        }
-
-            .map-btn:hover {
-                border-color: var(--brand-red);
-                color: var(--brand-red);
-            }
-
-            .map-btn.answered {
-                background: var(--answered-color);
-                color: #ffffff;
-                border-color: var(--answered-color);
-            }
-
-            .map-btn.active-view {
-                border: 2px solid var(--brand-red);
-                color: var(--brand-red);
-                background: #fff5f5;
-            }
-
-        .legend-box {
-            padding: 12px;
-            border-top: 1px solid #e0e0e0;
-            background-color: #f8f9fa;
-            font-size: 0.85rem;
-        }
-
-        /* --- 5. BÀI ĐỌC & CÂU HỎI --- */
-        .reading-layout {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
-        .passage-box {
-            flex: 1;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            line-height: 1.7;
-            font-size: 1rem;
-            max-height: calc(100vh - 140px);
-            overflow-y: auto;
-            position: sticky;
-            top: 0;
-        }
-
-        .questions-box {
-            flex: 1;
-        }
-
-        .question-card {
-            background: #ffffff;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
-
-        .q-title {
-            font-weight: bold;
-            font-size: 1.05rem;
-            margin-bottom: 12px;
-        }
-
-        .q-number {
-            color: var(--brand-red);
-            margin-right: 5px;
-        }
-
-        .radio-option {
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-bottom: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            align-items: flex-start;
-            font-size: 0.95rem;
-        }
-
-            .radio-option:hover {
-                background-color: #f8f9fa;
-            }
-
-            .radio-option input[type="radio"] {
-                margin-top: 5px;
-                margin-right: 10px;
-                transform: scale(1.1);
-                cursor: pointer;
-            }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #ced4da;
-            border-radius: 10px;
-        }
-
-            ::-webkit-scrollbar-thumb:hover {
-                background: #adb5bd;
-            }
-    </style>
+    <link href="~/css/pages/exam-take.css" rel="stylesheet" />
+ 
 </head>
 <body>
 
@@ -584,7 +211,9 @@
 
             if (skill == ExamSkill.Writing)
             {
-                sb.Write($"<textarea class='form-control bg-light' rows='8' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' onkeyup=\"markAnswered({qIdx}, this.value.length > 0)\"></textarea>");
+                sb.Write($"<textarea class='form-control bg-light mb-2' rows='8' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' oninput=\"handleWritingInput({eq.QuestionId}, {qIdx}, this.value)\"></textarea>");
+                // Thêm thẻ hiển thị bộ đếm từ nằm góc phải bên dưới
+                sb.Write($"<div class='text-end small fw-bold text-muted'>Số từ: <span id='wordcount-{eq.QuestionId}' class='text-primary fs-6'>0</span></div>");
             }
             else if (skill == ExamSkill.Speaking)
             {
@@ -627,8 +256,7 @@
     }
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    
-    @section Scripts {
+
     <script>
         const questionSectionMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(questionSectionMap));
         let currentIndex = 0;
@@ -793,7 +421,24 @@
                 }, 1000);
             } catch (err) { alert("Vui lòng cấp quyền Micro cho trình duyệt!"); }
         }
+
+                // --- XỬ LÝ ĐẾM TỪ CHO BÀI VIẾT ---
+        function handleWritingInput(questionId, qIdx, text) {
+            // Xóa các khoảng trắng thừa ở đầu/cuối và các khoảng trắng kép ở giữa
+            let cleanText = text.trim().replace(/\s+/g, ' ');
+
+            // Đếm số từ
+            let wordCount = cleanText === "" ? 0 : cleanText.split(' ').length;
+
+            // Hiển thị ra màn hình
+            let countDisplay = document.getElementById('wordcount-' + questionId);
+            if(countDisplay) {
+                countDisplay.innerText = wordCount;
+            }
+
+            // Đánh dấu vào bản đồ câu hỏi (sidebar) nếu đã gõ nội dung
+            markAnswered(qIdx, wordCount > 0);
+        }
     </script>
-}
 </body>
 </html>

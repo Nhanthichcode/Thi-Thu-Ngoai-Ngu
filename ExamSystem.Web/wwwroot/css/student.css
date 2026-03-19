@@ -1,34 +1,4 @@
-﻿/* Main Container của Học viên */
-/*.student-container {
-    margin-top: 2rem;
-    margin-bottom: 3rem;
-    min-height: 80vh;
-}*/
-
-/* Card Style cho trang làm bài / lịch sử */
-/*.student-card {
-    background: #fff;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
-    border-top: 4px solid transparent;*/ /* Chuẩn bị cho hiệu ứng hover */
-/*}
-
-    .student-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border-top-color: var(--brand-red);*/ /* Hover hiện viền đỏ đồng bộ thương hiệu */
-    /*}*/
-
-/* Các tiện ích riêng của trang học viên nếu có (Ví dụ: đồng hồ đếm ngược, v.v...) */
-/*.exam-timer {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--brand-red);
-}*/
-
-/* =========================================================
+﻿/* =========================================================
    GIAO DIỆN HỌC VIÊN: SẠCH, TỐI GIẢN (WHITE - ORANGE - GREEN)
    ========================================================= */
 
@@ -93,4 +63,11 @@
     padding: 5px 20px;
     border-radius: 30px;
     border: 1px solid rgba(249, 115, 22, 0.2);
+}
+/*nút trở lại*/
+.fixed-top-right {
+    position: fixed;
+    bottom: 40px;
+    right: 20px;
+    z-index: 1050;
 }

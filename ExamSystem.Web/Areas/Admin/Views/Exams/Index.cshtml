@@ -12,23 +12,24 @@
     </a>
 </div>
 
-<table class="table table-bordered table-hover align-middle">
-    <thead class="table-dark">
+<div class="custom-table-scroll mb-3 shadow-sm">
+    <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+        <thead class="small">
         <tr>
             <th>Tiêu đề</th>
             <th>Thời lượng</th>
             <th>Ngày bắt đầu</th>
             <th>Trạng thái</th>
-            <th style="width: 300px;">Thao tác</th>
+            <th style="width: 350px;">Thao tác</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <td class="fw-bold">@item.Title</td>
-                <td>@item.DurationMinutes phút</td>
-                <td>@item.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="fw-bold text-dark">@item.Title</td>
+                    <td class="text-dark">@item.DurationMinutes phút</td>
+                    <td class ="text-dark">@item.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
                 <td>
                     @if (item.IsActive)
                     {
@@ -56,3 +57,4 @@
         }
     </tbody>
 </table>
+</div>

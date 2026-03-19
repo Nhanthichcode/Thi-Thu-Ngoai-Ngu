@@ -3,169 +3,234 @@
     ViewData["Title"] = "Bảng điều khiển";
 }
 
-<div class="mb-4">
-    <h3 class="fw-bold text-dark">👋 Xin chào, Quản trị viên!</h3>
-    <p class="text-muted">Dưới đây là tổng quan về hệ thống thi hôm nay.</p>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 h-100 border-start border-4 border-primary">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted text-uppercase small fw-bold">Học viên</h6>
-                        <h3 class="mb-0 fw-bold text-primary">@Model.TotalStudents</h3>
-                    </div>
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                        <i class="bi bi-people-fill text-primary fs-3"></i>
-                    </div>
-                </div>
+<div class="container-fluid py-4 px-lg-5">
+    <!-- Header Dashboard -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-grid-1x2-fill me-2"></i>Bảng điều khiển
+            </h3>
+            <p class="text-muted mb-0">Xin chào Quản trị viên! Dưới đây là tổng quan hệ thống hôm nay.</p>
+        </div>
+        <div class="card shadow-sm border-0 rounded-pill px-4 py-2" style="background: linear-gradient(90deg, var(--bs-primary, #f47b25) 0%, #e0691b 100%);">
+            <div class="d-flex align-items-center text-white fw-bold small">
+                <i class="bi bi-clock-history me-2 fs-5"></i>
+                <span id="liveClock">@DateTime.Now.ToString("HH:mm - dd/MM/yyyy")</span>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 h-100 border-start border-4 border-info">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted text-uppercase small fw-bold">Câu hỏi</h6>
-                        <h3 class="mb-0 fw-bold text-info">@Model.TotalQuestions</h3>
+    <!-- 4 Thẻ Thống Kê -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card stat-card shadow-sm border-0 bg-white h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div style="z-index: 1;">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-1">Tổng Học viên</h6>
+                        <h2 class="mb-0 fw-bold text-dark">@Model.TotalStudents</h2>
                     </div>
-                    <div class="rounded-circle bg-info bg-opacity-10 p-3">
-                        <i class="bi bi-collection-fill text-info fs-3"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 h-100 border-start border-4 border-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted text-uppercase small fw-bold">Đề thi</h6>
-                        <h3 class="mb-0 fw-bold text-success">@Model.TotalExams</h3>
-                    </div>
-                    <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                        <i class="bi bi-file-earmark-text-fill text-success fs-3"></i>
+                    <div class="stat-icon-wrapper shadow-sm" style="background-color: rgba(16, 185, 129, 0.1); color: var(--bs-success, #10b981);">
+                        <i class="bi bi-people-fill fs-3"></i>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 h-100 border-start border-4 border-warning">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted text-uppercase small fw-bold">Chờ chấm điểm</h6>
-                        <h3 class="mb-0 fw-bold text-warning">@Model.PendingGrades</h3>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card stat-card shadow-sm border-0 bg-white h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div style="z-index: 1;">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-1">Kho Câu hỏi</h6>
+                        <h2 class="mb-0 fw-bold text-dark">@Model.TotalQuestions</h2>
                     </div>
-                    <div class="rounded-circle bg-warning bg-opacity-10 p-3">
-                        <i class="bi bi-pen-fill text-warning fs-3"></i>
+                    <div class="stat-icon-wrapper shadow-sm" style="background-color: rgba(244, 123, 37, 0.1); color: var(--bs-primary, #f47b25);">
+                        <i class="bi bi-collection-fill fs-3"></i>
                     </div>
                 </div>
-                @if (Model.PendingGrades > 0)
-                {
-                    <a asp-controller="ExamResults" asp-action="Index" class="stretched-link text-decoration-none small mt-2 d-block">
-                        Xử lý ngay <i class="bi bi-arrow-right"></i>
-                    </a>
-                }
             </div>
         </div>
-    </div>
-</div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h6 class="m-0 fw-bold text-primary"><i class="bi bi-clock-history"></i> Lịch sử thi gần đây</h6>
-                <a asp-controller="ExamResults" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card stat-card shadow-sm border-0 bg-white h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div style="z-index: 1;">
+                        <h6 class="text-muted text-uppercase small fw-bold mb-1">Bộ Đề thi</h6>
+                        <h2 class="mb-0 fw-bold text-dark">@Model.TotalExams</h2>
+                    </div>
+                    <div class="stat-icon-wrapper shadow-sm" style="background-color: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                        <i class="bi bi-journal-text fs-3"></i>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>Học viên</th>
-                            <th>Đề thi</th>
-                            <th>Thời gian nộp</th>
-                            <th class="text-center">Điểm số</th>
-                            <th>Trạng thái</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.RecentAttempts.Any())
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="card stat-card shadow-sm border-0 h-100" style="background-color: #fff3cd; border: 1px solid #ffe69c !important;">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div style="z-index: 1;">
+                        <h6 class="text-warning-emphasis text-uppercase small fw-bold mb-1">Chờ chấm điểm</h6>
+                        <h2 class="mb-0 fw-bold text-warning-emphasis">@Model.PendingGrades</h2>
+                        @if (Model.PendingGrades > 0)
                         {
-                            @foreach (var item in Model.RecentAttempts)
+                            <a asp-controller="ExamResults" asp-action="Index" class="text-decoration-none small fw-bold text-danger mt-1 d-block stretched-link">
+                                Chấm ngay <i class="bi bi-arrow-right"></i>
+                            </a>
+                        }
+                    </div>
+                    <div class="stat-icon-wrapper shadow-sm bg-warning text-white">
+                        <i class="bi bi-pen-fill fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Bảng Lịch sử -->
+        <div class="col-xl-8">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-header bg-white py-4 px-4 border-bottom-0 rounded-top-4 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 fw-bold text-dark"><i class="bi bi-activity text-success me-2 fs-5 align-middle"></i> Lịch sử thi gần đây</h6>
+                    <a asp-controller="ExamResults" asp-action="Index" class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold">Xem tất cả</a>
+                </div>
+
+                <div class="custom-table-scroll">
+                    <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+                        <thead class="small">
+                            <tr>
+                                <th class="ps-4">Học viên</th>
+                                <th>Đề thi</th>
+                                <th>Thời gian nộp</th>
+                                <th class="text-center">Điểm số</th>
+                                <th class="text-end pe-4">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentAttempts != null && Model.RecentAttempts.Any())
+                            {
+                                @foreach (var item in Model.RecentAttempts)
+                                {
+                                    <tr>
+                                        <td class="fw-bold ps-4 border-end-0">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle d-flex justify-content-center align-items-center me-2 text-white fw-bold shadow-sm" style="width: 32px; height: 32px; background-color: var(--bs-primary, #f47b25); font-size: 0.8rem;">
+                                                    @item.StudentName.Substring(0, 1).ToUpper()
+                                                </div>
+                                                @item.StudentName
+                                            </div>
+                                        </td>
+                                        <td class="text-secondary fw-bold">@item.ExamTitle</td>
+                                        <td class="text-muted small">@item.SubmitTime.ToString("dd/MM/yyyy - HH:mm")</td>
+                                        <td class="text-center fw-bold fs-6" style="color: var(--bs-success, #10b981);">
+                                            @(item.Score.HasValue? item.Score.Value.ToString("0.0") : "--")
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            @if (item.IsGraded)
+                                            {
+                                                 <div class="d-flex align-items-center justify-content-end gap-2">
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 fw-normal shadow-sm"><i class="bi bi-check2-all me-1"></i>Đã chấm</span>
+                                                <a asp-controller="ExamResults" asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Xem lại">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning rounded-pill px-3 py-2 fw-normal shadow-sm"><i class="bi bi-hourglass-split me-1"></i>Chờ chấm</span>
+                                                    <a asp-controller="ExamResults" asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Chấm điểm">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td class="fw-bold">@item.StudentName</td>
-                                    <td>@item.ExamTitle</td>
-                                    <td class="text-muted small">@item.SubmitTime.ToString("dd/MM HH:mm")</td>
-                                    <td class="text-center fw-bold text-primary">
-                                        @(item.Score.HasValue? item.Score.Value.ToString("0.0") : "--")
-                                    </td>
-                                    <td>
-                                        @if (item.IsGraded)
-                                        {
-                                            <span class="badge bg-success-subtle text-success">Đã chấm</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-warning-subtle text-warning">Chờ chấm</span>
-                                            <a asp-controller="ExamResults" asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm btn-link p-0 ms-1">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </a>
-                                        }
+                                    <td colspan="5" class="text-center py-5">
+                                        <i class="bi bi-inbox text-muted opacity-25 d-block mb-2" style="font-size: 3rem;"></i>
+                                        <span class="text-muted fw-bold">Chưa có bài thi nào được nộp gần đây.</span>
                                     </td>
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <tr><td colspan="5" class="text-center py-4 text-muted">Chưa có dữ liệu thi gần đây.</td></tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3">
-                <h6 class="m-0 fw-bold"><i class="bi bi-lightning-charge"></i> Thao tác nhanh</h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a asp-controller="Exams" asp-action="Create" class="btn btn-outline-primary text-start">
-                        <i class="bi bi-plus-circle me-2"></i> Tạo đề thi mới
-                    </a>
-                    <a asp-controller="Questions" asp-action="Create" class="btn btn-outline-success text-start">
-                        <i class="bi bi-question-circle me-2"></i> Soạn câu hỏi
-                    </a>
-                    <a asp-controller="Users" asp-action="Create" class="btn btn-outline-info text-start">
-                        <i class="bi bi-person-plus me-2"></i> Thêm học viên
-                    </a>
-                    <a asp-controller="Questions" asp-action="Import" class="btn btn-outline-secondary text-start">
-                        <i class="bi bi-file-earmark-excel me-2"></i> Nhập từ Excel
-                    </a>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow-sm border-0 bg-primary text-white">
-            <div class="card-body">               
-                <div class="d-flex justify-content-between small">
-                    <span>Server Time:</span>
-                    <span>@DateTime.Now.ToString("HH:mm dd/MM/yyyy")</span>
+        <!-- Cột Phím tắt -->
+        <div class="col-xl-4">
+            <div class="card shadow-sm border-0 rounded-4 h-100 bg-white">
+                <div class="card-header bg-white py-4 px-4 border-bottom rounded-top-4">
+                    <h6 class="m-0 fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-2 fs-5 align-middle"></i> Thao tác nhanh</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column gap-3">
+                        <a asp-controller="Exams" asp-action="Create" class="quick-action-btn text-decoration-none shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                                    <i class="bi bi-journal-plus fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold mb-0">Tạo đề thi mới</div>
+                                    <small class="text-muted fw-normal">Thiết lập bài thi trắc nghiệm & tự luận</small>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a asp-controller="Questions" asp-action="Create" class="quick-action-btn text-decoration-none shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(244, 123, 37, 0.1); color: var(--bs-primary, #f47b25);">
+                                    <i class="bi bi-node-plus fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold mb-0">Soạn câu hỏi</div>
+                                    <small class="text-muted fw-normal">Thêm câu hỏi vào ngân hàng dữ liệu</small>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a asp-controller="Users" asp-action="Create" class="quick-action-btn text-decoration-none shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: rgba(16, 185, 129, 0.1); color: var(--bs-success, #10b981);">
+                                    <i class="bi bi-person-plus-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold mb-0">Thêm học viên</div>
+                                    <small class="text-muted fw-normal">Cấp tài khoản mới cho học viên</small>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a asp-controller="Users" asp-action="Import" class="quick-action-btn text-decoration-none shadow-sm">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background-color: #f8f9fa; color: #6c757d;">
+                                    <i class="bi bi-file-earmark-spreadsheet-fill fs-5 text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold mb-0">Nhập từ Excel</div>
+                                    <small class="text-muted fw-normal">Tạo danh sách học viên hàng loạt</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Cập nhật đồng hồ thời gian thực ở góc phải Dashboard
+        setInterval(() => {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + now.toLocaleDateString('vi-VN');
+            document.getElementById('liveClock').innerText = timeString;
+        }, 60000); // Cập nhật mỗi 1 phút
+    </script>
+}
