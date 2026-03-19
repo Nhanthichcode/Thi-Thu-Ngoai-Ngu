@@ -22,8 +22,8 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td class="fw-bold text-primary">@item.Name</td>
-                <td>@item.Description</td>
+                    <td class="fw-bold text-dark">@item.Name</td>
+                    <td class="text-dark"> @item.Description</td>
                 <td><span class="badge bg-secondary">@item.Parts.Count phần</span></td>
                 <td>
                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning"> <i class="bi bi-pencil"></i> Sửa</a>
@@ -37,42 +37,6 @@
 </table>
 </div>
 
-<script>
-    function confirmDelete(id, name) {
-        Swal.fire({
-            title: 'Xóa cấu trúc đề thi?',
-            html: `Bạn có chắc chắn muốn xóa cấu trúc <b>${name}</b>?<br><span class='text-danger'>Lưu ý: Toàn bộ các phần thi bên trong cũng sẽ bị xóa vĩnh viễn!</span>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Đồng ý xóa',
-            cancelButtonText: 'Hủy bỏ'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Gửi request POST lên server
-                fetch(`/Admin/ExamStructures/Delete/${id}`, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire(
-                            'Đã xóa!',
-                            'Cấu trúc đã được xóa thành công.',
-                            'success'
-                        ).then(() => {
-                            // Tải lại trang để cập nhật danh sách
-                            window.location.reload();
-                        });
-                    } else {
-                        Swal.fire('Lỗi!', data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    Swal.fire('Lỗi!', 'Không thể kết nối đến máy chủ.', 'error');
-                });
-            }
-        });
-    }
-</script>
+@section Scripts {
+    <script src="~/js/examStructures.js"></script>
+}

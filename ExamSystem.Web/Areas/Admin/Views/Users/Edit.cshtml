@@ -95,7 +95,7 @@
                             <div class="form-check form-switch fs-5 d-flex align-items-center gap-2 m-0 p-0">
                                 <input asp-for="IsLocked" class="form-check-input shadow-sm ms-0 mt-0" type="checkbox" role="switch" style="width: 50px; height: 25px; cursor: pointer;">
                                 <label asp-for="IsLocked" class="form-check-label fs-6 fw-bold ms-2 text-danger" style="cursor: pointer;">
-                                    Đình chỉ (Khóa) tài khoản
+                                    Khóa tài khoản
                                 </label>
                             </div>
                             <div class="form-text small mt-2 text-danger opacity-75">Người dùng sẽ không thể đăng nhập nếu bị khóa.</div>
@@ -112,32 +112,3 @@
         </div>
     </form>
 </div>
-
-@section Styles {
-    <style>
-        .custom-radio .btn-check:checked + .btn-outline-secondary {
-            background-color: rgba(244, 123, 37, 0.05);
-            color: var(--bs-primary, #f47b25) !important;
-            border-color: var(--bs-primary, #f47b25) !important;
-            box-shadow: 0 4px 15px rgba(244, 123, 37, 0.15) !important;
-        }
-
-        .custom-radio .btn-outline-secondary {
-            border-color: #dee2e6;
-            color: #495057;
-            transition: all 0.2s ease;
-        }
-
-            .custom-radio .btn-outline-secondary:hover {
-                background-color: #f8f9fa;
-            }
-
-        .hover-up {
-            transition: transform 0.2s ease;
-        }
-
-            .hover-up:hover {
-                transform: translateY(-3px);
-            }
-    </style>
-}

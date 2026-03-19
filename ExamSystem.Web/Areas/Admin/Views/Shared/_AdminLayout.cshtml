@@ -89,6 +89,12 @@
                     </button>
 
                     <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                        <li class="nav-item d-flex align-items-center me-3">
+                            <button class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                    id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
+                                <i class="bi bi-sun-fill text-warning"></i>
+                            </button>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                                 <span class="d-none d-md-block me-2 fw-bold text-dark">@fullName</span>
@@ -135,6 +141,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    <partial name="_ValidationScriptsPartial" />
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

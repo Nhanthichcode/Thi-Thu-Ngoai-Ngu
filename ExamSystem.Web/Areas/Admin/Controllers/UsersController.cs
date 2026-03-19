@@ -20,32 +20,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             _roleManager = roleManager;
         }
 
-        // 1. Danh sách người dùng
-        //[HttpGet]
-        //public async Task<IActionResult> Index()
-        //{
-        //    var users = await _userManager.Users.ToListAsync();
-
-        //    // Lấy thêm Role cho từng user để hiển thị (Option)
-        //    // Lưu ý: Logic này có thể chậm nếu user quá đông, cần phân trang
-        //    var userViewModels = new List<UserViewModel>(); // Bạn cần tạo class UserViewModel
-        //    foreach (var user in users)
-        //    {
-        //        var roles = await _userManager.GetRolesAsync(user);
-        //        userViewModels.Add(new UserViewModel
-        //        {
-        //            Id = user.Id,
-        //            Email = user.Email,
-        //            FullName = user.FullName,
-        //            AvatarUrl = user.AvatarUrl,
-        //            PhoneNumber = user.PhoneNumber,
-        //            Roles = string.Join(", ", roles),
-        //            IsLocked = await _userManager.IsLockedOutAsync(user)
-        //        });
-        //    }
-
-        //    return View(userViewModels);
-        //}
         [HttpGet]
         public async Task<IActionResult> Index(string searchQuery, string role, string status)
         {
@@ -331,6 +305,53 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 successCount = successCount,
                 errorCount = errorCount,
                 errors = errors
+            });
+        }
+
+        // 10. XÓA NHIỀU TÀI KHOẢN (POST)
+        [HttpPost]
+        public async Task<IActionResult> DeleteMultiple([FromBody] List<string> ids)
+        {
+            if (ids == null || !ids.Any())
+            {
+                return Json(new { success = false, message = "Không có tài khoản nào được chọn." });
+            }
+
+            int successCount = 0;
+            int errorCount = 0;
+
+            foreach (var id in ids)
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user != null)
+                {
+                    //(Tùy chọn) Kiểm tra xem có đang cố xóa chính tài khoản Admin hiện tại không
+                     var currentUserId = _userManager.GetUserId(User);
+                    if (user.Id == currentUserId) { errorCount++; continue; }
+
+                    var result = await _userManager.DeleteAsync(user);
+                    if (result.Succeeded)
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        errorCount++;
+                    }
+                }
+            }
+
+            if (successCount > 0)
+            {
+                TempData["SuccessMessage"] = $"Đã xóa thành công {successCount} tài khoản.";
+            }
+
+            return Json(new
+            {
+                success = true,
+                successCount = successCount,
+                errorCount = errorCount,
+                message = $"Đã xóa {successCount} người dùng."
             });
         }
     }

@@ -1,31 +1,71 @@
 ﻿/* =========================================
-   1. GHI ĐÈ BẢNG MÀU BOOTSTRAP (GLOBAL THEME)
+   1. BIẾN MÀU SẮC (THEME VARIABLES)
    ========================================= */
+/* Chế độ Sáng (Mặc định) */
 :root {
-    /* Đổi màu Primary thành Cam */
     --bs-primary: #f47b25;
     --bs-primary-rgb: 244, 123, 37;
-    /* Đổi màu Success thành Xanh lá ngọc */
     --bs-success: #10b981;
     --bs-success-rgb: 16, 185, 129;
-    /* Nền toàn trang và màu chữ */
     --bs-body-bg: #f8f7f5;
     --bs-body-color: #334155;
+    --bs-card-bg: #ffffff;
     --bs-border-color: #e2e8f0;
-    /* Bo góc chuẩn xác như bản thiết kế */
+    --bs-table-bg: #ffffff;
+    --bs-table-hover: rgba(244, 123, 37, 0.06);
+    --bs-table-striped-bg: rgb(242 128 70 / 8%);
+    --bs-text-muted: #6c757d;
+    --bs-input-bg: #ffffff;
+    --bs-input-color: #334155;
     --border-radius-sm: 8px;
     --border-radius-md: 12px;
     --border-radius-lg: 16px;
 }
 
+    /* Chế độ Tối (Dark Mode) */
+    :root[data-theme="dark"] {
+        --bs-primary: #f99047;
+        --bs-primary-rgb: 249, 144, 71;
+        --bs-success: #10b981;
+        --bs-body-bg: #121212;
+        --bs-body-color: #e2e8f0;
+        --bs-card-bg: #1e1e1e;
+        --bs-border-color: #333333;
+        --bs-table-bg: #1e1e1e;
+        --bs-table-hover: rgba(255, 255, 255, 0.05);
+        --bs-table-striped-bg: rgb(242 128 70 / 8%);
+        --bs-input-bg: #2d2d2d;
+        --bs-input-color: #e2e8f0;
+    }
+
+/* =========================================
+   2. ĐỊNH DẠNG CƠ BẢN & GHI ĐÈ BOOTSTRAP
+   ========================================= */
 body {
     font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
     background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* =========================================
-   2. TÙY CHỈNH NÚT BẤM (BUTTONS)
-   ========================================= */
+.card, .bg-white, .bg-light {
+    background-color: var(--bs-card-bg) !important;
+    border-color: var(--bs-border-color);
+}
+
+.text-dark {
+    color: var(--bs-body-color) !important;
+}
+
+.text-muted {
+    color: var(--bs-text-muted) !important;
+}
+/*
+.border, .border-bottom, .border-top, .border-end, .border-start {
+    border-color: var(--bs-border-color) !important;
+}*/
+
+/* Buttons */
 .btn {
     border-radius: var(--border-radius-sm);
     font-weight: 600;
@@ -37,26 +77,33 @@ body {
     background-color: var(--bs-primary);
     border-color: var(--bs-primary);
     color: #fff;
-    box-shadow: 0 4px 10px rgba(244, 123, 37, 0.2);
+    box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.2);
 }
 
     .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
         background-color: #e0691b !important;
         border-color: #e0691b !important;
-        box-shadow: 0 6px 15px rgba(244, 123, 37, 0.3) !important;
+        box-shadow: 0 6px 15px rgba(var(--bs-primary-rgb), 0.3) !important;
     }
 
-/* =========================================
-   3. TÙY CHỈNH CARD & FORM
-   ========================================= */
+.rounded-circle.btn-sm {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    line-height: 1 !important;
+    flex-shrink: 0;
+}
+
+/* Card & Form Controls */
 .card {
     border-radius: var(--border-radius-md);
-    border: 1px solid var(--bs-border-color);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    background-color: #ffffff;
 }
 
 .form-control, .form-select {
+    background-color: var(--bs-input-bg);
+    color: var(--bs-input-color);
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--bs-border-color);
     padding: 0.6rem 1rem;
@@ -65,28 +112,28 @@ body {
 
     .form-control:focus, .form-select:focus {
         border-color: var(--bs-primary);
-        box-shadow: 0 0 0 0.25rem rgba(244, 123, 37, 0.15) !important;
+        background-color: var(--bs-input-bg);
+        color: var(--bs-input-color);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.15) !important;
     }
 
-/* =========================================
-   4. TÙY CHỈNH NAVBAR CHUNG
-   ========================================= */
+/* Navbar */
 .navbar {
-    background-color: #ffffff !important;
+    background-color: var(--bs-card-bg) !important;
     border-bottom: 1px solid var(--bs-border-color);
     box-shadow: 0 2px 10px rgba(0,0,0,0.02);
 }
 
 .navbar-brand {
     font-weight: 800;
-    color: #334155 !important;
+    color: var(--bs-body-color) !important;
 }
 
 .brand-highlight {
-    color: var(--bs-primary); /* Chữ nổi bật màu cam */
+    color: var(--bs-primary);
 }
 
-/* Custom Scrollbar */
+/* Global Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -102,32 +149,200 @@ body {
 }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+        background: var(--bs-primary);
     }
 
 
-/*đăng ký / đăng nhập*/
 /* =========================================
-   GIAO DIỆN ĐĂNG NHẬP / ĐĂNG KÝ (AUTH PAGES)
+   3. BẢNG (TABLES) ĐỒNG BỘ THEO ẢNH MẪU
    ========================================= */
+.custom-table-scroll {
+    max-height: 65vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--bs-card-bg);
+}
 
+.table {
+    color: var(--bs-body-color);
+    margin-bottom: 0;
+}
+
+/* Tiêu đề bảng: Chữ cam, viền cam nguyên khối (solid) dưới chân */
+.table-sticky-header thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bs-card-bg) !important;
+    color: var(--bs-primary) !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    box-shadow: inset 0 -2px 0 var(--bs-primary) !important; /* Tạo đường viền cam cực nét */
+    border: none !important; /* Xóa border mặc định */
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+/* Fix góc lẹm */
+.table-sticky-header thead tr:first-child th:first-child {
+    border-top-left-radius: var(--border-radius-md);
+}
+
+.table-sticky-header thead tr:first-child th:last-child {
+    border-top-right-radius: var(--border-radius-md);
+}
+
+/* Thân bảng: Striped & Hover mượt mà, bỏ viền dọc */
+.table-custom-striped tbody tr td,
+.table-custom-striped tbody tr th {
+    border-bottom: 1px solid var(--bs-border-color) !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+.table-custom-striped tbody tr:last-child td {
+    border-bottom: none !important;
+}
+/* Bỏ viền dòng cuối */
+
+.table-custom-striped tbody tr:nth-of-type(odd) td {
+    background-color: var(--bs-table-striped-bg) !important;
+}
+
+.table-custom-striped tbody tr:nth-of-type(even) td {
+    background-color: var(--bs-card-bg) !important;
+}
+
+.table-custom-striped tbody tr:hover td {
+    background-color: var(--bs-table-hover) !important;
+    transition: background-color 0.2s ease;
+}
+
+.table-compact td, .table-compact th {
+    font-size: 0.95rem;
+    padding: 0.85rem 0.75rem;
+    vertical-align: middle;
+}
+
+
+/* =========================================
+   4. UTILITIES CHUNG & NAV PILLS
+   ========================================= */
+.hover-up {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .hover-up:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+    }
+
+/* Nút Lọc (Pills) */
+.nav-pills .nav-link {
+    color: var(--bs-text-muted);
+    font-weight: 600;
+    border-radius: 50rem;
+    padding: 0.5rem 1.25rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+    .nav-pills .nav-link:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary) !important;
+    }
+
+    .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+        background-color: var(--bs-primary) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.3);
+    }
+
+    .nav-pills .nav-link i {
+        margin-right: 4px;
+    }
+
+/* Custom Radio & File Upload */
+.custom-radio .btn-check:checked + .btn-outline-secondary {
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 4px 15px rgba(var(--bs-primary-rgb), 0.15) !important;
+}
+
+.custom-radio .btn-outline-secondary {
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
+    transition: all 0.2s ease;
+}
+
+    .custom-radio .btn-outline-secondary:hover {
+        background-color: var(--bs-table-striped-bg);
+    }
+
+.custom-file-upload {
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 1rem;
+    padding: 2rem 1rem;
+    transition: all 0.3s ease;
+    background-color: var(--bs-table-striped-bg);
+    cursor: pointer;
+}
+
+    .custom-file-upload:hover, .custom-file-upload:focus-within {
+        border-color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+
+/* Badges & Animations */
+.bg-success-soft {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    color: var(--bs-success);
+}
+
+.bg-warning-soft {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+@keyframes pulse-success {
+    0% {
+        box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(var(--bs-success-rgb), 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0);
+    }
+}
+
+.pulse-animation {
+    animation: pulse-success 2s infinite;
+}
+
+/* =========================================
+   5. GIAO DIỆN AUTH (ĐĂNG NHẬP/ĐĂNG KÝ)
+   ========================================= */
 .auth-card {
     border: none;
-    border-radius: 1rem;
+    border-radius: var(--border-radius-lg);
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     overflow: hidden;
 }
 
-/* Phần Header màu Xanh lá ngọc */
 .auth-header {
-    background: linear-gradient(135deg, var(--bs-success, #10b981) 0%, #059669 100%);
+    background: linear-gradient(135deg, var(--bs-success) 0%, #059669 100%);
     padding: 2rem 1rem;
     text-align: center;
     color: white;
     position: relative;
 }
 
-    /* Mũi tên nhỏ trỏ xuống dưới góc Header */
     .auth-header::after {
         content: "";
         position: absolute;
@@ -140,47 +355,38 @@ body {
         z-index: 1;
     }
 
-/* Tùy chỉnh Input Field */
 .form-control-lg {
     font-size: 0.95rem;
-    padding-left: 2.5rem; /* Chừa không gian cho icon bên trái */
-    border-radius: 0.5rem;
+    padding-left: 2.5rem;
+    border-radius: var(--border-radius-sm);
 }
 
-    .form-control-lg:focus {
-        border-color: var(--bs-primary, #f47b25);
-        box-shadow: 0 0 0 0.25rem rgba(244, 123, 37, 0.25);
-    }
-
-/* Icon bên trong Input (Email, User, Lock...) */
 .input-icon {
     position: absolute;
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #adb5bd;
+    color: var(--bs-text-muted);
     z-index: 4;
 }
 
-/* Nút ẩn/hiện mật khẩu (Con mắt) */
 .password-toggle {
     position: absolute;
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    color: var(--bs-success, #10b981);
+    color: var(--bs-success);
     z-index: 4;
     transition: color 0.2s ease;
 }
 
     .password-toggle:hover {
-        color: var(--bs-primary, #f47b25);
+        color: var(--bs-primary);
     }
 
-/* Nút Submit chính (Cam) */
 .btn-brand {
-    background-color: var(--bs-primary, #f47b25);
+    background-color: var(--bs-primary);
     color: white;
     transition: all 0.3s ease;
 }
@@ -189,85 +395,43 @@ body {
         background-color: #e0691b;
         color: white;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(244, 123, 37, 0.3);
+        box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
     }
 
-/* Link điều hướng phụ (Quên mật khẩu, Đăng ký ngay) */
 .auth-link {
-    color: var(--bs-success, #10b981);
+    color: var(--bs-success);
     transition: color 0.2s ease;
 }
 
     .auth-link:hover {
-        color: var(--bs-primary, #f47b25);
+        color: var(--bs-primary);
     }
 
-.btn-brand-primary {
-    background-color: var( --bs-success);
-    color: var(--bs-body-bg);
+/* =========================================
+   6. NÚT TOGGLE CHỨC NĂNG (TƯƠNG THÍCH DARK MODE)
+   ========================================= */
+.btn-theme-toggle {
+    background-color: transparent;    
+    transition: all 0.2s ease;
 }
-    .btn-brand-primary:hover,active {
-        background-color: var( --bs-primary);
-        color: var(--bs-primary-rgb);
+
+    .btn-theme-toggle:hover {
+        background-color: var(--bs-table-striped-bg);
+        color: var(--bs-primary) !important;
     }
 
-/* =========================================================
-   NHÓM CSS: BẢNG CÓ HEADER CỐ ĐỊNH & NỔI BẬT
-   ========================================================= */
-.custom-table-scroll {
-    max-height: 65vh; /* Dùng vh để luôn có giới hạn chiều cao trên mọi màn hình */
+    .btn-theme-toggle i {
+        color: var(--bs-body-color); /* Icon đổi màu theo chế độ sáng/tối */
+    }
+
+.question-list-container,
+.user-list-container {
+    /* Lấy 100% chiều cao màn hình trừ đi phần Header và Bộ lọc (khoảng 230px) */
+    height: calc(90vh - 230px);
     overflow-y: auto;
-    overflow-x: auto;
-    border: 1px solid var(--bs-border-color); /* Khung viền cho bảng */
-    border-radius: var(--border-radius-md);
-    background-color: #ffffff;
-}
-
-    /* Tùy chỉnh thanh cuộn bên trong bảng */
-    .custom-table-scroll::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-
-    .custom-table-scroll::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .custom-table-scroll::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-        .custom-table-scroll::-webkit-scrollbar-thumb:hover {
-            background: var(--bs-primary, #f47b25);
-        }
-
-/* 2. Tiêu đề Neo cố định (Sticky Header) */
-.table-sticky-header thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: #ffffff !important;
-    color: var(--bs-primary, #f47b25) !important;
-    font-weight: 700 !important;
-    text-transform: uppercase;
-    /* MẸO: Dùng box-shadow dạng inset thay vì border-bottom để viền không bị trôi đi khi cuộn */
-    box-shadow: inset 0 -2px 0 rgba(244, 123, 37, 0.4);
-    border-bottom: none !important;
-    border-top: none !important;
-}
-
-/* 3. Hiệu ứng Kẻ sọc (Striped) & Hover */
-.table-custom-striped tbody tr:nth-of-type(odd) td {
-    background-color: rgba(0,0,0,0.04) !important; /* Dòng lẻ: Xám cực nhạt */
-}
-
-.table-custom-striped tbody tr:nth-of-type(even) td {
-    background-color: #ffffff !important; /* Dòng chẵn: Trắng */
-}
-
-/* Đổi màu thành Cam nhạt khi trỏ chuột vào dòng */
-.table-custom-striped tbody tr:hover td {
-    background-color: rgba(244, 123, 37, 0.06) !important;
-    transition: background-color 0.2s ease;
+    overflow-x: hidden;
+    padding-bottom: 20px;
+    /* Chừa một chút khoảng trống bên phải để thanh cuộn không đè lên nội dung */
+    padding-right: 4px;
+    overflow: visible !important;
 }

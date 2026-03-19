@@ -75,6 +75,13 @@
                             var fullName = user?.FullName ?? User.Identity?.Name;
                             var avatarUrl = user?.AvatarUrl;
 
+                            <li class="nav-item d-flex align-items-center me-3">
+                                <button class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                        id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
+                                    <i class="bi bi-sun-fill text-warning"></i>
+                                </button>
+                            </li>
+
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                                     <span class="me-2 fw-bold">@fullName</span>

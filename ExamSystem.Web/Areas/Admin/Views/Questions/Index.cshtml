@@ -8,109 +8,6 @@
     var currentLevel = (int?)(ViewData["CurrentLevel"] ?? 0);
 }
 
-@section Styles {
-    <style>
-        
-        .rounded-circle.btn-sm {
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-            padding: 0 !important;
-            line-height: 1 !important;
-            flex-shrink: 0;
-        }
-
-        /* 1. TỐI ƯU LAYOUT & RESPONSIVE */
-        .page-header-area {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background-color: #f8f9fa;
-            padding-bottom: 15px;
-            padding-top: 15px;
-        }
-
-        /* 2. CUSTOM SCROLLBAR */
-        .question-list-container {
-            height: calc(100vh - 240px);
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 8px;
-        }
-
-            .question-list-container::-webkit-scrollbar {
-                width: 6px;
-            }
-
-            .question-list-container::-webkit-scrollbar-track {
-                background: transparent;
-            }
-
-            .question-list-container::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 10px;
-            }
-
-                .question-list-container::-webkit-scrollbar-thumb:hover {
-                    background: #94a3b8;
-                }
-
-        /* 3. ĐỊNH DẠNG TABLE & CARD */
-        .table-compact td, .table-compact th {
-            font-size: 0.95rem;
-            padding: 0.75rem;
-            vertical-align: middle;
-        }
-
-        .group-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-            .group-card:hover {
-                box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important;
-            }
-
-        /* 4. MÀU SẮC PILLS (BỘ LỌC) */
-        .nav-pills .nav-link {
-            color: #6c757d;
-            font-weight: 600;
-            border-radius: 50rem;
-            padding: 0.5rem 1.25rem;
-            transition: all 0.2s ease;
-        }
-
-            .nav-pills .nav-link:hover {
-                background-color: rgba(244, 123, 37, 0.1);
-                color: var(--bs-primary, #f47b25);
-            }
-
-            .nav-pills .nav-link.active {
-                background-color: var(--bs-primary, #f47b25) !important;
-                color: white !important;
-                box-shadow: 0 4px 10px rgba(244, 123, 37, 0.3);
-            }
-
-        .highlight-card {
-            border-left: 4px solid var(--bs-primary, #f47b25) !important;
-            background: linear-gradient(90deg, rgba(244, 123, 37, 0.05) 0%, rgba(255,255,255,1) 50%);
-            transition: box-shadow 0.3s ease;
-        }
-
-            .highlight-card:hover {
-                box-shadow: 0 8px 25px rgba(244, 123, 37, 0.15) !important;
-            }
-       
-        /* Nút hover nổi */
-        .hover-up {
-            transition: transform 0.2s ease;
-        }
-
-            .hover-up:hover {
-                transform: translateY(-2px);
-            }
-    </style>
-}
-
 <div class="page-header-area px-3 px-lg-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
         <div>
@@ -121,15 +18,16 @@
         </div>
         <div class="d-flex gap-2 align-items-center">
             <div class="btn-group bg-white rounded-pill shadow-sm p-1 border">
-                <button type="button" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-muted" onclick="toggleAll('show')" title="Mở tất cả">
-                    <i class="bi bi-arrows-expand text-dark"></i> <span class="d-none d-md-inline ms-1">Mở rộng</span>
+                <button type="button" id="btnExpandAll" class="btn btn-sm rounded-pill px-3 fw-bold btn-theme-toggle d-none" onclick="toggleAll('show')" title="Mở tất cả">
+                    <i class="bi bi-arrows-expand"></i> <span class="d-none d-md-inline ms-1">Mở rộng</span>
                 </button>
-                <button type="button" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-muted" onclick="toggleAll('hide')" title="Thu gọn tất cả">
-                    <i class="bi bi-arrows-collapse text-dark"></i> <span class="d-none d-md-inline ms-1">Thu gọn</span>
+
+                <button type="button" id="btnCollapseAll" class="btn btn-sm rounded-pill px-3 fw-bold btn-theme-toggle" onclick="toggleAll('hide')" title="Thu gọn tất cả">
+                    <i class="bi bi-arrows-collapse"></i> <span class="d-none d-md-inline ms-1">Thu gọn</span>
                 </button>
             </div>
 
-            <a asp-action="Import" class="btn bg-white border fw-bold text-muted shadow-sm rounded-pill px-3 hover-up">
+            <a asp-action="Import" class="btn bg-white border fw-bold btn-theme-toggle shadow-sm rounded-pill px-3 hover-up">
                 <i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel
             </a>
             <a asp-action="Create" class="btn text-white shadow-sm rounded-pill fw-bold px-4 hover-up" style="background-color: var(--bs-primary, #f47b25);">
@@ -146,7 +44,8 @@
                 <ul class="nav nav-pills flex-grow-1 gap-2">
                     <li class="nav-item">
                         <a class="nav-link @(currentSkill == ExamSkill.None ? "active" : "")" href="?skillType=@((int)ExamSkill.None)&level=@currentLevel">
-                            <i class="bi @(currentSkill == ExamSkill.None ? "bi-check-circle-fill" : "bi-grid-fill") me-1"></i> Tất cả
+                            <!-- Đã bỏ điều kiện đổi thành check-circle, luôn giữ bi-grid-fill -->
+                            <i class="bi bi-grid-fill me-1"></i> Tất cả
                         </a>
                     </li>
                     @foreach (ExamSkill skill in Enum.GetValues(typeof(ExamSkill)))
@@ -154,7 +53,8 @@
                         if (skill == ExamSkill.None) continue;
                         <li class="nav-item">
                             <a class="nav-link @(currentSkill == skill ? "active" : "")" href="?skillType=@((int)skill)&level=@currentLevel">
-                                <i class="bi @(currentSkill == skill ? "bi-check-circle-fill" : (skill == ExamSkill.Reading ? "bi-book" : (skill == ExamSkill.Listening ? "bi-headphones" : (skill == ExamSkill.Writing ? "bi-pencil-square" : "bi-mic")))) me-1"></i> @skill.ToString()
+                                <!-- Chỉ giữ lại logic switch icon theo skill, bỏ điều kiện check-circle -->
+                                <i class="bi @(skill == ExamSkill.Reading ? "bi-book" : (skill == ExamSkill.Listening ? "bi-headphones" : (skill == ExamSkill.Writing ? "bi-pencil-square" : "bi-mic"))) me-1"></i> @skill.ToString()
                             </a>
                         </li>
                     }
@@ -167,12 +67,14 @@
                         <option value="2" selected="@(currentLevel == 2)">Trung bình</option>
                         <option value="3" selected="@(currentLevel == 3)">Khó</option>
                     </select>
-                    @if (currentLevel > 0 || currentSkill != ExamSkill.None)
-                    {
-                        <a asp-action="Index" class="btn btn-sm text-danger ms-2 hover-up" title="Xóa bộ lọc">
-                            <i class="bi bi-x-circle-fill fs-5"></i>
-                        </a>
+
+                    <!-- Dùng class invisible để chiếm không gian thay vì xóa hoàn toàn DOM -->
+                    @{
+                        bool hasFilter = currentLevel > 0 || currentSkill != ExamSkill.None;
                     }
+                    <a asp-action="Index" class="btn btn-sm text-danger ms-2 hover-up @(hasFilter ? "" : "invisible")" title="Xóa bộ lọc">
+                        <i class="bi bi-x-circle-fill fs-5"></i>
+                    </a>
                 </div>
             </form>
         </div>
@@ -336,78 +238,6 @@ else
         </a>
     </div>
 }
-
 @section Scripts {
-    <script>
-        // 1. Tự động submit khi chọn Level
-        document.getElementById('levelSelect').addEventListener('change', function() {
-            document.getElementById('filterForm').submit();
-        });
-
-        // 2. Hàm Thu gọn / Mở rộng tất cả
-        function toggleAll(action) {
-            var collapseElementList = [].slice.call(document.querySelectorAll('.group-collapse-content'));
-            collapseElementList.forEach(function (collapseEl) {
-                var bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
-                if (!bsCollapse) {
-                    bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
-                }
-
-                let header = collapseEl.previousElementSibling;
-                let icon = header.querySelector('.collapse-icon');
-
-                if (action === 'show') {
-                    bsCollapse.show();
-                    if(icon) {
-                        icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
-                        icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
-                    }
-                } else {
-                    bsCollapse.hide();
-                    if(icon) {
-                        icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
-                    }
-                }
-            });
-        }
-
-        // 3. Đảo chiều mũi tên khi click mở từng nhóm
-        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(el => {
-            el.addEventListener('click', function() {
-                let icon = this.querySelector('.collapse-icon');
-                if(icon) {
-                    if (icon.classList.contains('bi-chevron-down')) {
-                        icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
-                    } else {
-                        icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
-                    }
-                }
-            });
-        });
-
-        // 4. Xác nhận xóa bằng SweetAlert2 thay vì dùng thẻ confirm mặc định
-        function confirmDelete(e, url, title) {
-            e.preventDefault(); // Chặn việc chuyển trang ngay lập tức
-            Swal.fire({
-                title: 'Xóa câu hỏi?',
-                html: `Bạn có chắc muốn xóa <b>${title || 'nhóm câu hỏi này'}</b>?<br><span class="text-danger small">Toàn bộ câu hỏi bên trong sẽ bị xóa vĩnh viễn!</span>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Đồng ý xóa',
-                cancelButtonText: 'Hủy bỏ',
-                customClass: {
-                    confirmButton: 'rounded-pill px-4',
-                    cancelButton: 'rounded-pill px-4',
-                    popup: 'rounded-4'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = url; // Thực hiện điều hướng để xóa
-                }
-            });
-            return false;
-        }
-    </script>
+    <script src="~/js/question.js"></script>
 }

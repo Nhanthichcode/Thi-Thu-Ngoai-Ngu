@@ -29,7 +29,7 @@
     .table-hover tbody tr:hover {
         background-color: #fffdf0;
     }
-    /* Hover màu vàng nhạt */
+   
 </style>
 
 <div class="container-fluid px-0">
@@ -185,26 +185,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    function copyToClipboard(text) {
-        // Tạo đường dẫn đầy đủ
-        var fullUrl = window.location.origin + text;
-        navigator.clipboard.writeText(fullUrl).then(function() {
-            // Dùng SweetAlert2 nếu có, không thì alert thường
-            if(typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Đã sao chép!',
-                    text: fullUrl,
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            } else {
-                alert('Đã sao chép link: ' + fullUrl);
-            }
-        }, function(err) {
-            console.error('Lỗi sao chép: ', err);
-        });
-    }
-</script>

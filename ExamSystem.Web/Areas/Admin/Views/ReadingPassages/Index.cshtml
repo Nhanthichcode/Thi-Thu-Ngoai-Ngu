@@ -21,8 +21,7 @@
                 <thead class="small">
                     <tr>
                         <th style="width: 25%;">Tiêu đề</th>
-                        <th style="width: 45%;">Nội dung (Preview)</th>
-                        <th style="width: 10%;" class="text-center">Câu hỏi</th>
+                        <th style="width: 55%;">Nội dung (Preview)</th>                      
                         <th style="width: 20%;" class="text-end">Thao tác</th>
                     </tr>
                 </thead>
@@ -32,18 +31,13 @@
                         @foreach (var item in Model)
                         {
                             <tr>
-                                <td class="fw-bold text-primary">@item.Title</td>
+                                <td class="fw-bold text-dark">@item.Title</td>
                                 <td>
                                     <div class="text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
                                         @* Dùng Raw để hiển thị nếu nội dung có HTML, nhưng cẩn thận XSS *@
                                         @Html.Raw(item.Content?.Length > 150 ? item.Content.Substring(0, 150) + "..." : item.Content)
                                     </div>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-info text-dark">
-                                        @(item.Questions?.Count ?? 0) câu
-                                    </span>
-                                </td>
+                                </td>                                
                                 <td class="text-end">
                                     <div class="btn-group">                                     
 

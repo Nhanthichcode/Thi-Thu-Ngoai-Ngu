@@ -4,82 +4,6 @@
     ViewData["Title"] = "Quản lý Người dùng";
 }
 
-@section Styles {
-    <style>
-        /* Thêm vào thẻ <style> ở đầu trang */
-        .rounded-circle.btn-sm {
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-            padding: 0 !important;
-            line-height: 1 !important;
-            flex-shrink: 0;
-        }
-
-        .page-header-area {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background-color: #f8f9fa;
-            padding-bottom: 15px;
-            padding-top: 15px;
-        }
-
-        .user-list-container {
-            height: calc(100vh - 240px);
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 8px;
-        }
-
-            .user-list-container::-webkit-scrollbar {
-                width: 6px;
-            }
-
-            .user-list-container::-webkit-scrollbar-track {
-                background: transparent;
-            }
-
-            .user-list-container::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 10px;
-            }
-
-                .user-list-container::-webkit-scrollbar-thumb:hover {
-                    background: #94a3b8;
-                }
-
-        /* Style sọc ngựa vằn & table */
-        .table-compact td, .table-compact th {
-            font-size: 0.95rem;
-            padding: 1rem 0.75rem;
-            vertical-align: middle;
-        }
-
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(0, 0, 0, 0.015); /* Màu sọc rất nhẹ, thanh lịch */
-        }
-
-        .highlight-card {
-            border-left: 4px solid var(--bs-primary, #f47b25) !important;
-            background: linear-gradient(90deg, rgba(244, 123, 37, 0.05) 0%, rgba(255,255,255,1) 50%);
-            transition: box-shadow 0.3s ease;
-        }
-
-            .highlight-card:hover {
-                box-shadow: 0 8px 25px rgba(244, 123, 37, 0.15) !important;
-            }
-
-        .hover-up {
-            transition: transform 0.2s ease;
-        }
-
-            .hover-up:hover {
-                transform: translateY(-2px);
-            }
-    </style>
-}
-
 <div class="page-header-area px-1 px-lg-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
         <div>
@@ -145,26 +69,35 @@
 <div class="user-list-container px-3 px-lg-4">
     <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
         <div class="card-body p-0 bg-white">
-            <div class="custom-table-scroll mb-3 shadow-sm">
-                <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
-                    <thead class="small">
+            <!-- Thêm table-responsive của Bootstrap để chống tràn viền trên mobile -->
+            <div class="table-responsive custom-table-scroll mb-3 shadow-sm">
+                <table class="table mb-0 align-middle table-hover table-compact table-sticky-header">
+                    <thead class="small text-muted table-light">
                         <tr>
-                            <th class="ps-4 border-bottom-0">Thông tin người dùng</th>
-                            <th class="border-bottom-0">Email</th>
-                            <th class="border-bottom-0">Vai trò</th>
-                            <th class="text-center border-bottom-0">Trạng thái</th>
-                            <th class="text-end pe-4 border-bottom-0">Hành động</th>
+                            <th class="text-center" style="width: 40px;">
+                                <input class="form-check-input shadow-sm" type="checkbox" id="checkAll_Users">
+                            </th>
+                            <th class="ps-4">Thông tin người dùng</th>
+                            <th>Email</th>
+                            <th>Vai trò</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-end pe-4">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (!Model.Any())
                         {
-                            <tr><td colspan="5" class="text-center py-4 text-muted">Không tìm thấy người dùng nào.</td></tr>
+                            <!-- Đã sửa thành colspan="6" -->
+                            <tr><td colspan="6" class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</td></tr>
                         }
                         @foreach (var user in Model)
                         {
                             <tr>
-                                <td class="ps-4 border-end-0">
+                                <td class="text-center">
+                                    <input class="form-check-input user-checkbox shadow-sm" type="checkbox" value="@user.Id">
+                                </td>
+
+                                <td class="ps-3">
                                     <div class="d-flex align-items-center">
                                         @if (!string.IsNullOrEmpty(user.AvatarUrl))
                                         {
@@ -213,14 +146,14 @@
                                 </td>
 
                                 <td class="text-end pe-4">
-                                    <div class="d-flex gap-2 justify-content-end">
+                                    <div class="d-flex gap-2 justify-content-end align-items-center">
                                         <a asp-action="Edit" asp-route-id="@user.Id"
                                            class="btn btn-sm btn-light text-primary rounded-circle shadow-sm hover-up border"
                                            style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" title="Chỉnh sửa">
                                             <i class="bi bi-pencil-square fs-6"></i>
                                         </a>
 
-                                        <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post" class="m-0 p-0">
+                                        <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post" class="m-0 p-0 d-inline-block">
                                             <button type="submit" class="btn btn-sm btn-light @(user.IsLocked ? "text-success" : "text-warning") rounded-circle shadow-sm hover-up border"
                                                     style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
                                                     title="@(user.IsLocked ? "Mở khóa tài khoản" : "Khóa tài khoản")">
@@ -228,7 +161,7 @@
                                             </button>
                                         </form>
 
-                                        <form id="delete-form-@user.Id" asp-action="Delete" asp-route-id="@user.Id" method="post" class="m-0 p-0">
+                                        <form id="delete-form-@user.Id" asp-action="Delete" asp-route-id="@user.Id" method="post" class="m-0 p-0 d-inline-block">
                                             <button type="button" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm hover-up border"
                                                     style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
                                                     title="Xóa tài khoản" onclick="confirmDelete('@user.Id', '@user.FullName')">
@@ -246,28 +179,12 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        function confirmDelete(userId, userName) {
-            Swal.fire({
-                title: 'Xóa tài khoản?',
-                html: `Bạn có chắc chắn muốn xóa người dùng <b>${userName}</b>?<br><span class="text-danger small">Hành động này không thể hoàn tác!</span>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Đồng ý xóa',
-                cancelButtonText: 'Hủy bỏ',
-                customClass: {
-                    confirmButton: 'rounded-pill px-4 fw-bold',
-                    cancelButton: 'rounded-pill px-4 fw-bold',
-                    popup: 'rounded-4'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('delete-form-' + userId).submit();
-                }
-            });
-        }
-    </script>
-}
+<!-- THANH CÔNG CỤ XÓA HÀNG LOẠT (ẨN MẶC ĐỊNH) -->
+<div id="bulkActionContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow-lg rounded-pill bg-white px-4 py-3 d-flex align-items-center gap-3 d-none" style="z-index: 1050; border: 2px solid var(--bs-primary, #f47b25);">
+    <span class="fw-bold text-dark"><i class="bi bi-check2-square text-success me-2 fs-5"></i> Đã chọn <span id="selectedCount" class="text-primary fs-5 mx-1">0</span> tài khoản</span>
+    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultiple()">
+        <i class="bi bi-trash3-fill me-1"></i> Xóa tất cả
+    </button>
+</div>
+
+<script src="~/js/admin.js"></script>

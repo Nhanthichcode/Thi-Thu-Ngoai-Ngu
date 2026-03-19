@@ -125,3 +125,37 @@ function showNotification(message, isSuccess) {
         }
     }, 3000);
 }
+
+// --- LOGIC ĐỔI THEME SÁNG / TỐI ---
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    // Lấy theme đã lưu hoặc mặc định là light
+    const currentTheme = localStorage.getItem('theme') || 'light';
+
+    // Áp dụng theme ngay khi load
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    updateThemeIcon(currentTheme);
+
+    // Bắt sự kiện click nút đổi màu
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            let theme = document.documentElement.getAttribute('data-theme');
+            let newTheme = theme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+    }
+});
+
+function updateThemeIcon(theme) {
+    const icon = document.querySelector('#theme-toggle i');
+    if (!icon) return;
+
+    if (theme === 'dark') {
+        icon.className = 'bi bi-moon-stars-fill text-warning';
+    } else {
+        icon.className = 'bi bi-sun-fill text-warning';
+    }
+}

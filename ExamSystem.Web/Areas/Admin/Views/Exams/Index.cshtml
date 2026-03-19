@@ -27,9 +27,9 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td class="fw-bold">@item.Title</td>
-                <td>@item.DurationMinutes phút</td>
-                <td>@item.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="fw-bold text-dark">@item.Title</td>
+                    <td class="text-dark">@item.DurationMinutes phút</td>
+                    <td class ="text-dark">@item.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
                 <td>
                     @if (item.IsActive)
                     {
