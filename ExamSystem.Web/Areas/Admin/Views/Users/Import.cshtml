@@ -10,7 +10,7 @@
             </h3>
             <span class="text-muted small">Tạo hàng loạt tài khoản từ file Excel</span>
         </div>
-        <a asp-action="Index" class="btn btn-light border fw-bold text-muted shadow-sm rounded-pill px-4">
+        <a asp-action="Index" class="btn btn-outline-secondary border fw-bold text-muted shadow-sm rounded-pill px-4">
             <i class="bi bi-arrow-left me-1"></i> Trở về
         </a>
     </div>
@@ -26,7 +26,7 @@
             <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls" />
 
             <div class="alert alert-info border-0 rounded-3 shadow-sm d-inline-block text-start mb-0">
-                <i class="bi bi-info-circle-fill me-2"></i><strong>Lưu ý:</strong> Dòng đầu tiên (Tiêu đề cột) sẽ tự động bị bỏ qua. Hệ thống mặc định gán quyền <b>Học viên (Student)</b> cho các tài khoản này.
+                <i class="bi bi-info-circle-fill me-2"></i><strong>Lưu ý:</strong> Dòng đầu tiên sẽ tự động bị bỏ qua. Hệ thống mặc định gán quyền <b>Học viên</b> cho các tài khoản này.
             </div>
         </div>
     </div>
@@ -38,9 +38,9 @@
         </div>
 
         <div class="card-body p-0">
-            <div class="table-container m-3">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light sticky-top shadow-sm">
+               <div class="custom-table-scroll">
+                    <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+                        <thead class="small">
                         <tr>
                             <th class="text-center" style="width: 50px;">
                                 <input class="form-check-input shadow-sm" type="checkbox" id="checkAll_Import" checked>

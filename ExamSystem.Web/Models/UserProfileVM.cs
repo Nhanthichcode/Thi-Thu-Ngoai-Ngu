@@ -20,7 +20,8 @@ namespace ExamSystem.Web.Models
         [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         [Display(Name = "Số điện thoại")]
         public string PhoneNumber { get; set; }
-
+        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
+        public string? NewPassword { get; set; }
         [DataType(DataType.Date)]
         [Display(Name = "Ngày sinh")]
         public DateTime? DateOfBirth { get; set; } // Cần thêm trường này vào AppUser nếu chưa có

@@ -2,6 +2,7 @@ using ExamSystem.Core.Entities;
 using ExamSystem.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -41,7 +42,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Freedom", policy =>
         policy.RequireRole("Admin", "Student", "Teacher"));
 });
-builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, ExamSystem.Web.Services.EmailSender>();
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 builder.Services.AddAuthentication()
     .AddGoogle(options =>
@@ -74,7 +76,7 @@ app.UseRouting();
 
 app.UseAuthentication(); // Bắt buộc có dòng này để đăng nhập
 app.UseAuthorization();  // Bắt buộc có dòng này để phân quyền
-
+app.UseMiddleware<CheckLockoutMiddleware>();
 // Route cho Area Admin
 app.MapControllerRoute(
     name: "areas",

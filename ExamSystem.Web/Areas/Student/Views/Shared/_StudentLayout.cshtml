@@ -12,7 +12,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Thi Thử Tiếng Anh</title>
+    <title>@ViewData["Title"] - Thi Thử Ngoại Ngữ</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -55,13 +55,13 @@
                 <div class="collapse navbar-collapse" id="studentNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link @(currentController == "StudentExams" ? "active" : "")"
+                            <a class="nav-link text-dark @(currentController == "StudentExams" ? "active" : "")"
                                asp-area="Student" asp-controller="StudentExams" asp-action="Index">
                                 <i class="bi bi-grid-fill me-1"></i> Danh sách đề thi
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link @(currentController == "StudentExamsResults" ? "active" : "")"
+                            <a class="nav-link text-dark @(currentController == "StudentExamsResults" ? "active" : "")"
                                asp-area="Student" asp-controller="StudentExamsResults" asp-action="Index">
                                 <i class="bi bi-journal-bookmark-fill me-1"></i> Lịch sử & Kết quả
                             </a>
@@ -76,7 +76,7 @@
                             var avatarUrl = user?.AvatarUrl;
 
                             <li class="nav-item d-flex align-items-center me-3">
-                                <button class="btn btn-sm btn-light border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                                <button class="btn btn-sm btn-outline-secondary border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
                                         id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
                                     <i class="bi bi-sun-fill text-warning"></i>
                                 </button>
@@ -84,7 +84,7 @@
 
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                                    <span class="me-2 fw-bold">@fullName</span>
+                                    <span class="me-2 text-dark fw-bold">@fullName</span>
                                     @if (!string.IsNullOrEmpty(avatarUrl))
                                     {
                                         <img src="@avatarUrl" alt="Avatar" class="rounded-circle border border-warning shadow-sm"
@@ -141,7 +141,7 @@
     <footer class="border-top footer text-muted mt-auto">
         <div class="container text-center">            
             <p class="small mb-0">
-                &copy; @DateTime.Now.Year Thi Thử Tiếng Anh. Chúc bạn đạt kết quả tốt!
+                &copy; @DateTime.Now.Year Thi Thử Ngoại Ngữ. Chúc bạn đạt kết quả tốt!
             </p>
         </div>
     </footer>
@@ -150,6 +150,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+      <script src="~/js/student.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
