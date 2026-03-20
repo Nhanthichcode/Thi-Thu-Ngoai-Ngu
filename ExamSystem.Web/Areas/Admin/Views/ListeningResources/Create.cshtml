@@ -32,16 +32,19 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-secondary">
-                            <i class="bi bi-file-earmark-music-fill me-1"></i> Chọn file âm thanh <span class="text-danger">*</span>
-                        </label>
-                        <div class="input-group">
-                            <input type="file" name="audioFile" class="form-control" accept=".mp3,.wav,.ogg" required />
-                            <span class="input-group-text"><i class="bi bi-music-note"></i></span>
+                        <label class="fw-bold small mb-1 ms-2">Tải lên tệp âm thanh</label>
+                        <div class="input-group shadow-sm rounded-pill overflow-hidden border" 
+                             style="border-color: var(--bs-border-color) !important; background-color: var(--bs-input-bg);">
+        
+                            <input type="file" name="audioFile" 
+                                   class="form-control border-0 bg-transparent py-2 ps-3" 
+                                   accept=".mp3,.wav,.ogg" required />
+        
+                            <span class="input-group-text border-0 bg-transparent pe-3 text-primary">
+                                <i class="bi bi-music-note-beamed"></i>
+                            </span>
                         </div>
-                        <div class="form-text text-muted">
-                            <i class="bi bi-info-circle-fill"></i> Hỗ trợ định dạng: .mp3, .wav, .ogg (Dung lượng tối đa khuyến nghị: 20MB)
-                        </div>
+                        <div class="form-text ms-2 small">Hỗ trợ định dạng: .mp3, .wav, .ogg</div>
                     </div>
 
                     <div class="mb-4">
@@ -53,7 +56,7 @@
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end border-top pt-3">
-                        <a asp-action="Index" class="btn btn-light me-md-2">Hủy bỏ</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary me-md-2">Hủy bỏ</a>
                         <button type="submit" class="btn btn-success fw-bold px-4">
                             <i class="bi bi-check-circle-fill me-2"></i> Lưu File Nghe
                         </button>

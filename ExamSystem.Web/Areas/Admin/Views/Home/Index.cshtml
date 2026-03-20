@@ -23,7 +23,7 @@
     <!-- 4 Thẻ Thống Kê -->
     <div class="row g-4 mb-5">
         <div class="col-xl-3 col-sm-6">
-            <div class="card stat-card shadow-sm border-0 bg-white h-100">
+            <div class="card stat-card shadow-sm border-0 bg-white h-100"  style="background-color: #fff3cd; border: 1px solid #10b981 !important;">
                 <div class="card-body p-4 d-flex justify-content-between align-items-center">
                     <div style="z-index: 1;">
                         <h6 class="text-muted text-uppercase small fw-bold mb-1">Tổng Học viên</h6>
@@ -37,7 +37,7 @@
         </div>
 
         <div class="col-xl-3 col-sm-6">
-            <div class="card stat-card shadow-sm border-0 bg-white h-100">
+            <div class="card stat-card shadow-sm border-0 bg-white h-100"  style="background-color: #fff3cd; border: 1px solid #f47b25 !important;">
                 <div class="card-body p-4 d-flex justify-content-between align-items-center">
                     <div style="z-index: 1;">
                         <h6 class="text-muted text-uppercase small fw-bold mb-1">Kho Câu hỏi</h6>
@@ -51,7 +51,7 @@
         </div>
 
         <div class="col-xl-3 col-sm-6">
-            <div class="card stat-card shadow-sm border-0 bg-white h-100">
+            <div class="card stat-card shadow-sm border-0 bg-white h-100"  style="background-color: #fff3cd; border: 1px solid #0d6efd !important;">
                 <div class="card-body p-4 d-flex justify-content-between align-items-center">
                     <div style="z-index: 1;">
                         <h6 class="text-muted text-uppercase small fw-bold mb-1">Bộ Đề thi</h6>
@@ -91,7 +91,7 @@
             <div class="card shadow-sm border-0 rounded-4 h-100">
                 <div class="card-header bg-white py-4 px-4 border-bottom-0 rounded-top-4 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 fw-bold text-dark"><i class="bi bi-activity text-success me-2 fs-5 align-middle"></i> Lịch sử thi gần đây</h6>
-                    <a asp-controller="ExamResults" asp-action="Index" class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold">Xem tất cả</a>
+                    <a asp-controller="ExamResults" asp-action="Index" class="btn btn-sm btn-outline-secondary border text-primary rounded-pill px-3 fw-bold">Xem tất cả</a>
                 </div>
 
                 <div class="custom-table-scroll">
@@ -112,8 +112,8 @@
                                 {
                                     <tr>
                                         <td class="fw-bold ps-4 border-end-0">
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle d-flex justify-content-center align-items-center me-2 text-white fw-bold shadow-sm" style="width: 32px; height: 32px; background-color: var(--bs-primary, #f47b25); font-size: 0.8rem;">
+                                            <div class="d-flex align-items-center text-dark ">
+                                                <div class="rounded-circle d-flex justify-content-center align-items-center me-2 fw-bold shadow-sm" style="width: 32px; height: 32px; background-color: var(--bs-primary, #f47b25); font-size: 0.8rem;">
                                                     @item.StudentName.Substring(0, 1).ToUpper()
                                                 </div>
                                                 @item.StudentName
@@ -129,7 +129,7 @@
                                             {
                                                  <div class="d-flex align-items-center justify-content-end gap-2">
                                                 <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 fw-normal shadow-sm"><i class="bi bi-check2-all me-1"></i>Đã chấm</span>
-                                                <a asp-controller="ExamResults" asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Xem lại">
+                                                <a asp-controller="ExamResults" asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary text-primary rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Xem lại">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>
                                                 </div>
@@ -138,7 +138,7 @@
                                             {
                                                 <div class="d-flex align-items-center justify-content-end gap-2">
                                                     <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning rounded-pill px-3 py-2 fw-normal shadow-sm"><i class="bi bi-hourglass-split me-1"></i>Chờ chấm</span>
-                                                    <a asp-controller="ExamResults" asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm btn-light text-primary rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Chấm điểm">
+                                                    <a asp-controller="ExamResults" asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary text-primary rounded-circle shadow-sm border d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;" title="Chấm điểm">
                                                         <i class="bi bi-pencil-square"></i>
                                                     </a>
                                                 </div>

@@ -43,8 +43,7 @@
 
                 <ul class="nav nav-pills flex-grow-1 gap-2">
                     <li class="nav-item">
-                        <a class="nav-link @(currentSkill == ExamSkill.None ? "active" : "")" href="?skillType=@((int)ExamSkill.None)&level=@currentLevel">
-                            <!-- Đã bỏ điều kiện đổi thành check-circle, luôn giữ bi-grid-fill -->
+                        <a class="nav-link @(currentSkill == ExamSkill.None ? "active" : "")" href="?skillType=@((int)ExamSkill.None)&level=@currentLevel">                            
                             <i class="bi bi-grid-fill me-1"></i> Tất cả
                         </a>
                     </li>
@@ -146,7 +145,7 @@
                         @if (routeId != null)
                         {
                             <a asp-controller="@controllerName" asp-action="@actionName" asp-route-id="@routeId" asp-route-type="@group.GroupType"
-                               class="btn btn-sm btn-light text-primary rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;" title="Sửa">
+                               class="btn btn-sm btn-outline-secondary text-primary rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;" title="Sửa">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
 
@@ -155,7 +154,7 @@
                             else { controllerName = "Questions"; routeId = group.Questions.FirstOrDefault()?.Id; }
 
                             <a href="@Url.Action("Delete", controllerName, new { id = routeId })"
-                               class="btn btn-sm btn-light text-danger rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;"
+                               class="btn btn-sm btn-outline-secondary text-danger rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;"
                                title="Xóa"
                                onclick="return confirmDelete(event, this.href, '@group.GroupTitle');">
                                 <i class="bi bi-trash3-fill"></i>

@@ -10,7 +10,7 @@
     <div class="col-md-10">
         <div class="card shadow-sm border-0 mt-4">
             <div class="card-header text-white py-3" style="background-color: var(--brand-red);">
-                <h4 class="mb-0 fw-bold"><i class="bi bi-person-circle me-2"></i>Hồ sơ cá nhân</h4>
+                <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-person-circle me-2"></i>Hồ sơ cá nhân</h4>
             </div>
 
             <div class="card-body p-4">
@@ -49,15 +49,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-8 ps-md-4">
-                            @if (TempData["SuccessMessage"] != null)
-                            {
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            }
-
+                        <div class="col-md-8 ps-md-4">                          
                             <div class="mb-3">
                                 <label asp-for="Email" class="form-label fw-bold"></label>
                                 <input asp-for="Email" class="form-control bg-light" readonly />
@@ -81,12 +73,30 @@
                                     <input asp-for="DateOfBirth" class="form-control" />
                                 </div>
                             </div>
-
+                          <div class="mb-3">
+                            <label asp-for="NewPassword" class="fw-bold small mb-1 ms-2">Đổi mật khẩu mới</label>
+                            <div class="auth-input-container">
+                                <!-- Input sạch sẽ, bo góc theo chuẩn LinguistAI -->
+                                <input asp-for="NewPassword" 
+                                       type="password"
+                                       autocomplete="new-password" 
+                                       value="" 
+                                       class="auth-input py-2" 
+                                       placeholder="Bỏ trống nếu muốn giữ mật khẩu cũ..." 
+                                       id="new-password" />
+        
+                                <!-- Icon con mắt nằm gọn bên phải phía trong input -->
+                                <i class="bi bi-eye-slash auth-icon-right" 
+                                   id="toggleIconNew" 
+                                   onclick="togglePassword('new-password', 'toggleIconNew')"></i>
+                            </div>
+                            <span asp-validation-for="NewPassword" class="text-danger small ms-2"></span>
+                        </div>
                             <input asp-for="AvatarUrl" type="hidden" />
 
                             <div class="d-flex justify-content-end mt-4 pt-3 border-top">
                                 <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary me-2">Quay lại</a>
-                                <button type="submit" class="btn btn-brand-primary px-4 shadow-sm">
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
                                     <i class="bi bi-save me-1"></i> Lưu thay đổi
                                 </button>
                             </div>

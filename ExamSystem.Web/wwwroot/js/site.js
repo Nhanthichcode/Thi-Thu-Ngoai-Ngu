@@ -159,3 +159,21 @@ function updateThemeIcon(theme) {
         icon.className = 'bi bi-sun-fill text-warning';
     }
 }
+
+// Hàm dùng chung cho tất cả các ô mật khẩu
+function togglePassword(inputId, iconId) {
+    const passInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(iconId);
+
+    if (!passInput || !toggleIcon) return;
+
+    if (passInput.type === "password") {
+        passInput.type = "text";
+        toggleIcon.classList.replace("bi-eye-slash", "bi-eye");
+        // Nếu bạn dùng bản fill (có màu đậm) thì dùng dòng dưới:
+        // toggleIcon.classList.replace("bi-eye-slash-fill", "bi-eye-fill");
+    } else {
+        passInput.type = "password";        
+        toggleIcon.classList.replace("bi-eye", "bi-eye-slash");
+    }
+}

@@ -4,91 +4,83 @@
 @inject SignInManager<AppUser> SignInManager
 
 @{
-    ViewData["Title"] = "Đăng nhập";
-    var schemes = await SignInManager.GetExternalAuthenticationSchemesAsync();
-    var loginProviders = schemes.ToList();
+    ViewData["Title"] = "Chào mừng trở lại";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+         style="top: 60px; z-index: 1050;" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5 col-xl-4">
-            <div class="card auth-card">
-                <div class="auth-header mb-4">
-                    <i class="bi bi-person-circle display-4 mb-2"></i>
-                    <h3 class="fw-bold mb-0">Đăng Nhập</h3>
-                    <p class="mb-0 text-white-50 small">Chào mừng bạn quay trở lại</p>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+         style="top: 60px; z-index: 1050;" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+<div class="auth-page-wrapper py-3">
+    <div class="auth-card py-4 shadow-lg" style="max-width: 400px;">
+        <div class="text-center mb-3">
+            <h2 class="auth-title h3">Chào mừng trở lại</h2>
+            <p class="auth-subtitle small">Vui lòng nhập thông tin để đăng nhập.</p>
+        </div>
+
+        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2 text-center"></div>
+
+            <div class="mb-2">
+                <label class="fw-bold small mb-1 ms-2">Địa chỉ Email</label>
+                <div class="auth-input-container">
+                    <input asp-for="Email" class="auth-input py-2" placeholder="name@company.com" />
                 </div>
-
-                <div class="card-body p-4 pt-2">
-                    <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center"></div>
-
-                        <div class="mb-3 position-relative">
-                            <i class="bi bi-envelope-fill input-icon"></i>
-                            <input asp-for="Email" class="form-control form-control-lg bg-light" placeholder="Nhập Email của bạn" />
-                            <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
-                        </div>
-
-                        <div class="mb-3 position-relative">
-                            <i class="bi bi-shield-lock-fill input-icon"></i>
-                            <input asp-for="Password" class="form-control form-control-lg bg-light" placeholder="Nhập mật khẩu" id="Password" type="password" />
-                            <i class="bi bi-eye-slash-fill password-toggle" id="togglePasswordIcon" onclick="togglePass('Password', 'togglePasswordIcon')"></i>
-                            <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-4 small">
-                            <div class="form-check">
-                                <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMe">
-                                <label class="form-check-label text-muted" for="rememberMe">
-                                    @Html.DisplayNameFor(m => m.RememberMe)
-                                </label>
-                            </div>
-                            <a asp-action="ForgotPassword" class="text-decoration-none auth-link fw-bold">Quên mật khẩu?</a>
-                        </div>
-
-                        <button type="submit" class="btn btn-brand w-100 fw-bold py-3 mb-4 shadow-sm" style="border-radius: 0.5rem;">
-                            ĐĂNG NHẬP
-                        </button>
-                    </form>
-
-                    @if (loginProviders.Any())
-                    {
-                        <div class="position-relative text-center mb-4">
-                            <hr class="text-muted">
-                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 small text-muted fw-bold">HOẶC</span>
-                        </div>
-
-                        <form asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="text-center">
-                            @foreach (var provider in loginProviders)
-                            {
-                                <button type="submit" class="btn btn-outline-success w-100 fw-bold py-2 mb-2 d-flex align-items-center justify-content-center"
-                                        name="provider" value="@provider.Name">
-                                    <i class="bi bi-google me-2"></i> Đăng nhập với @provider.DisplayName
-                                </button>
-                            }
-                        </form>
-                    }
-
-                    <div class="text-center mt-4 pt-3 border-top">
-                        <span class="small text-muted">Chưa có tài khoản?</span>
-                        <a asp-action="Register" class="fw-bold text-decoration-none ms-1 auth-link">Đăng ký ngay</a>
-                    </div>
-                </div>
+                <span asp-validation-for="Email" class="text-danger small ms-2"></span>
             </div>
+
+            <div class="mb-2">
+                <label class="fw-bold small mb-1 ms-2">Mật khẩu</label>
+                <div class="auth-input-container">
+                    <input asp-for="Password" type="password" class="auth-input py-2" placeholder="••••••••" id="Password" />
+                    <i class="bi bi-eye-slash" id="togglePass" onclick="togglePassword('Password', 'togglePass')"></i>
+                </div>
+                <span asp-validation-for="Password" class="text-danger small ms-2"></span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                <div class="form-check auth-checkbox">
+                    <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label text-muted small" for="rememberMe">Ghi nhớ tôi</label>
+                </div>
+                <a asp-action="ForgotPassword" class="auth-link small">Quên mật khẩu?</a>
+            </div>
+
+            <button type="submit" class="btn-auth-primary py-2 mb-3">
+                Đăng nhập <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+        </form>
+
+        <div class="auth-divider mb-3">Hoặc tiếp tục với</div>
+
+        <form asp-action="ExternalLogin" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <button type="submit" name="provider" value="Google" class="btn-auth-google py-2 mb-3 d-flex align-items-center justify-content-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" class="me-2">
+                    <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                    <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                    <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                    <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                </svg>
+                Google
+            </button>
+        </form>
+
+        <div class="text-center">
+            <p class="small text-muted mb-0">
+                Chưa có tài khoản? <a asp-action="Register" class="auth-link">Đăng ký ngay</a>
+            </p>
         </div>
     </div>
 </div>
-
-<script>
-    function togglePass(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace("bi-eye-slash-fill", "bi-eye-fill");
-        } else {
-            input.type = "password";
-            icon.classList.replace("bi-eye-fill", "bi-eye-slash-fill");
-        }
-    }
-</script>

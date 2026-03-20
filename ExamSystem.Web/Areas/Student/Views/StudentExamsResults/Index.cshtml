@@ -4,41 +4,52 @@
     ViewData["Title"] = "Lịch sử & Kết quả";
 }
 
-<div class="container mt-4">
-    <h3><i class="bi bi-journal-bookmark-fill me-2"></i>Lịch sử làm bài</h3>
-    <div class="card shadow-sm border-0 mt-3">
-        <div class="custom-table-scroll mb-3 shadow-sm">
-            <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
-                <thead class="small">
+<div class="container py-4">
+    <div class="page-header-area mb-4">
+        <h3 class="fw-bold" style="color: var(--bs-primary);">
+            <i class="bi bi-clock-history me-2"></i>Lịch sử làm bài
+        </h3>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+         <div class="custom-table-scroll">
+                    <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+                        <thead class="small">
                     <tr>
-                        <th>Tên đề thi</th>
-                        <th>Ngày nộp</th>
-                        <th>Trạng thái</th>
-                        <th>Điểm số</th>
-                        <th class="text-end">Thao tác</th>
+                        <th class="ps-4">Đề thi</th>
+                        <th>Ngày thi</th>
+                        <th class="text-center">Điểm số</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td class="fw-bold">@item.Exam?.Title</td>
-                            <td>@item.SubmitTime</td>
-                            <td>
-                                @if (item.Status == 2) // Giả sử 2 là Graded (Đã chấm)
+                            <td class="ps-4 text-dark fw-bold">@item.Exam.Title</td>
+                            <td class="text-muted">@item.StartTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary-soft text-primary fs-6 rounded-pill px-3">@item.Score</span>
+                            </td>
+                            <td class="text-center">
+                                @if (item.Status == 2)
                                 {
-                                    <span class="badge bg-success">Đã chấm điểm</span>
+                                    <span class="badge bg-success-soft text-success rounded-pill px-3">Hoàn thành</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-warning text-dark">Chờ chấm điểm</span>
+                                    <span class="badge bg-warning-soft text-warning rounded-pill px-3">Chờ chấm</span>
                                 }
                             </td>
-                            <td class="text-danger fw-bold">@item.Score</td>
-                            <td class="text-end">
-                                <a asp-controller="StudentExams" asp-action="Result" asp-route-attemptId="@item.Id" class="btn btn-sm btn-outline-primary">
+                            <td class="text-end pe-4">
+                                <a asp-controller="StudentExams" asp-action="Result" asp-route-attemptId="@item.Id" 
+                                   class="btn btn-sm btn-outline-primary rounded-pill">
+                                    <i class="bi bi-eye-fill me-1"></i> Xem chi tiết
+                                </a>
+                                @* <a asp-controller="StudentExams" asp-action="Result" asp-route-attemptId="@item.Id" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-eye-fill"></i> Xem chi tiết
-                                </a>                             
+                                </a>  *@
                             </td>
                         </tr>
                     }

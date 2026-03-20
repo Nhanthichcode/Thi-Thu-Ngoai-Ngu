@@ -82,6 +82,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             else
             {
                 await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100)); // Khóa vĩnh viễn
+                await _userManager.UpdateSecurityStampAsync(user);
                 TempData["SuccessMessage"] = $"Đã khóa {user.Email}";
             }
 

@@ -50,22 +50,26 @@
 
                     // Render ra HTML
                     const tr = document.createElement('tr');
-                    if (!isValid) tr.className = 'row-invalid text-danger';
+                   
+                    tr.className = isValid ? "" : "text-danger";
 
                     tr.innerHTML = `
-                        <td class="text-center">
-                            <input class="form-check-input row-checkbox shadow-sm" type="checkbox" value="${parsedData.length - 1}" ${isValid ? 'checked' : 'disabled'}>
-                        </td>
-                        <td class="text-center fw-bold">${i + 1}</td>
-                        <td class="fw-bold">${email || '<i class="text-muted">- Trống -</i>'}</td>
-                        <td>${fullName || '<i class="text-muted">- Trống -</i>'}</td>
-                        <td>${password || '<i class="text-muted">- Trống -</i>'}</td>
-                        <td>
-                            ${isValid
-                                ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill"><i class="bi bi-check-circle-fill me-1"></i>Hợp lệ</span>'
-                                : `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill"><i class="bi bi-exclamation-circle-fill me-1"></i>${errorMsg}</span>`}
-                        </td>
-                    `;
+                                    <td class="text-center">
+                                        <input class="form-check-input row-checkbox shadow-sm" type="checkbox" value="${parsedData.length - 1}" ${isValid ? 'checked' : 'disabled'}>
+                                    </td>
+                                    <td class="text-center fw-bold">${i + 1}</td>
+    
+                                    <!-- LOẠI BỎ class text-dark ở các dòng dưới đây -->
+                                    <td class="fw-bold">${email || '<i>- Trống -</i>'}</td>
+                                    <td>${fullName || '<i>- Trống -</i>'}</td>
+                                    <td>${password || '<i>- Trống -</i>'}</td>
+    
+                                    <td>
+                                        ${isValid
+                                                            ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill"><i class="bi bi-check-circle-fill me-1"></i>Hợp lệ</span>'
+                                                            : `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill"><i class="bi bi-exclamation-circle-fill me-1"></i>${errorMsg}</span>`}
+                                    </td>
+                                `;
                     tbody.appendChild(tr);
                 }
 
@@ -146,7 +150,7 @@ document.getElementById('checkAll_Import').addEventListener('change', function(e
                 if (data.success) {
                     let msg = `Đã tạo thành công <b>${data.successCount}</b> tài khoản.`;
                     if (data.errorCount > 0) {
-                        msg += `<br/><br/><span class="text-danger">Có ${data.errorCount} tài khoản bị lỗi (có thể do trùng Email).</span>`;
+                        msg += `<br/><br/><span class="text-danger">Có ${data.errorCount} tài khoản bị lỗi (có thể do trùng Tên đăng nhập và mật khẩu).</span>`;
                     }
 
                     Swal.fire({

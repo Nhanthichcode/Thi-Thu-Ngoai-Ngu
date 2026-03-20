@@ -13,7 +13,7 @@
             <span class="text-muted small">Danh sách tài khoản hệ thống</span>
         </div>
         <div class="d-flex gap-2 align-items-center">
-            <a asp-action="Import" class="btn bg-white border fw-bold text-muted shadow-sm rounded-pill px-3 hover-up">
+            <a asp-action="Import" class="btn bg-white border fw-bold text-dark shadow-sm rounded-pill px-3 hover-up">
                 <i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel
             </a>
             <a asp-action="Create" class="btn text-white shadow-sm rounded-pill fw-bold px-4 hover-up" style="background-color: var(--bs-primary, #f47b25);">
@@ -23,46 +23,52 @@
     </div>
 
     <div class="card shadow-sm border-0 rounded-4 mb-2 highlight-card">
-        <div class="card-body p-3">
-            <form method="get" asp-action="Index" class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <div class="fw-bold text-dark d-flex align-items-center mb-2 mb-md-0">
-                    <div class="rounded-circle d-flex align-items-center justify-content-center me-2 shadow-sm"
-                         style="width: 36px; height: 36px; background-color: white; color: var(--bs-primary, #f47b25);">
-                        <i class="bi bi-funnel-fill"></i>
-                    </div>
-                    Bộ lọc:
-                </div>
-
-                <div class="d-flex flex-wrap flex-grow-1 gap-2 align-items-center">
-                    <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white flex-grow-1" style="min-width: 200px; max-width: 350px;">
-                        <span class="input-group-text border-0 bg-white text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" name="searchQuery" value="@ViewData["CurrentSearch"]" class="form-control border-0 shadow-none" placeholder="Tìm tên, email...">
-                    </div>
-
-                    <select name="role" class="form-select border-1 shadow-sm rounded-pill text-secondary fw-bold" style="width: 150px; background-color: white;">
-                        <option value=""> Mọi vai trò </option>
-                        <!option value="Admin" @(ViewData["CurrentRole"]?.ToString() == "Admin" ? "selected" : "")>Admin</!option>
-                        <!option value="Teacher" @(ViewData["CurrentRole"]?.ToString() == "Teacher" ? "selected" : "")>Giáo viên</!option>
-                        <!option value="Student" @(ViewData["CurrentRole"]?.ToString() == "Student" ? "selected" : "")>Học viên</!option>
-                    </select>
-
-                    <select name="status" class="form-select border-1 shadow-sm rounded-pill text-secondary fw-bold" style="width: 170px; background-color: white;">
-                        <option value=""> Mọi trạng thái </option>
-                        <!option value="active" @(ViewData["CurrentStatus"]?.ToString() == "active" ? "selected" : "")>Đang hoạt động</!option>
-                        <!option value="locked" @(ViewData["CurrentStatus"]?.ToString() == "locked" ? "selected" : "")>Đang bị khóa</!option>
-                    </select>
-
-                    <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm hover-up fw-bold">Áp dụng</button>
-
-                    @if (!string.IsNullOrEmpty((string)ViewData["CurrentSearch"]) || !string.IsNullOrEmpty((string)ViewData["CurrentRole"]) || !string.IsNullOrEmpty((string)ViewData["CurrentStatus"]))
-                    {
-                        <a asp-action="Index" class="btn btn-light rounded-circle shadow-sm hover-up text-danger d-flex align-items-center justify-content-center" style="width:38px; height:38px;" title="Xóa bộ lọc">
-                            <i class="bi bi-x-lg fw-bold"></i>
-                        </a>
-                    }
-                </div>
-            </form>
+      <div class="card-body p-3">
+    <form method="get" asp-action="Index" class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <!-- Bỏ text-dark để chữ tự đổi màu theo theme -->
+        <div class="fw-bold d-flex align-items-center mb-2 mb-md-0">
+            <div class="btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center me-2 shadow-sm"
+                 style="width: 36px; height: 36px; border: 1px solid var(--bs-border-color);">
+                <i class="bi bi-funnel-fill"></i>
+            </div>
+            Bộ lọc:
         </div>
+
+        <div class="d-flex flex-wrap flex-grow-1 gap-2 align-items-center">
+            <!-- Thay bg-white bằng biến màu nền input của hệ thống -->
+            <div class="input-group shadow-sm rounded-pill overflow-hidden flex-grow-1" 
+                 style="min-width: 200px; max-width: 350px; background-color: var(--bs-input-bg); border: 1px solid var(--bs-border-color);">
+                <span class="input-group-text border-0 bg-transparent"><i class="bi bi-search"></i></span>
+                <input type="text" name="searchQuery" value="@ViewData["CurrentSearch"]" 
+                       class="form-control border-0 shadow-none bg-transparent" placeholder="Tìm tên, email...">
+            </div>
+
+            <!-- Bỏ style background-color: white để dùng màu mặc định của class .form-select trong site.css -->
+            <select name="role" class="form-select border-1 shadow-sm rounded-pill fw-bold" style="width: 150px;">
+                <option value=""> Mọi vai trò </option>
+                <!option value="Admin" @(ViewData["CurrentRole"]?.ToString() == "Admin" ? "selected" : "")>Admin</!option>
+                <!option value="Teacher" @(ViewData["CurrentRole"]?.ToString() == "Teacher" ? "selected" : "")>Giáo viên</!option>
+                <!option value="Student" @(ViewData["CurrentRole"]?.ToString() == "Student" ? "selected" : "")>Học viên</!option>
+            </select>
+
+            <select name="status" class="form-select border-1 shadow-sm rounded-pill fw-bold" style="width: 170px;">
+                <option value=""> Mọi trạng thái </option>
+                <!option value="active" @(ViewData["CurrentStatus"]?.ToString() == "active" ? "selected" : "")>Đang hoạt động</!option>
+                <!option value="locked" @(ViewData["CurrentStatus"]?.ToString() == "locked" ? "selected" : "")>Đang bị khóa</!option>
+            </select>
+
+            <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm hover-up fw-bold">Áp dụng</button>
+
+            @if (!string.IsNullOrEmpty((string)ViewData["CurrentSearch"]) || !string.IsNullOrEmpty((string)ViewData["CurrentRole"]) || !string.IsNullOrEmpty((string)ViewData["CurrentStatus"]))
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-circle shadow-sm hover-up text-danger d-flex align-items-center justify-content-center" 
+                   style="width:38px; height:38px;" title="Xóa bộ lọc">
+                    <i class="bi bi-x-lg fw-bold"></i>
+                </a>
+            }
+        </div>
+    </form>
+</div>
     </div>
 </div>
 
@@ -148,13 +154,13 @@
                                 <td class="text-end pe-4">
                                     <div class="d-flex gap-2 justify-content-end align-items-center">
                                         <a asp-action="Edit" asp-route-id="@user.Id"
-                                           class="btn btn-sm btn-light text-primary rounded-circle shadow-sm hover-up border"
+                                           class="btn btn-sm btn-outline-secondary text-primary rounded-circle shadow-sm hover-up border"
                                            style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" title="Chỉnh sửa">
                                             <i class="bi bi-pencil-square fs-6"></i>
                                         </a>
 
                                         <form asp-action="ToggleStatus" asp-route-id="@user.Id" method="post" class="m-0 p-0 d-inline-block">
-                                            <button type="submit" class="btn btn-sm btn-light @(user.IsLocked ? "text-success" : "text-warning") rounded-circle shadow-sm hover-up border"
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary @(user.IsLocked ? "text-success" : "text-warning") rounded-circle shadow-sm hover-up border"
                                                     style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
                                                     title="@(user.IsLocked ? "Mở khóa tài khoản" : "Khóa tài khoản")">
                                                 <i class="bi @(user.IsLocked ? "bi-unlock-fill" : "bi-lock-fill") fs-6"></i>
@@ -162,7 +168,7 @@
                                         </form>
 
                                         <form id="delete-form-@user.Id" asp-action="Delete" asp-route-id="@user.Id" method="post" class="m-0 p-0 d-inline-block">
-                                            <button type="button" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm hover-up border"
+                                            <button type="button" class="btn btn-sm btn-outline-secondary text-danger rounded-circle shadow-sm hover-up border"
                                                     style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
                                                     title="Xóa tài khoản" onclick="confirmDelete('@user.Id', '@user.FullName')">
                                                 <i class="bi bi-trash3-fill fs-6"></i>
