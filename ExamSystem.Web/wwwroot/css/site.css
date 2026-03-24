@@ -447,11 +447,22 @@ body {
         color: var(--bs-body-color); /* Icon đổi màu theo chế độ sáng/tối */
     }
 
-.question-list-container,
+.question-list-container {
+    /* Lấy 100% chiều cao màn hình trừ đi phần Header và Bộ lọc (khoảng 230px) */
+    height: calc(90vh - 230px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 20px;
+    /* Chừa một chút khoảng trống bên phải để thanh cuộn không đè lên nội dung */
+    padding-right: 4px;
+/*    overflow: visible !important;*/
+}
+
+
 .user-list-container {
     /* Lấy 100% chiều cao màn hình trừ đi phần Header và Bộ lọc (khoảng 230px) */
     height: calc(90vh - 230px);
-/*    overflow-y: auto;*/
+    /*    overflow-y: auto;*/
     overflow-x: hidden;
     padding-bottom: 20px;
     /* Chừa một chút khoảng trống bên phải để thanh cuộn không đè lên nội dung */
@@ -459,26 +470,70 @@ body {
     overflow: visible !important;
 }
 
-/* --- 1. HERO SECTION --- */
+
+/* =========================================
+   1. HERO SECTION & ÁNH SÁNG DẠ QUANG
+   ========================================= */
 .hero-section {
-    background: linear-gradient(135deg, var(--bs-success) 0%, #059669 100%);
+    background: linear-gradient(135deg, #f47b25 0%, #d85c0b 100%);
     color: white;
     border-radius: var(--border-radius-lg, 16px);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(var(--bs-success-rgb), 0.25);
+    box-shadow: 0 8px 24px rgba(244, 123, 37, 0.3);
+    transition: background 0.4s ease, box-shadow 0.4s ease, border 0.4s ease;
 }
 
-.hero-pattern {
+    /* Ánh sáng dạ quang đi theo chuột */
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* Dùng -500px để giấu vầng sáng ra khỏi khung hình khi chưa rê chuột */
+        background: radial-gradient(circle 250px at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(255, 255, 255, 0.3), transparent 80%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1;
+        pointer-events: none;
+        mix-blend-mode: overlay;
+    }
+
+    .hero-section:hover::before {
+        opacity: 1;
+    }
+
+/* Canvas chứa các hạt (Đã thay thế hoàn toàn cho .hero-pattern cũ) */
+.hero-pattern-canvas {
     position: absolute;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
-    opacity: 0.15;
-    background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.5) 1.5px, transparent 0);
-    background-size: 24px 24px;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none; /* Không chặn click chuột */
 }
+
+/* =========================================
+   2. CHẾ ĐỘ TỐI (DARK MODE)
+   ========================================= */
+[data-theme="dark"] .hero-section,
+[data-bs-theme="dark"] .hero-section {
+    background: linear-gradient(135deg, #2b2b2b 0%, #1a1a1a 100%) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+/*    border: 1px solid rgba(244, 123, 37, 0.25) !important;*/
+}
+
+    /* Đổi màu vầng sáng thành cam dạ quang khi ở nền tối */
+    [data-theme="dark"] .hero-section::before,
+    [data-bs-theme="dark"] .hero-section::before {
+        background: radial-gradient(circle 300px at var(--mouse-x, -500px) var(--mouse-y, -500px), rgba(244, 123, 37, 0.15), transparent 80%) !important;
+    }
+
+
+
 /* --- 2. BUTTONS --- */
 .btn-brand-cta {
     background-color: var(--bs-primary);
@@ -582,4 +637,444 @@ input:-ms-input-placeholder {
 /* Đảm bảo chữ "Chưa chọn tệp nào" có màu đúng ở nền tối */
 [data-theme="dark"] .form-control[type="file"] {
     color: var(--bs-text-muted) !important;
+}
+
+/*TRANG ĐĂNG NHẬP/KÝ*/
+/* --- NỀN TRANG CƠ BẢN (SÁNG) --- */
+.auth-page-wrapper {
+    /* Gom chung Gradient và Màu nền (#fafbfc) vào 1 dòng duy nhất */
+    min-height: 100vh;
+    overflow: hidden;
+    transition: background 0.3s ease;
+}
+
+/* --- CÁC CHI TIẾT LƠ LỬNG BÊN TRÁI --- */
+.visual-container {
+    position: relative;
+    height: 100%;
+    min-height: 600px;
+}
+
+.orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed #f47b2566;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.ring-1 {
+    width: 320px;
+    height: 320px;
+}
+
+.ring-2 {
+    width: 480px;
+    height: 480px;
+}
+
+.central-glowing-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -65px;
+    margin-left: -65px;
+    width: 130px;
+    height: 130px;
+    background: var(--bs-body-bg, white);
+    border-radius: 35px;
+    box-shadow: 0 10px 40px rgba(244, 123, 37, 0.15), inset 0 0 0 1px rgba(244, 123, 37, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: #f47b25;
+    z-index: 2;
+}
+
+.orbit-icon {
+    position: absolute;
+    background: var(--bs-body-bg, white);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+}
+
+.icon-translate {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    font-size: 1.5rem;
+    color: #407fdcd4;
+    top: 25%;
+    left: 15%;
+}
+
+.icon-code {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    font-size: 1.2rem;
+    color: #ff0c0c;
+    top: 35%;
+    right: 20%;
+}
+
+.icon-user {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    font-size: 1.3rem;
+    color: #6c757d;
+    bottom: 25%;
+    right: 25%;
+}
+
+/* Hiệu ứng nhấp nhô */
+@keyframes bobbing-slow {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes bobbing-med {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes bobbing-fast {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes gentlePulse{
+    0% {     
+        transform: scale(1);
+    }
+
+    50% {       
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+@keyframes gentlePulseRing {
+    0% {
+        /* Vừa căn giữa, vừa scale 100% */
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        /* Vừa căn giữa, vừa scale to lên 15% */
+        transform: translate(-50%, -50%) scale(1.15);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.zoom-effect-ring {display: inline-block;
+    animation: gentlePulseRing 5s ease-in-out infinite;   
+}
+
+.zoom-effect {
+    display: inline-block;
+    animation: gentlePulse 3s ease-in-out infinite;
+    transition: transform 0.2s ease;
+}
+
+
+.float-slow {
+    animation: bobbing-slow 6s ease-in-out infinite;
+}
+
+.float-med {
+    animation: bobbing-med 4s ease-in-out infinite 1s;
+}
+
+.float-fast {
+    animation: bobbing-fast 5s ease-in-out infinite 0.5s;
+}
+
+/* --- GIAO DIỆN FORM BÊN PHẢI --- */
+.auth-card-right {
+    background: var(--bs-body-bg, white);
+    border-radius: 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.04);
+    padding: 3.5rem;
+    position: relative;
+    z-index: 10;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.btn-auth-primary {
+    background-color: #f47b25;
+    color: white;
+    border-radius: 50px;
+    border: none;
+    font-weight: 600;
+    width: 100%;
+    transition: all 0.3s;
+    box-shadow: 0 8px 20px rgba(244, 123, 37, 0.25);
+}
+
+    .btn-auth-primary:hover {
+        background-color: #e66a15;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(244, 123, 37, 0.35);
+        color: white;
+    }
+
+.auth-input {
+    background-color: rgba(0,0,0,0.02);
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 12px;
+    color: var(--bs-body-color);
+}
+
+    .auth-input:focus {
+        border-color: #f47b25;
+        box-shadow: 0 0 0 0.25rem rgba(244, 123, 37, 0.1);
+        background-color: transparent;
+    }
+
+/* =========================================
+       CHẾ ĐỘ TỐI (DARK MODE TWEAKS)
+       ========================================= */
+@media (prefers-color-scheme: dark) {
+    :root, [data-bs-theme="dark"] {
+        --auth-bg-dark: #121212;
+        --auth-card-dark: #1e1e1e;
+    }
+}
+
+[data-bs-theme="dark"] .auth-page-wrapper {
+    background-color: #121212;
+    background-image: radial-gradient(circle at 15% 30%, rgba(244, 123, 37, 0.05) 0%, transparent 40%), radial-gradient(circle at 85% 70%, rgba(40, 167, 69, 0.05) 0%, transparent 40%);
+}
+
+[data-bs-theme="dark"] .auth-card-right,
+[data-bs-theme="dark"] .central-glowing-box,
+[data-bs-theme="dark"] .orbit-icon {
+    background: #1e1e1e;
+    border-color: #333;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+[data-bs-theme="dark"] .orbit-ring {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .auth-input {
+    background-color: #2b2b2b;
+    border-color: #444;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .text-dark {
+    color: #f8f9fa !important;
+}
+
+[data-bs-theme="dark"] .bg-white {
+    background-color: #2b2b2b !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+
+/* =========================================
+   HIỆU ỨNG TẢI FILE MẪU (FAB MENU)
+   ========================================= */
+.template-fab-container {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 40px auto; /* Căn giữa hoặc đặt absolute tùy ý bạn */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.fab-checkbox {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    opacity: 0;
+    z-index: 10;
+    cursor: pointer;
+}
+
+/* Nút chính */
+.fab-button-menu {
+    cursor: pointer;
+    position: absolute;
+    z-index: 5;
+    background-color: var(--bs-primary, #f47b25);
+    color: #ffffff;
+    font-size: 28px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 4px 15px rgba(244, 123, 37, 0.4);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+/* Nút vệ tinh */
+.fab-option {
+    position: absolute;
+    background-color: #ffffff;
+    border: 2px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    z-index: 1;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    text-decoration: none;
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    pointer-events: none;
+    /* 1. KHAI BÁO BIẾN CHO TỌA ĐỘ VÀ SCALE */
+    --tx: 0px;
+    --ty: 0px;
+    --scale: 1;
+    /* Gộp chung chúng vào 1 lệnh transform duy nhất */
+    transform: translate(var(--tx), var(--ty)) scale(var(--scale));
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+    /* Tooltip hiển thị tên file */
+    .fab-option::after {
+        content: attr(data-title);
+        position: absolute;
+        top: -30px;
+        font-size: 11px;
+        font-weight: bold;
+        background: #1e1e1e;
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: 6px;
+        opacity: 0;
+        white-space: nowrap;
+        transition: 0.2s ease;
+        pointer-events: none;
+    }
+
+    .fab-option:hover::after {
+        opacity: 1;
+        top: -35px;
+    }
+
+    .fab-option:hover {
+        border-color: var(--bs-primary);
+        /* 2. KHI HOVER CHỈ THAY ĐỔI BIẾN SCALE, KHÔNG ĐỤNG ĐẾN TỌA ĐỘ */
+        --scale: 1.1;
+    }
+
+/* HOẠT ẢNH KHI BẤM CHECKBOX (BUNG NÚT) */
+.fab-checkbox:checked ~ .fab-button-menu {
+    background-color: #e0691b;
+    transform: rotate(180deg) scale(0.9);
+    box-shadow: 0px 2px 8px rgba(244, 123, 37, 0.2);
+}
+
+    .fab-checkbox:checked ~ .fab-button-menu i::before {
+        content: "\F62A";
+    }
+
+.fab-checkbox:checked ~ .fab-option {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 3. THAY ĐỔI TỌA ĐỘ THÔNG QUA BIẾN --tx VÀ --ty */
+.fab-checkbox:checked ~ .opt-grammar {
+    transition-delay: 0.05s;
+    --tx: -95px;
+    --ty: -25px;
+}
+
+.fab-checkbox:checked ~ .opt-reading {
+    transition-delay: 0.1s;
+    --tx: -65px;
+    --ty: -80px;
+}
+
+.fab-checkbox:checked ~ .opt-listening {
+    transition-delay: 0.15s;
+    --tx: 0px;
+    --ty: -105px;
+}
+
+.fab-checkbox:checked ~ .opt-writing {
+    transition-delay: 0.2s;
+    --tx: 65px;
+    --ty: -80px;
+}
+
+.fab-checkbox:checked ~ .opt-speaking {
+    transition-delay: 0.25s;
+    --tx: 95px;
+    --ty: -25px;
+}
+
+/* =========================================
+   CUSTOM CHECKBOX CHO BẢNG (SIZE XL & HIỆU ỨNG)
+   ========================================= */
+.checkbox-xl {
+    width: 1.4rem !important;
+    height: 1.4rem !important;
+    border: 2px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    margin-top: 0 !important;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nhún mượt */
+}
+
+    .checkbox-xl:hover {
+        border-color: var(--bs-primary, #f47b25) !important;
+        transform: scale(1.1);
+    }
+
+    .checkbox-xl:checked {
+        background-color: var(--bs-primary, #f47b25) !important;
+        border-color: var(--bs-primary, #f47b25) !important;
+        transform: scale(1.15); /* Khi chọn sẽ phình to ra một chút */
+        box-shadow: 0 4px 12px rgba(244, 123, 37, 0.35) !important;
+    }
+
+/* Fix nền tối cho Dark Mode */
+[data-theme="dark"] .checkbox-xl,
+[data-bs-theme="dark"] .checkbox-xl {
+    background-color: #2b2b2b;
+    border-color: #444 !important;
 }

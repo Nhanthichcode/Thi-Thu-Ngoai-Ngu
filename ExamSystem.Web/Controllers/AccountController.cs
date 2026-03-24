@@ -401,7 +401,8 @@ public class AccountController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword()
     {
-        return View();
+        TempData["SuccessMessage"] = "Tính năng đang được phát triển.";
+        return View();        
     }
 
     [HttpPost]
@@ -419,29 +420,29 @@ public class AccountController : Controller
             TempData["ErrorMessage"] = "Thông tin không khớp với bất kỳ tài khoản nào.";
             return View(model);
         }
+     
+        //try
+        //{
+        //    TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đang được gửi vào Email của bạn.";
+        //    // 2. Chạy thẳng vào logic gửi Email luôn, không cần switch case
+        //    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        //    var callbackUrl = Url.Action("ResetPassword", "Account",
+        //        new { token = token, email = user.Email }, Request.Scheme);
 
-        try
-        {
-            TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đang được gửi vào Email của bạn.";
-            // 2. Chạy thẳng vào logic gửi Email luôn, không cần switch case
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = Url.Action("ResetPassword", "Account",
-                new { token = token, email = user.Email }, Request.Scheme);
+        //    string subject = "Đặt lại mật khẩu - Thi Thử Ngoại Ngữ";
+        //    string message = $@" ... (Nội dung HTML của bạn) ... ";
 
-            string subject = "Đặt lại mật khẩu - Thi Thử Ngoại Ngữ";
-            string message = $@" ... (Nội dung HTML của bạn) ... ";
+        //    await _emailSender.SendEmailAsync(user.Email, subject, message);
 
-            await _emailSender.SendEmailAsync(user.Email, subject, message);
+        //    TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đã được gửi vào Email của bạn.";
+        //}
+        //catch (Exception ex)
+        //{
+        //    TempData["ErrorMessage"] = "Lỗi gửi mail: " + ex.Message;
+        //    return View(model);
+        //}
 
-            TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đã được gửi vào Email của bạn.";
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Lỗi gửi mail: " + ex.Message;
-            return View(model);
-        }
-
-        return RedirectToAction("ForgotPasswordConfirmation");
+        return RedirectToAction("ForgotPassword");
     }
 
     [HttpGet]

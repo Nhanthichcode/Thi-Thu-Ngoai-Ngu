@@ -347,140 +347,407 @@ function submitForm() {
 }
 
 // =========================================================================
-// 4. TRANG IMPORT EXCEL
+// 4. TRANG IMPORT EXCEL (CẬP NHẬT LOAD LẠI FILE VÀ THU GỌN CHA/CON)
 // =========================================================================
-function resetState() {
-    const contentState = document.getElementById('contentState');
-    if (contentState) {
-        contentState.classList.add('d-none');
-        document.getElementById('emptyState').classList.remove('d-none');
+const fileInput = document.getElementById('fileInput');
 
-        var btnSave = document.getElementById('btnSave');
-        if (btnSave) {
-            btnSave.disabled = true;
-            btnSave.className = "btn btn-secondary btn-lg fw-bold shadow-sm rounded-pill";
-            btnSave.style.backgroundColor = "";
+if (fileInput) {
+    // [QUAN TRỌNG] FIX LỖI KHÔNG CẬP NHẬT DỮ LIỆU KHI CHỌN TRÙNG TÊN FILE
+    fileInput.addEventListener('click', function () {
+        this.value = null; // Quét sạch file cũ trong bộ nhớ để ép trình duyệt load lại từ đầu
+    });
+
+    fileInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('emptyState').classList.add('d-none');
+        document.getElementById('previewSection').classList.add('d-none');
+        document.getElementById('loadingArea').classList.remove('d-none');
+
+        if (typeof XLSX === 'undefined') {
+            Swal.fire('Lỗi', 'Chưa tải được thư viện Excel (SheetJS). Vui lòng F5 lại trang.', 'error');
+            return;
         }
 
-        var badge = document.getElementById('statusBadge');
-        if (badge) {
-            badge.className = "badge bg-secondary rounded-pill px-3 py-2 fw-normal";
-            badge.innerText = "Chờ xử lý";
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+
+                if (jsonData.length < 6 || !jsonData[5][0]) {
+                    throw new Error("Không tìm thấy mã định danh tại ô A6. Vui lòng tải file mẫu chuẩn.");
+                }
+
+                const detectedQuestionType = jsonData[5][0].toString().trim();
+                document.getElementById('questionTypeBadge').innerText = "Loại: " + detectedQuestionType;
+                document.getElementById('questionTypeBadge').classList.remove('d-none');
+
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                let validCount = 0;
+                let invalidCount = 0;
+
+                let currentParentIndex = -1;
+                let isCurrentParentValid = false;
+
+                for (let i = 7; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || row.length === 0 || (!row[0] && !row[1] && !row[2])) continue;
+
+                    let isValid = true;
+                    let errorMsg = "";
+                    let displayHtml = "";
+
+                    let isParent = false;
+                    let isChild = false;
+
+                    // ----------------------------------------------------------------
+                    if (detectedQuestionType === "TYPE_GRAMMAR") {
+                        const qContent = row[0] ? row[0].toString().trim() : '';
+                        displayHtml = `<div class="text-wrap">${qContent}</div>`;
+                        if (!qContent) { isValid = false; errorMsg += "Câu hỏi bị trống; "; }
+                        if (!row[6]) { isValid = false; errorMsg += "Thiếu vị trí đáp án đúng; "; }
+                    }
+                    else if (detectedQuestionType === "TYPE_WRITING" || detectedQuestionType === "TYPE_SPEAKING") {
+                        const qContent = row[0] ? row[0].toString().trim() : '';
+                        displayHtml = `<div class="text-wrap">${qContent}</div>`;
+                        if (!qContent) { isValid = false; errorMsg += "Đề bài bị trống; "; }
+                    }
+                    // ----------------------------------------------------------------
+                    // ĐỌC / NGHE (CÓ CHA - CON)
+                    else if (detectedQuestionType === "TYPE_READING" || detectedQuestionType === "TYPE_LISTENING") {
+                        const title = row[0] ? row[0].toString().trim() : '';
+                        const passage = row[1] ? row[1].toString().trim() : '';
+                        const qContent = row[2] ? row[2].toString().trim() : '';
+
+                        // Phân tích bài Cha
+                        if (title) {
+                            isParent = true;
+                            currentParentIndex = i;
+
+                            // Gắn thêm class 'parent-toggle-icon' vào icon để nhận diện Đóng/Mở Tất Cả
+                            const toggleBtn = `<button class="btn btn-sm btn-light border py-0 px-1 ms-2" onclick="window.toggleChildRows(${i}, this)" title="Thu gọn/Mở rộng câu con"><i class="bi bi-chevron-down text-muted parent-toggle-icon"></i></button>`;
+
+                            displayHtml += `<div class="fw-bold text-primary mb-1 d-flex align-items-center"><i class="bi bi-journal-text me-2"></i> BÀI: ${title} ${toggleBtn}</div>`;
+
+                            if (detectedQuestionType === "TYPE_READING" && !passage) {
+                                isValid = false; errorMsg += "Bài đọc thiếu Nội dung; ";
+                                isCurrentParentValid = false;
+                            } else {
+                                isCurrentParentValid = true;
+                            }
+                        }
+
+                        // Phân tích câu Con
+                        if (qContent) {
+                            isChild = true;
+                            displayHtml += `<div class="${title ? 'ms-4 mt-2' : ''} text-wrap"><i class="bi bi-arrow-return-right text-muted me-2"></i> ${qContent}</div>`;
+
+                            if (!title && !isCurrentParentValid) {
+                                isValid = false; errorMsg += "Bài Cha phía trên bị lỗi, câu hỏi này mồ côi; ";
+                            }
+                            let validAns = 0;
+                            for (let j = 4; j <= 7; j++) if (row[j] && row[j].toString().trim()) validAns++;
+                            if (validAns < 2) { isValid = false; errorMsg += "Chưa đủ 2 đáp án; "; }
+                            if (row[8] && !row[3 + parseInt(row[8])]) { isValid = false; errorMsg += `Đáp án đúng rỗng; `; }
+                        }
+                    }
+
+                    if (isValid) validCount++; else invalidCount++;
+
+                    const statusHtml = isValid
+                        ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Hợp lệ</span>'
+                        : `<div class="text-danger small fw-bold" style="white-space: normal; line-height: 1.5;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Lỗi: ${errorMsg}</div>`;
+
+                    let cbHtml = '';
+                    if (isValid) {
+                        if (isParent && (detectedQuestionType === "TYPE_READING" || detectedQuestionType === "TYPE_LISTENING")) {
+                            cbHtml = `<input class="form-check-input row-checkbox parent-checkbox shadow-sm" type="checkbox" value="${i}" data-index="${i}" checked style="cursor: pointer;">`;
+                        } else if (isChild && !isParent) {
+                            cbHtml = `<input class="form-check-input row-checkbox child-checkbox shadow-sm" type="checkbox" value="${i}" data-parent="${currentParentIndex}" checked style="cursor: pointer;">`;
+                        } else {
+                            cbHtml = `<input class="form-check-input row-checkbox shadow-sm" type="checkbox" value="${i}" checked style="cursor: pointer;">`;
+                        }
+                    } else {
+                        cbHtml = `<i class="bi bi-x-circle-fill text-danger fs-5"></i>`;
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = isValid ? "" : "bg-danger bg-opacity-10";
+
+                    // Gắn nhãn câu con để JS biết đường thu gọn
+                    if (isChild && !isParent && currentParentIndex !== -1) {
+                        tr.classList.add(`child-of-${currentParentIndex}`);
+                    }
+
+                    tr.innerHTML = `
+                        <td class="text-center align-middle">${cbHtml}</td>
+                        <td class="text-center fw-bold align-middle">${i + 1}</td>
+                        <td class="align-middle py-2">${displayHtml}</td>
+                        <td class="align-middle" style="min-width: 150px;">${statusHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+
+                document.getElementById('validCount').innerText = validCount;
+                document.getElementById('invalidCount').innerText = invalidCount;
+                updateSelectedCountBadge(validCount);
+
+                const btnImport = document.getElementById('btnImport');
+                btnImport.disabled = (validCount === 0);
+
+                document.getElementById('loadingArea').classList.add('d-none');
+                document.getElementById('previewSection').classList.remove('d-none');
+
+                // Đặt lại trạng thái nút Thu gọn về ban đầu khi load file mới
+                window.isAllCollapsed = false;
+                document.getElementById('childRowsIcon').className = 'bi bi-arrows-collapse me-1';
+                document.getElementById('childRowsText').innerText = "Thu gọn câu con";
+
+            } catch (error) {
+                document.getElementById('loadingArea').classList.add('d-none');
+                document.getElementById('emptyState').classList.remove('d-none');
+                Swal.fire('Lỗi định dạng', error.message, 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    // Checkbox Cha-Con Logic
+    document.getElementById('tableBody').addEventListener('change', function (e) {
+        if (e.target.classList.contains('row-checkbox')) {
+            if (e.target.classList.contains('parent-checkbox')) {
+                const parentIdx = e.target.getAttribute('data-index');
+                const isChecked = e.target.checked;
+                document.querySelectorAll(`.child-checkbox[data-parent="${parentIdx}"]:not(:disabled)`).forEach(cb => {
+                    cb.checked = isChecked;
+                });
+            }
+            else if (e.target.classList.contains('child-checkbox')) {
+                const parentIdx = e.target.getAttribute('data-parent');
+                const parentCb = document.querySelector(`.parent-checkbox[data-index="${parentIdx}"]`);
+                if (parentCb) {
+                    const checkedChildren = document.querySelectorAll(`.child-checkbox[data-parent="${parentIdx}"]:checked`).length;
+                    parentCb.checked = (checkedChildren > 0);
+                }
+            }
+
+            const total = document.querySelectorAll('.row-checkbox:not(:disabled)').length;
+            const checked = document.querySelectorAll('.row-checkbox:checked').length;
+            document.getElementById('checkAll_Import').checked = (total === checked && total > 0);
+
+            updateSelectedCountBadge(checked);
         }
-    }
-}
+    });
 
-function submitAjax(mode) {
-    var fileInput = document.getElementById('fileInput');
-    if (!fileInput || fileInput.files.length === 0) {
-        Swal.fire('Chú ý', 'Vui lòng chọn file Excel trước!', 'warning');
-        return;
-    }
-
-    if (mode === 'save' && !confirm("Bạn có chắc chắn muốn lưu dữ liệu này vào hệ thống?")) return;
-
-    var formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-    formData.append("mode", mode);
-
-    var token = document.querySelector('input[name="__RequestVerificationToken"]');
-    if (token) formData.append("__RequestVerificationToken", token.value);
-
-    document.getElementById('loadingArea').classList.remove('d-none');
-    document.getElementById('resultArea').classList.add('d-none');
-
-    // Chỉnh URL Tĩnh (Cố định đường dẫn) thay cho @Url.Action để tránh lỗi 404
-    fetch('/Admin/Questions/Import', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('loadingArea').classList.add('d-none');
-            document.getElementById('resultArea').classList.remove('d-none');
-            renderResult(data, mode);
-        })
-        .catch(err => {
-            Swal.fire('Lỗi kết nối', err.toString(), 'error');
-            document.getElementById('loadingArea').classList.add('d-none');
-            document.getElementById('resultArea').classList.remove('d-none');
+    document.getElementById('checkAll_Import').addEventListener('change', function (e) {
+        const isChecked = e.target.checked;
+        document.querySelectorAll('.row-checkbox:not(:disabled)').forEach(cb => {
+            cb.checked = isChecked;
         });
-}
+        updateSelectedCountBadge(document.querySelectorAll('.row-checkbox:checked').length);
+    });
 
-function renderResult(data, mode) {
-    if (mode === 'save' && data.redirectUrl) {
+    function updateSelectedCountBadge(count) {
+        document.getElementById('selectedCountBadge').innerText = `Sẽ lưu: ${count} dòng`;
+        const btnImport = document.getElementById('btnImport');
+        btnImport.disabled = (count === 0);
+        btnImport.innerHTML = `<i class="bi bi-database-fill-up me-2"></i> LƯU ${count} DỮ LIỆU HỢP LỆ`;
+    }
+
+    // Submit lưu dữ liệu
+    document.getElementById('btnImport').addEventListener('click', function () {
+        const file = document.getElementById('fileInput').files[0];
+        if (!file) return;
+
+        const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        const selectedIndices = Array.from(checkedBoxes).map(cb => cb.value).join(',');
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("mode", "save");
+        formData.append("selectedRows", selectedIndices); 
+
         Swal.fire({
-            icon: 'success',
-            title: 'Nhập dữ liệu thành công!',
-            text: data.message || 'Hệ thống đang chuyển hướng...',
-            showConfirmButton: false,
-            timer: 2000
-        }).then(() => {
-            window.location.href = data.redirectUrl;
+            title: 'Đang xử lý dữ liệu...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
         });
-        return;
-    }
 
-    var isSuccess = data.isSuccess || data.IsSuccess || false;
-    var message = data.message || data.Message || "";
-    var errors = data.errors || data.Errors || [];
-    var validCount = data.validCount || data.ValidCount || 0;
-    var invalidCount = data.invalidCount || data.InvalidCount || 0;
-
-    var btnSave = document.getElementById('btnSave');
-    var badge = document.getElementById('statusBadge');
-
-    document.getElementById('emptyState').classList.add('d-none');
-    document.getElementById('contentState').classList.remove('d-none');
-    document.getElementById('messageBox').classList.add('d-none');
-    document.getElementById('checkSuccessArea').classList.add('d-none');
-    document.getElementById('errorArea').classList.add('d-none');
-
-    if (isSuccess && mode === 'check') {
-        btnSave.disabled = false;
-        btnSave.className = "btn text-white btn-lg fw-bold shadow-sm rounded-pill hover-up pulse-animation";
-        btnSave.style.backgroundColor = "var(--bs-success, #10b981)";
-
-        badge.className = "badge bg-success rounded-pill px-3 py-2 fw-normal shadow-sm";
-        badge.innerText = "Hợp Lệ 100%";
-
-        document.getElementById('checkSuccessArea').classList.remove('d-none');
-        document.getElementById('successDetailText').innerText = message;
-    }
-    else {
-        btnSave.disabled = true;
-        btnSave.className = "btn btn-secondary btn-lg fw-bold shadow-sm rounded-pill";
-        btnSave.style.backgroundColor = "";
-
-        if (errors.length > 0) {
-            badge.className = "badge bg-danger rounded-pill px-3 py-2 fw-normal shadow-sm";
-            badge.innerText = "Phát hiện Lỗi";
-
-            document.getElementById('errorArea').classList.remove('d-none');
-            document.getElementById('validCount').innerText = validCount;
-            document.getElementById('invalidCount').innerText = invalidCount;
-
-            var msgBox = document.getElementById('messageBox');
-            msgBox.className = "alert bg-danger bg-opacity-10 border-0 d-flex align-items-center rounded-3 shadow-sm";
-            msgBox.innerHTML = `<i class="bi bi-x-circle-fill text-danger me-3 fs-4"></i><div class="text-danger fw-bold">${message}</div>`;
-            msgBox.classList.remove('d-none');
-
-            var tbody = document.getElementById('errorTableBody');
-            tbody.innerHTML = "";
-            errors.forEach(err => {
-                var r = err.row || err.Row;
-                var m = err.errorMessage || err.ErrorMessage;
-                tbody.innerHTML += `<tr>
-                            <td class="text-center fw-bold text-danger border-end bg-white">#${r}</td>
-                            <td class="text-danger bg-white"><i class="bi bi-bug-fill me-2 opacity-50"></i>${m}</td>
-                        </tr>`;
+        fetch('/Admin/Questions/Import', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token },
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.isSuccess) {
+                    Swal.fire('Hoàn tất!', data.message, 'success').then(() => window.location.href = data.redirectUrl);
+                } else {
+                    Swal.fire('Lỗi nhập liệu', data.message, 'error');
+                }
             });
-        }
-        else {
-            badge.className = "badge bg-warning text-dark rounded-pill px-3 py-2 fw-normal shadow-sm";
-            badge.innerText = "Cảnh báo";
+    });
+}
 
-            var msgBox = document.getElementById('messageBox');
-            msgBox.className = "alert bg-warning bg-opacity-10 border-0 d-flex align-items-center rounded-3 shadow-sm";
-            msgBox.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-warning me-3 fs-4"></i><div class="text-dark fw-bold">${message}</div>`;
-            msgBox.classList.remove('d-none');
+// ==========================================
+// CÁC HÀM UI: THU GỌN / MỞ RỘNG CHA CON
+// ==========================================
+
+window.isAllCollapsed = false;
+
+// 1. Nút "Thu gọn / Mở rộng" TẤT CẢ
+window.toggleAllChildRows = function () {
+    window.isAllCollapsed = !window.isAllCollapsed;
+
+    const childRows = document.querySelectorAll('tr[class*="child-of-"]');
+    const parentIcons = document.querySelectorAll('.parent-toggle-icon');
+    const mainIcon = document.getElementById('childRowsIcon');
+    const mainText = document.getElementById('childRowsText');
+
+    if (window.isAllCollapsed) {
+        // Đang Thu gọn
+        childRows.forEach(row => row.classList.add('d-none'));
+        parentIcons.forEach(icon => icon.classList.replace('bi-chevron-down', 'bi-chevron-right'));
+        mainIcon.classList.replace('bi-arrows-collapse', 'bi-arrows-expand');
+        mainText.innerText = "Mở rộng câu con";
+    } else {
+        // Đang Mở rộng
+        childRows.forEach(row => row.classList.remove('d-none'));
+        parentIcons.forEach(icon => icon.classList.replace('bi-chevron-right', 'bi-chevron-down'));
+        mainIcon.classList.replace('bi-arrows-expand', 'bi-arrows-collapse');
+        mainText.innerText = "Thu gọn câu con";
+    }
+};
+
+// 2. Nút mũi tên đóng mở TỪNG Bài Cha
+window.toggleChildRows = function (parentIndex, btn) {
+    const children = document.querySelectorAll(`.child-of-${parentIndex}`);
+    const icon = btn.querySelector('i');
+    const isExpanded = icon.classList.contains('bi-chevron-down');
+
+    if (isExpanded) {
+        icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
+        children.forEach(row => row.classList.add('d-none'));
+        btn.classList.add('bg-secondary', 'text-white');
+    } else {
+        icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
+        children.forEach(row => row.classList.remove('d-none'));
+        btn.classList.remove('bg-secondary', 'text-white');
+    }
+};
+
+const container = document.querySelector('.question-list-container');
+const bulkContainer = document.getElementById('bulkDeleteContainer');
+const btnBulkDelete = document.getElementById('btnBulkDelete');
+const countSpan = document.getElementById('bulkDeleteCount');
+
+if (container && bulkContainer) {
+    // 1. Lắng nghe mọi sự thay đổi checkbox trong danh sách
+    container.addEventListener('change', function (e) {
+
+        // Xử lý nút "Check All" của từng bảng
+        if (e.target.classList.contains('check-all-group')) {
+            const card = e.target.closest('.card');           
+            const checkboxes = card.querySelectorAll('.question-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+
+            updateBulkDeleteUI();
+        }
+
+        // Xử lý nút Checkbox của từng câu hỏi (Nếu bỏ chọn 1 câu thì tắt check all của bảng đó)
+        if (e.target.classList.contains('question-checkbox')) {
+            const card = e.target.closest('.card');
+            const checkAllBtn = card.querySelector('.check-all-group');
+            const total = card.querySelectorAll('.question-checkbox').length;
+            const checked = card.querySelectorAll('.question-checkbox:checked').length;
+
+            if (checkAllBtn) {
+                checkAllBtn.checked = (total === checked && total > 0);
+                checkAllBtn.indeterminate = (checked > 0 && checked < total);
+            }
+        }
+
+            updateBulkDeleteUI();
+    });
+
+    // 2. Hàm hiển thị nút Xóa
+    function updateBulkDeleteUI() {
+        // Đếm số lượng ô có class 'question-checkbox' đang được check
+        const totalChecked = document.querySelectorAll('.question-checkbox:checked').length;
+        const bulkContainer = document.getElementById('bulkDeleteContainer');
+        const countSpan = document.getElementById('bulkDeleteCount');
+
+        if (totalChecked > 0) {
+            bulkContainer.classList.remove('d-none'); // HIỆN NÚT
+            countSpan.innerText = totalChecked;      // CẬP NHẬT SỐ LƯỢNG
+        } else {
+            bulkContainer.classList.add('d-none');    // ẨN NÚT
         }
     }
+
+    // 3. Xử lý khi bấm nút "Xóa X câu hỏi"
+    btnBulkDelete.addEventListener('click', function () {
+        const checkedBoxes = document.querySelectorAll('.question-checkbox:checked');
+        if (checkedBoxes.length === 0) return;
+
+        const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+        Swal.fire({
+            title: 'Xác nhận xóa hàng loạt?',
+            html: `Bạn đang chọn xóa <b>${idsToDelete.length}</b> câu hỏi.<br><span class="text-danger small">Hành động này không thể hoàn tác!</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Vâng, Xóa tất cả!',
+            cancelButtonText: 'Hủy bỏ',
+            customClass: {
+                confirmButton: 'rounded-pill px-4',
+                cancelButton: 'rounded-pill px-4',
+                popup: 'rounded-4'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Hiển thị Loading
+                Swal.fire({
+                    title: 'Đang xóa...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                // Lấy token bảo mật của form
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+                // Gửi API
+                fetch('/Admin/Questions/BulkDelete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(idsToDelete)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('Đã xóa!', data.message, 'success').then(() => {
+                                location.reload(); // Tải lại trang để cập nhật danh sách
+                            });
+                        } else {
+                            Swal.fire('Lỗi', data.message, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire('Lỗi hệ thống', 'Không thể kết nối tới máy chủ.', 'error');
+                    });
+            }
+        });
+    });
 }

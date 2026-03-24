@@ -92,8 +92,7 @@
                     </thead>
                     <tbody>
                         @if (!Model.Any())
-                        {
-                            <!-- Đã sửa thành colspan="6" -->
+                        {                          
                             <tr><td colspan="6" class="text-center py-5 text-muted">Không tìm thấy người dùng nào.</td></tr>
                         }
                         @foreach (var user in Model)

@@ -7,15 +7,15 @@
 }
 
 <div class="container py-4">
-    <div class="p-5 mt-5 mb-5 hero-section">
-        <div class="hero-pattern"></div>
+    <div class="p-5 mt-5 mb-5 hero-section" id="heroSection">
+        <canvas id="particleCanvas" class="hero-pattern-canvas"></canvas>
         <div class="position-relative z-1 text-center text-lg-start d-flex flex-column flex-lg-row align-items-center justify-content-between">
 
             <div>
                 <h1 class="display-4 fw-bold mb-2 text-white">Hệ thống Thi Trực tuyến</h1>
 
                 <p class="fs-5 mb-4 text-white opacity-75" style="max-width: 600px;">
-                    Nền tảng quản lý thi cử chuyên nghiệp. Nâng tầm ngoại ngữ - Vươn tới tương lai.
+                    Nền tảng quản lý thi cử chuyên nghiệp.<br /> Nâng tầm ngoại ngữ - Vươn tới tương lai.
                 </p>
 
                 @if (SignInManager.IsSignedIn(User))
@@ -47,3 +47,116 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const hero = document.getElementById('heroSection');
+        const canvas = document.getElementById('particleCanvas');
+
+        if (!hero || !canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let particlesArray = [];
+     
+        let mouse = { x: undefined, y: undefined, radius: 60 };
+
+        function resizeCanvas() {
+            canvas.width = hero.offsetWidth;
+            canvas.height = hero.offsetHeight;
+            initParticles();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        hero.addEventListener('mousemove', function (e) {
+            const rect = hero.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+
+            hero.style.setProperty('--mouse-x', `${mouse.x}px`);
+            hero.style.setProperty('--mouse-y', `${mouse.y}px`);
+        });
+
+        // KHI CHUỘT RỜI KHỎI: Đổi 'null' thành 'undefined' để không bị hiểu lầm là tọa độ 0
+        hero.addEventListener('mouseleave', function () {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.baseX = x;
+                this.baseY = y;               
+                this.size = 1.5;
+                this.density = (Math.random() * 30) + 5;
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            update() {
+                // CHỈ TÍNH TOÁN LỰC ĐẨY NẾU CHUỘT THỰC SỰ NẰM TRONG KHUNG HÌNH
+                if (mouse.x !== undefined && mouse.y !== undefined) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < mouse.radius) {
+                        let forceDirectionX = dx / distance;
+                        let forceDirectionY = dy / distance;
+                        let force = (mouse.radius - distance) / mouse.radius;
+
+                        let directionX = forceDirectionX * force * this.density;
+                        let directionY = forceDirectionY * force * this.density;
+
+                        this.x -= directionX;
+                        this.y -= directionY;
+                    } else {
+                        this.returnToBase();
+                    }
+                } else {
+                    // Nếu không có chuột, gọi hàm cho tất cả bay về chỗ cũ
+                    this.returnToBase();
+                }
+            }
+
+            // Tách riêng hàm nảy về vị trí gốc cho code gọn gàng
+            returnToBase() {
+                if (this.x !== this.baseX) {
+                    this.x -= (this.x - this.baseX) / 10;
+                }
+                if (this.y !== this.baseY) {
+                    this.y -= (this.y - this.baseY) / 10;
+                }
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let spacing = 28;
+            for (let y = spacing/2; y < canvas.height; y += spacing) {
+                for (let x = spacing/2; x < canvas.width; x += spacing) {
+                    particlesArray.push(new Particle(x, y));
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        resizeCanvas();
+        animate();
+    });
+</script>

@@ -177,3 +177,39 @@ function togglePassword(inputId, iconId) {
         toggleIcon.classList.replace("bi-eye", "bi-eye-slash");
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const hero = document.querySelector('.hero-section');
+
+    if (hero) {
+        hero.addEventListener('mousemove', function (e) {
+            // Lấy kích thước và vị trí của khung hero-section
+            const rect = hero.getBoundingClientRect();
+
+            // Tính tọa độ chuột hiện tại bên trong khung
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // 1. Truyền tọa độ cho vầng sáng dạ quang
+            hero.style.setProperty('--mouse-x', `${x}px`);
+            hero.style.setProperty('--mouse-y', `${y}px`);
+
+            // 2. Tính toán độ lệch cho hiệu ứng "né chuột"
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            // Hệ số 0.05 quyết định mức độ né xa hay gần (chị có thể tăng lên 0.1 nếu muốn nó né mạnh hơn)
+            const shiftX = (centerX - x) * 0.5;
+            const shiftY = (centerY - y) * 0.5;
+
+            hero.style.setProperty('--shift-x', shiftX);
+            hero.style.setProperty('--shift-y', shiftY);
+        });
+
+        // Khi chuột rời khỏi khu vực, đưa các chấm bi về lại vị trí trung tâm
+        hero.addEventListener('mouseleave', function () {
+            hero.style.setProperty('--shift-x', 0);
+            hero.style.setProperty('--shift-y', 0);
+        });
+    }
+});
