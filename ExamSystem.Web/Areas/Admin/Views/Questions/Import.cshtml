@@ -2,164 +2,186 @@
     ViewData["Title"] = "Nhập Dữ Liệu";
 }
 
+<style>
+    /* CSS nội bộ giúp làm đẹp vùng kéo thả (Dropzone) mà không cần sửa site.css */
+    .file-dropzone {
+        border: 2px dashed var(--bs-border-color);
+        background-color: var(--bs-gray-100);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+        .file-dropzone:hover, .file-dropzone:focus-within {
+            border-color: var(--bs-primary);
+            background-color: rgba(var(--bs-primary-rgb), 0.03);
+            box-shadow: 0 8px 25px rgba(var(--bs-primary-rgb), 0.1);
+        }
+
+    .file-input-hidden {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .template-pill {
+        background-color: #fff;
+        border: 1px solid var(--bs-border-color);
+        color: var(--bs-body-color);
+        transition: all 0.2s;
+    }
+
+        .template-pill:hover {
+            border-color: var(--bs-primary);
+            color: var(--bs-primary);
+            background-color: rgba(var(--bs-primary-rgb), 0.05);
+        }
+</style>
+
 <div class="container py-4 px-lg-5">
     <div class="text-center mb-5">
         <h2 class="fw-bold mb-2" style="color: var(--bs-primary, #f47b25);">
             <i class="bi bi-cloud-arrow-up-fill me-2"></i>Nhập Dữ Liệu Từ Excel
         </h2>
-        <p class="text-muted">Hệ thống hỗ trợ nhập câu hỏi Grammar, Reading, Listening, Writing và Speaking.</p>
+        <p class="text-muted">Hệ thống hỗ trợ tự động phân tích và bóc tách dữ liệu câu hỏi.</p>
     </div>
 
     <div class="row justify-content-center g-4">
 
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="card shadow-sm border-0 rounded-4 h-100">
-                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center rounded-top-4">
-                    <i class="bi bi-file-earmark-spreadsheet-fill fs-4 me-2" style="color: var(--bs-success, #10b981);"></i>
-                    <h5 class="fw-bold text-dark mb-0">Tải file lên</h5>
-                </div>
+                <div class="card-body p-4 d-flex flex-column">
 
-                <div class="card-body p-4">
-                    <form id="uploadForm">
-                        @Html.AntiForgeryToken()
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3 small text-uppercase"><i class="bi bi-upload me-2 text-primary"></i>Tải file lên</h6>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-muted small text-uppercase">Chọn file Excel (.xlsx)</label>
-                            <div class="custom-file-upload text-center">
-                                <i class="bi bi-file-earmark-excel text-muted fs-1 mb-2 d-block opacity-50"></i>
-                                <input type="file" id="fileInput" name="file" class="form-control border-0 bg-transparent shadow-none" accept=".xlsx" required onchange="resetState()" />
-                            </div>
-                            <div class="form-text mt-2 small text-muted">
-                                <i class="bi bi-info-circle-fill text-info me-1"></i> Hệ thống tự nhận diện loại câu hỏi qua ô <strong>A6</strong>.
-                            </div>
+                        <div class="file-dropzone rounded-4 p-5 text-center position-relative">
+                            <i class="bi bi-file-earmark-excel-fill d-block mb-3" style="font-size: 3.5rem; color: #10b981;"></i>
+                            <h6 class="fw-bold text-dark mb-1">Kéo thả file vào đây</h6>
+                            <p class="text-muted small mb-0">hoặc click để chọn file (.xlsx)</p>
+
+                            <input type="file" id="fileInput" name="file" class="file-input-hidden" accept=".xlsx" required />
                         </div>
 
-                        <div class="d-grid gap-3">
-                            <button type="button" onclick="submitAjax('check')" class="btn text-white btn-lg fw-bold shadow-sm rounded-pill hover-up" style="background-color: var(--bs-primary, #f47b25);">
-                                <i class="bi bi-shield-check me-2 fs-5 align-middle"></i> KIỂM TRA LỖI
-                            </button>
-
-                            <button type="button" id="btnSave" onclick="submitAjax('save')" class="btn btn-secondary btn-lg fw-bold shadow-sm rounded-pill" disabled>
-                                <i class="bi bi-database-fill-up me-2 fs-5 align-middle"></i> NHẬP DỮ LIỆU
-                            </button>
-                        </div>
-                    </form>
-
-                    <hr class="my-4 opacity-10">
-
-                    <div>
-                        <h6 class="fw-bold text-dark mb-3 small text-uppercase"><i class="bi bi-download me-1"></i> Tải file mẫu chuẩn:</h6>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Grammar" })" class="btn btn-outline-secondary border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
-                                    <i class="bi bi-cursor-text me-2 fs-6 align-middle" style="color: var(--bs-primary);"></i> Grammar
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Reading" })" class="btn btn-outline-secondary border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
-                                    <i class="bi bi-book me-2 fs-6 align-middle text-warning"></i> Reading
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Listening" })" class="btn btn-outline-secondary border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
-                                    <i class="bi bi-headphones me-2 fs-6 align-middle text-danger"></i> Listening
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Writing" })" class="btn btn-outline-secondary border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
-                                    <i class="bi bi-pencil-square me-2 fs-6 align-middle text-success"></i> Writing
-                                </a>
-                            </div>
-                            <div class="col-12">
-                                <a href="@Url.Action("DownloadTemplate", new { type = "Speaking" })" class="btn btn-outline-secondary border text-muted w-100 text-start btn-sm rounded-3 fw-bold hover-up">
-                                    <i class="bi bi-mic me-2 fs-6 align-middle" style="color: #6f42c1;"></i> Speaking
-                                </a>
-                            </div>
+                        <div class="d-flex align-items-center mt-3 p-2 bg-info bg-opacity-10 rounded-3 border border-info border-opacity-25">
+                            <i class="bi bi-info-circle-fill text-info me-2 fs-5"></i>
+                            <span class="small text-muted">Hệ thống tự nhận diện loại câu hỏi qua ô <strong>A6</strong>.</span>
                         </div>
                     </div>
+
+                    <div class="template-fab-container">
+                        <input class="fab-checkbox" type="checkbox" id="fabToggle" title="Tải file mẫu" />
+
+                        <label class="fab-button-menu" for="fabToggle" >
+                            <i class="bi bi-cloud-arrow-down-fill"></i>
+                        </label>
+
+                        <a href="/Admin/Questions/DownloadTemplate?type=Grammar" class="fab-option opt-grammar" data-title="Grammar" style="z-index:inherit">
+                            <i class="bi bi-cursor-text" style="color: var(--bs-primary);"></i>
+                        </a>
+                        <a href="/Admin/Questions/DownloadTemplate?type=Reading" class="fab-option opt-reading" data-title="Reading">
+                            <i class="bi bi-book text-warning"></i>
+                        </a>
+                        <a href="/Admin/Questions/DownloadTemplate?type=Listening" class="fab-option opt-listening" data-title="Listening">
+                            <i class="bi bi-headphones text-danger"></i>
+                        </a>
+                        <a href="/Admin/Questions/DownloadTemplate?type=Writing" class="fab-option opt-writing" data-title="Writing">
+                            <i class="bi bi-pencil-square text-success"></i>
+                        </a>
+                        <a href="/Admin/Questions/DownloadTemplate?type=Speaking" class="fab-option opt-speaking" data-title="Speaking">
+                            <i class="bi bi-mic" style="color: #6f42c1;"></i>
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-7 mb-4">
-
+        <div class="col-lg-8">
             <div id="loadingArea" class="text-center py-5 d-none bg-white rounded-4 shadow-sm border-0 h-100 d-flex flex-column justify-content-center align-items-center">
                 <div class="spinner-border mb-3" style="width: 3.5rem; height: 3.5rem; color: var(--bs-primary, #f47b25);" role="status"></div>
                 <h5 class="fw-bold text-dark">Đang phân tích dữ liệu...</h5>
-                <p class="text-muted">Vui lòng đợi trong giây lát.</p>
+                <p class="text-muted small">Vui lòng không đóng trình duyệt.</p>
             </div>
 
             <div id="resultArea" class="card shadow-sm border-0 h-100 rounded-4">
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center rounded-top-4">
-                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clipboard2-data-fill me-2" style="color: var(--bs-success, #10b981);"></i>Kết quả phân tích</h5>
-                    <span id="statusBadge" class="badge bg-secondary rounded-pill px-3 py-2 fw-normal">Chờ xử lý</span>
+                    <h6 class="fw-bold text-dark mb-0 text-uppercase">
+                        <i class="bi bi-layout-text-window-reverse me-2 text-primary"></i>Kết quả phân tích
+                    </h6>
+                    <span id="questionTypeBadge" class="badge bg-primary bg-opacity-10 text-primary border border-primary rounded-pill px-3 py-2 fw-bold d-none"></span>
                 </div>
 
                 <div class="card-body p-4 position-relative">
 
                     <div id="emptyState" class="text-center py-5 px-4 h-100 d-flex flex-column justify-content-center">
-                        <i class="bi bi-arrow-left-circle-fill text-muted" style="font-size: 5rem; opacity: 0.15;"></i>
-                        <h5 class="text-dark fw-bold mt-3">Chưa có dữ liệu</h5>
-                        <p class="text-muted small">Vui lòng chọn file và bấm "Kiểm tra lỗi" để bắt đầu.</p>
+                        <i class="bi bi-inboxes text-muted mb-3" style="font-size: 5rem; opacity: 0.2;"></i>
+                        <h5 class="text-dark fw-bold">Chưa có dữ liệu hiển thị</h5>
+                        <p class="text-muted small">Tải lên một file Excel để xem trước các câu hỏi hợp lệ và các lỗi cần khắc phục.</p>
                     </div>
 
-                    <div id="contentState" class="d-none">
-                        <div id="messageBox" class="alert d-none mb-4 shadow-sm border-0 rounded-3"></div>
-
-                        <div id="checkSuccessArea" class="text-center py-4 d-none">
-                            <div class="mb-3">
-                                <i class="bi bi-check-circle-fill text-success" style="font-size: 6rem; text-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);"></i>
-                            </div>
-                            <h3 class="fw-bold text-success mb-2">File Hợp Lệ 100%!</h3>
-                            <p id="successDetailText" class="text-muted fs-5">Dữ liệu chuẩn, sẵn sàng nhập vào hệ thống.</p>
-
-                            <hr class="w-50 mx-auto my-4 opacity-10">
-
-                            <button type="button" onclick="submitAjax('save')" class="btn text-white btn-lg px-5 shadow-sm fw-bold rounded-pill hover-up pulse-animation" style="background-color: var(--bs-success, #10b981);">
-                                <i class="bi bi-database-fill-up me-2"></i> NHẬP NGAY
-                            </button>
-                        </div>
-
-                        <div id="errorArea" class="d-none">
-                            <div class="row g-3 mb-4 text-center">
-                                <div class="col-6">
-                                    <div class="p-3 bg-danger bg-opacity-10 border-0 rounded-4 shadow-sm">
-                                        <h2 class="text-danger fw-bold m-0" id="invalidCount">0</h2>
-                                        <small class="text-danger fw-bold text-uppercase">Dòng Lỗi</small>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="p-3 bg-success bg-opacity-10 border-0 rounded-4 shadow-sm">
-                                        <h2 class="text-success fw-bold m-0" id="validCount">0</h2>
-                                        <small class="text-success fw-bold text-uppercase">Dòng Hợp Lệ</small>
-                                    </div>
+                    <div id="previewSection" class="d-none">
+                        <div class="row g-3 mb-4 text-center">
+                            <div class="col-6">
+                                <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-4 shadow-sm">
+                                    <h3 class="text-success fw-black m-0" id="validCount">0</h3>
+                                    <span class="text-success fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Hợp Lệ</span>
                                 </div>
                             </div>
-
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="fw-bold text-danger m-0"><i class="bi bi-exclamation-triangle-fill me-1"></i> Chi tiết lỗi cần sửa:</h6>
-                            </div>
-
-                            <div class="custom-table-scroll mb-3 shadow-sm">
-                                <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
-                                    <thead class="small">
-                                        <tr>
-                                            <th class="text-center bg-light border-bottom text-muted" width="80">Dòng</th>
-                                            <th class="bg-light border-bottom text-muted">Mô tả lỗi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="errorTableBody"></tbody>
-                                </table>
+                            <div class="col-6">
+                                <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-4 shadow-sm">
+                                    <h3 class="text-danger fw-black m-0" id="invalidCount">0</h3>
+                                    <span class="text-danger fw-bold text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">Bỏ qua</span>
+                                </div>
                             </div>
                         </div>
 
+                        <div class="d-flex justify-content-between align-items-center mb-3 px-1 border-bottom pb-3">
+                            <span id="selectedCountBadge" class="badge bg-dark rounded-pill px-3 py-2">Sẽ lưu: 0 dòng</span>
+
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="toggleAllChildRows()" id="btnToggleChildRows">
+                                    <i class="bi bi-arrows-collapse me-1" id="childRowsIcon"></i> <span id="childRowsText">Thu gọn câu con</span>
+                                </button>
+
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="checkAll_Import" checked style="cursor: pointer;">
+                                    <label class="form-check-label small fw-bold text-muted" for="checkAll_Import" style="cursor: pointer;">Chọn tất cả</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="custom-table-scroll mb-4 shadow-sm border rounded-3" style="max-height: 400px;">
+                            <table class="table mb-0 align-middle table-compact table-sticky-header table-hover table-borderless">
+                                <thead class="small" style="background-color: #f8f9fa;">
+                                    <tr>
+                                        <th class="text-center text-muted py-3" width="50"><i class="bi bi-check2-square"></i></th>
+                                        <th class="text-center text-muted py-3" width="60">Dòng</th>
+                                        <th class="text-muted py-3">Nội dung trích xuất</th>
+                                        <th class="text-muted py-3" width="160">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody" class="border-top"></tbody>
+                            </table>
+                        </div>
+
+                        <button type="button" id="btnImport" class="btn text-white w-100 py-3 shadow-sm fw-bold rounded-pill hover-up" style="background-color: var(--bs-success, #10b981); letter-spacing: 0.5px;" disabled>
+                            <i class="bi bi-database-fill-up me-2"></i> TIẾN HÀNH LƯU DỮ LIỆU
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="~/js/question.js"></script>
 }

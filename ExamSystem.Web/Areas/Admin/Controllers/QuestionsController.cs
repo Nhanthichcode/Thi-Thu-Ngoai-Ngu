@@ -489,12 +489,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 1. GET: Hiển thị giao diện Import
-        [HttpGet]
-        public IActionResult Import()
-        {
-            return View(new ImportResultViewModel());
-        }
 
         // 2. GET: Tải file mẫu
         [HttpGet]
@@ -628,10 +622,17 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             }
         }
 
+        // 1. GET: Hiển thị giao diện Import
+        [HttpGet]
+        public IActionResult Import()
+        {
+            return View(new ImportResultViewModel());
+        }
+
         // 3. POST: Xử lý Import
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Import(IFormFile file, string mode)
+        public async Task<IActionResult> Import(IFormFile file, string mode, string selectedRows = "")
         {
             var result = new ImportResultViewModel();
             bool isSaveMode = mode == "save";
@@ -643,6 +644,13 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 return Json(result);
             }
 
+            // --- ĐIỂM SỬA 1: Giải mã danh sách các dòng được tick từ giao diện ---
+            List<int> selectedIndices = new List<int>();
+            if (!string.IsNullOrEmpty(selectedRows))
+            {
+                selectedIndices = selectedRows.Split(',').Select(int.Parse).ToList();
+            }
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             using (var stream = new MemoryStream())
@@ -652,7 +660,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 {
                     var ws = package.Workbook.Worksheets[0];
 
-                    // Đọc mã định danh từ ô A6 (Do dòng 1-5 là hướng dẫn)
                     string typeCode = ws.Cells[6, 1].Text?.Trim();
 
                     if (string.IsNullOrEmpty(typeCode) || !typeCode.StartsWith("TYPE_"))
@@ -668,13 +675,14 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                             int count = 0;
                             List<ImportError> errors = new List<ImportError>();
 
+                            // --- ĐIỂM SỬA 2: Truyền selectedIndices xuống các hàm xử lý ---
                             switch (typeCode)
                             {
-                                case "TYPE_READING": (count, errors) = await ProcessReading(ws, isSaveMode); break;
-                                case "TYPE_LISTENING": (count, errors) = await ProcessListening(ws, isSaveMode); break;
-                                case "TYPE_WRITING": (count, errors) = await ProcessWriting(ws, isSaveMode); break;
-                                case "TYPE_GRAMMAR": (count, errors) = await ProcessGrammar(ws, isSaveMode); break;
-                                case "TYPE_SPEAKING": (count, errors) = await ProcessSpeaking(ws, isSaveMode); break;
+                                case "TYPE_READING": (count, errors) = await ProcessReading(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_LISTENING": (count, errors) = await ProcessListening(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_WRITING": (count, errors) = await ProcessWriting(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_GRAMMAR": (count, errors) = await ProcessGrammar(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_SPEAKING": (count, errors) = await ProcessSpeaking(ws, isSaveMode, selectedIndices); break;
                                 default: errors.Add(new ImportError { Row = 6, ErrorMessage = $"Mã loại '{typeCode}' chưa được hỗ trợ." }); break;
                             }
 
@@ -684,24 +692,21 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
                             if (isSaveMode)
                             {
-                                if (errors.Any())
+                                if (count == 0)
                                 {
                                     result.IsSuccess = false;
-                                    result.Message = "Dữ liệu có lỗi nghiêm trọng. KHÔNG ĐƯỢC LƯU. Vui lòng sửa file.";
-                                }
-                                else if (count == 0)
-                                {
-                                    result.IsSuccess = false;
-                                    result.Message = "File không có dữ liệu hợp lệ để nhập.";
+                                    result.Message = "Không có dữ liệu hợp lệ nào được chọn để lưu.";
                                 }
                                 else
                                 {
                                     await _context.SaveChangesAsync();
                                     await transaction.CommitAsync();
-                                    return Json(new { isSuccess = true, redirectUrl = Url.Action("Index"), message = $"Đã nhập thành công {count} câu hỏi!" });
+
+                                    string msg = $"Đã lưu thành công {count} câu hỏi!";
+                                    return Json(new { isSuccess = true, redirectUrl = Url.Action("Index"), message = msg });
                                 }
                             }
-                            else // Chế độ Check
+                            else
                             {
                                 result.IsSuccess = !errors.Any() && count > 0;
                                 if (result.IsSuccess)
@@ -724,42 +729,33 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
         // ============================================================
         // CÁC HÀM XỬ LÝ LOGIC CHI TIẾT (HELPER IMPORT)
+        // Đã cập nhật chặn lưu theo danh sách Checkbox
         // ============================================================
-        private async Task<(int count, List<ImportError> errors)> ProcessGrammar(ExcelWorksheet ws, bool save)
+        private async Task<(int count, List<ImportError> errors)> ProcessGrammar(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
             int count = 0;
             int rowCount = ws.Dimension.Rows;
 
-            // Bắt đầu từ dòng 8 (bỏ qua hướng dẫn và header)
             for (int row = 8; row <= rowCount; row++)
             {
-                string content = ws.Cells[row, 1].Text?.Trim(); // Cột A: Nội dung
+                string content = ws.Cells[row, 1].Text?.Trim();
 
-                // Bỏ qua nếu dòng này hoàn toàn trống (Cột A và B đều trống)
                 if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 2].Text)) continue;
 
-                // --- 1. Validate Content ---
                 if (string.IsNullOrEmpty(content))
-                {
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi không được để trống." });
-                }
                 else if (content.Length < 5)
-                {
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi quá ngắn (tối thiểu 5 ký tự)." });
-                }
 
-                // --- 2. Validate Level (Cột B) ---
                 int level = ws.Cells[row, 2].GetValue<int>();
                 if (level < 1 || level > 5)
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Level phải từ 1-5." });
 
-                // --- 3. Validate Vị trí đúng (Cột G) ---
                 int correctIdx = ws.Cells[row, 7].GetValue<int>();
                 if (correctIdx < 1 || correctIdx > 4)
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đáp án đúng phải là số từ 1-4." });
 
-                // --- 4. Validate Đáp án (Cột C, D, E, F) ---
                 int validAnswersCount = 0;
                 bool isCorrectAnswerEmpty = false;
 
@@ -768,7 +764,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     string ansCheck = ws.Cells[row, 3 + i].Text?.Trim();
                     if (!string.IsNullOrEmpty(ansCheck)) validAnswersCount++;
 
-                    // Kiểm tra: Nếu đây là vị trí người dùng chọn là đúng, nhưng nội dung lại rỗng
                     if ((i + 1) == correctIdx && string.IsNullOrEmpty(ansCheck))
                         isCorrectAnswerEmpty = true;
                 }
@@ -779,41 +774,49 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 if (isCorrectAnswerEmpty)
                     errors.Add(new ImportError { Row = row, ErrorMessage = $"Bạn chọn đáp án đúng là vị trí {correctIdx} nhưng ô đáp án đó đang để trống." });
 
-                // Nếu có bất kỳ lỗi nào ở dòng này -> Bỏ qua, không lưu
                 if (errors.Any(e => e.Row == row)) continue;
 
-                // --- 5. Lưu dữ liệu ---
+                // --- ĐIỂM SỬA 3: Chặn lưu nếu không được tick ---
+                bool isSelected = selectedIndices.Contains(row - 1); // JS đếm mảng từ 0, nên dòng 8 trong Excel = index 7
+
                 if (save)
                 {
-                    string explanation = ws.Cells[row, 8].Text?.Trim(); // Cột H: Giải thích
-
-                    var q = new Question
+                    if (isSelected)
                     {
-                        Content = content,
-                        SkillType = ExamSkill.Grammar,
-                        QuestionType = QuestionType.SingleChoice,
-                        Level = level,
-                        Explaination = explanation,
-                        CreatedDate = DateTime.Now,
-                        Answers = new List<Answer>()
-                    };
+                        string explanation = ws.Cells[row, 8].Text?.Trim();
 
-                    for (int i = 0; i < 4; i++)
-                    {
-                        string ans = ws.Cells[row, 3 + i].Text?.Trim();
-                        if (!string.IsNullOrEmpty(ans))
+                        var q = new Question
                         {
-                            q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+                            Content = content,
+                            SkillType = ExamSkill.Grammar,
+                            QuestionType = QuestionType.SingleChoice,
+                            Level = level,
+                            Explaination = explanation,
+                            CreatedDate = DateTime.Now,
+                            Answers = new List<Answer>()
+                        };
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            string ans = ws.Cells[row, 3 + i].Text?.Trim();
+                            if (!string.IsNullOrEmpty(ans))
+                            {
+                                q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+                            }
                         }
+                        _context.Questions.Add(q);
+                        count++; // Chỉ tăng count khi thực sự lưu
                     }
-                    _context.Questions.Add(q);
                 }
-                count++;
+                else
+                {
+                    count++; // Ở chế độ check thử thì đếm hết
+                }
             }
             return (count, errors);
         }
 
-        private async Task<(int count, List<ImportError> errors)> ProcessReading(ExcelWorksheet ws, bool save)
+        private async Task<(int count, List<ImportError> errors)> ProcessReading(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
             int count = 0;
@@ -822,61 +825,38 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
             for (int row = 8; row <= rowCount; row++)
             {
-                // 1. ĐỌC DỮ LIỆU CƠ BẢN
-                string title = ws.Cells[row, 1].Text?.Trim();    // Cột A
-                string content = ws.Cells[row, 2].Text?.Trim();  // Cột B
-                string qContent = ws.Cells[row, 3].Text?.Trim(); // Cột C (Câu hỏi con)
+                string title = ws.Cells[row, 1].Text?.Trim();
+                string content = ws.Cells[row, 2].Text?.Trim();
+                string qContent = ws.Cells[row, 3].Text?.Trim();
 
                 bool hasTitle = !string.IsNullOrEmpty(title);
                 bool hasContent = !string.IsNullOrEmpty(content);
                 bool hasQuestion = !string.IsNullOrEmpty(qContent);
 
-                // 2. KIỂM TRA DÒNG RÁC (JUNK DATA CHECK)
-                // Nếu 3 cột chính đều trống -> Kiểm tra xem có rác ở các cột phụ không
                 if (!hasTitle && !hasContent && !hasQuestion)
                 {
-                    bool hasJunkData = false;
-                    // Kiểm tra từ Cột 4 (Level) đến Cột 10 (Giải thích)
-                    for (int c = 4; c <= 10; c++)
-                    {
-                        if (!string.IsNullOrEmpty(ws.Cells[row, c].Text?.Trim()))
-                        {
-                            hasJunkData = true; break;
-                        }
-                    }
-
-                    if (hasJunkData)
-                    {
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng này thiếu thông tin chính (Tiêu đề/Nội dung/Câu hỏi) nhưng lại có dữ liệu rác ở các cột khác." });
-                    }
-
-                    // Dù có rác hay không, nếu thiếu 3 cột chính thì coi như không xử lý được -> Bỏ qua
-                    continue;
+                    continue; // Bỏ qua dòng rác
                 }
 
-                // 3. XỬ LIỆU LOGIC CHÍNH
+                bool isSelected = selectedIndices.Contains(row - 1);
 
-                // TRƯỜNG HỢP A: ĐÂY LÀ DÒNG CÂU HỎI (Có nội dung ở cột C)
+                // TRƯỜNG HỢP A: ĐÂY LÀ DÒNG CÂU HỎI CON
                 if (hasQuestion)
                 {
-                    // --- Kiểm tra quan hệ Cha-Con ---
                     if (currentPassage == null && save)
                     {
-                        // Chỉ báo lỗi nếu dòng này KHÔNG PHẢI là dòng header bài mới (tức là A và B phải trống)
-                        if (!hasTitle && !hasContent)
+                        if (!hasTitle && !hasContent && isSelected)
                         {
-                            // Nếu dòng trước đó chưa có bài đọc nào hợp lệ
                             if (!errors.Any(e => e.Row == row && e.ErrorMessage.Contains("THIẾU")))
-                                errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài đọc hợp lệ nào (Vui lòng kiểm tra Bài đọc phía trên)." });
+                                errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài đọc hợp lệ nào." });
                         }
                     }
 
-                    // --- Validate Dữ liệu Câu hỏi ---
                     if (qContent.Length < 5)
                         errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi quá ngắn (tối thiểu 5 ký tự)." });
 
-                    int level = ws.Cells[row, 4].GetValue<int>();      // Cột D
-                    int correctIdx = ws.Cells[row, 9].GetValue<int>(); // Cột I
+                    int level = ws.Cells[row, 4].GetValue<int>();
+                    int correctIdx = ws.Cells[row, 9].GetValue<int>();
 
                     if (level < 1 || level > 5)
                         errors.Add(new ImportError { Row = row, ErrorMessage = "Level câu hỏi sai (1-5)." });
@@ -884,7 +864,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     if (correctIdx < 1 || correctIdx > 4)
                         errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đáp án đúng sai (1-4)." });
 
-                    // --- Validate Đáp án ---
                     int validAnsCount = 0;
                     for (int i = 0; i < 4; i++)
                     {
@@ -897,41 +876,41 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     if (correctIdx >= 1 && correctIdx <= 4)
                     {
                         if (string.IsNullOrEmpty(ws.Cells[row, 5 + (correctIdx - 1)].Text?.Trim()))
-                            errors.Add(new ImportError { Row = row, ErrorMessage = $"Bạn chọn đáp án đúng là vị trí {correctIdx} nhưng ô đáp án đó lại rỗng." });
+                            errors.Add(new ImportError { Row = row, ErrorMessage = $"Bạn chọn đáp án đúng là vị trí {correctIdx} nhưng ô đó lại rỗng." });
                     }
 
-                    // --- Lưu Câu Hỏi ---
                     if (!errors.Any(e => e.Row == row))
                     {
-                        if (save && currentPassage != null)
+                        if (save)
                         {
-                            string explanation = ws.Cells[row, 10].Text?.Trim(); // Cột J
-                            var q = new Question
+                            if (isSelected && currentPassage != null)
                             {
-                                Content = qContent,
-                                SkillType = ExamSkill.Reading,
-                                QuestionType = QuestionType.SingleChoice,
-                                Level = level,
-                                Explaination = explanation,
-                                Answers = new List<Answer>()
-                            };
-                            for (int i = 0; i < 4; i++)
-                            {
-                                string ans = ws.Cells[row, 5 + i].Text?.Trim();
-                                if (!string.IsNullOrEmpty(ans))
-                                    q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+                                string explanation = ws.Cells[row, 10].Text?.Trim();
+                                var q = new Question
+                                {
+                                    Content = qContent,
+                                    SkillType = ExamSkill.Reading,
+                                    QuestionType = QuestionType.SingleChoice,
+                                    Level = level,
+                                    Explaination = explanation,
+                                    Answers = new List<Answer>()
+                                };
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    string ans = ws.Cells[row, 5 + i].Text?.Trim();
+                                    if (!string.IsNullOrEmpty(ans))
+                                        q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+                                }
+                                currentPassage.Questions.Add(q);
+                                count++;
                             }
-                            currentPassage.Questions.Add(q);
                         }
-                        count++;
+                        else { count++; }
                     }
                 }
-
-                // TRƯỜNG HỢP B: KHÔNG PHẢI CÂU HỎI -> TỨC LÀ KHAI BÁO BÀI ĐỌC MỚI
-                // (Xuống đây nghĩa là hasQuestion = false)
+                // TRƯỜNG HỢP B: KHAI BÁO BÀI ĐỌC MỚI (CHA)
                 else
                 {
-                    // Logic: Đã là dòng khai báo thì BẮT BUỘC PHẢI CÓ ĐỦ TIÊU ĐỀ VÀ NỘI DUNG
                     bool isPassageValid = true;
 
                     if (!hasTitle)
@@ -951,23 +930,29 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                         isPassageValid = false;
                     }
 
-                    // Nếu hợp lệ -> Tạo mới
                     if (isPassageValid)
                     {
                         if (save && !errors.Any(e => e.Row == row))
                         {
-                            currentPassage = new ReadingPassage
+                            if (isSelected)
                             {
-                                Title = title,
-                                Content = content,
-                                Questions = new List<Question>()
-                            };
-                            _context.ReadingPassages.Add(currentPassage);
+                                currentPassage = new ReadingPassage
+                                {
+                                    Title = title,
+                                    Content = content,
+                                    Questions = new List<Question>()
+                                };
+                                _context.ReadingPassages.Add(currentPassage);
+                            }
+                            else
+                            {
+                                // Bị bỏ tick -> Vứt luôn bài đọc để các câu con bên dưới không có chỗ bấu víu
+                                currentPassage = null;
+                            }
                         }
                     }
                     else
                     {
-                        // Bài đọc lỗi -> Reset để các câu hỏi bên dưới (nếu có) bị báo lỗi mồ côi
                         currentPassage = null;
                     }
                 }
@@ -975,7 +960,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             return (count, errors);
         }
 
-        private async Task<(int count, List<ImportError> errors)> ProcessListening(ExcelWorksheet ws, bool save)
+        private async Task<(int count, List<ImportError> errors)> ProcessListening(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
             int count = 0;
@@ -984,41 +969,26 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
             for (int row = 8; row <= rowCount; row++)
             {
-                string title = ws.Cells[row, 1].Text?.Trim();      // Cột A
-                string transcript = ws.Cells[row, 2].Text?.Trim(); // Cột B
-                string qContent = ws.Cells[row, 3].Text?.Trim();   // Cột C (Câu hỏi)
+                string title = ws.Cells[row, 1].Text?.Trim();
+                string transcript = ws.Cells[row, 2].Text?.Trim();
+                string qContent = ws.Cells[row, 3].Text?.Trim();
 
                 bool hasTitle = !string.IsNullOrEmpty(title);
                 bool hasTranscript = !string.IsNullOrEmpty(transcript);
                 bool hasQuestion = !string.IsNullOrEmpty(qContent);
 
-                // 1. KIỂM TRA DÒNG RÁC
-                if (!hasTitle && !hasTranscript && !hasQuestion)
-                {
-                    bool hasJunkData = false;
-                    // Check Level(4) -> Explain(10)
-                    for (int c = 4; c <= 10; c++)
-                    {
-                        if (!string.IsNullOrEmpty(ws.Cells[row, c].Text?.Trim())) { hasJunkData = true; break; }
-                    }
-                    if (hasJunkData)
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng trống Tiêu đề/Transcript/Câu hỏi nhưng có dữ liệu rác. Vui lòng xóa hoặc điền đủ." });
+                if (!hasTitle && !hasTranscript && !hasQuestion) continue;
 
-                    continue;
-                }
+                bool isSelected = selectedIndices.Contains(row - 1);
 
-                // 2. XỬ LÝ LOGIC
-
-                // TRƯỜNG HỢP A: LÀ CÂU HỎI
                 if (hasQuestion)
                 {
                     if (currentResource == null && save)
                     {
-                        if (!hasTitle) // Chỉ báo lỗi nếu không phải là dòng header của bài mới
-                            errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài nghe hợp lệ nào (Thiếu tiêu đề bài nghe phía trên)." });
+                        if (!hasTitle && isSelected)
+                            errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài nghe hợp lệ nào." });
                     }
 
-                    // Validate Câu hỏi
                     if (qContent.Length < 5)
                         errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi quá ngắn." });
 
@@ -1028,7 +998,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     if (level < 1 || level > 5) errors.Add(new ImportError { Row = row, ErrorMessage = "Level sai." });
                     if (correctIdx < 1 || correctIdx > 4) errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đúng sai." });
 
-                    // Validate Đáp án
                     int validAnsCount = 0;
                     for (int i = 0; i < 4; i++) if (!string.IsNullOrEmpty(ws.Cells[row, 5 + i].Text?.Trim())) validAnsCount++;
 
@@ -1037,36 +1006,38 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     if (correctIdx >= 1 && correctIdx <= 4)
                     {
                         if (string.IsNullOrEmpty(ws.Cells[row, 5 + (correctIdx - 1)].Text?.Trim()))
-                            errors.Add(new ImportError { Row = row, ErrorMessage = $"Đáp án đúng (vị trí {correctIdx}) bị rỗng." });
+                            errors.Add(new ImportError { Row = row, ErrorMessage = $"Đáp án đúng bị rỗng." });
                     }
 
-                    // Lưu
                     if (!errors.Any(e => e.Row == row))
                     {
-                        if (save && currentResource != null)
+                        if (save)
                         {
-                            string explanation = ws.Cells[row, 10].Text?.Trim();
-                            var q = new Question
+                            if (isSelected && currentResource != null)
                             {
-                                Content = qContent,
-                                SkillType = ExamSkill.Listening,
-                                QuestionType = QuestionType.SingleChoice,
-                                Level = level,
-                                Explaination = explanation,
-                                Answers = new List<Answer>()
-                            };
-                            for (int i = 0; i < 4; i++)
-                            {
-                                string ans = ws.Cells[row, 5 + i].Text?.Trim();
-                                if (!string.IsNullOrEmpty(ans))
-                                    q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+                                string explanation = ws.Cells[row, 10].Text?.Trim();
+                                var q = new Question
+                                {
+                                    Content = qContent,
+                                    SkillType = ExamSkill.Listening,
+                                    QuestionType = QuestionType.SingleChoice,
+                                    Level = level,
+                                    Explaination = explanation,
+                                    Answers = new List<Answer>()
+                                };
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    string ans = ws.Cells[row, 5 + i].Text?.Trim();
+                                    if (!string.IsNullOrEmpty(ans))
+                                        q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+                                }
+                                currentResource.Questions.Add(q);
+                                count++;
                             }
-                            currentResource.Questions.Add(q);
                         }
-                        count++;
+                        else { count++; }
                     }
                 }
-                // TRƯỜNG HỢP B: LÀ BÀI NGHE MỚI
                 else
                 {
                     bool isResourceValid = true;
@@ -1077,27 +1048,25 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                         isResourceValid = false;
                     }
 
-                    // Transcript có thể Optional (tùy nghiệp vụ của bạn).
-                    // Nếu bắt buộc Transcript thì bỏ comment dòng dưới:
-                    /*
-                    if (!hasTranscript) {
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng khai báo bài nghe thiếu Transcript." });
-                        isResourceValid = false;
-                    }
-                    */
-
                     if (isResourceValid)
                     {
                         if (save && !errors.Any(e => e.Row == row))
                         {
-                            currentResource = new ListeningResource
+                            if (isSelected)
                             {
-                                Title = title,
-                                Transcript = transcript,
-                                AudioUrl = "/uploads/audio/placeholder.mp3",
-                                Questions = new List<Question>()
-                            };
-                            _context.ListeningResources.Add(currentResource);
+                                currentResource = new ListeningResource
+                                {
+                                    Title = title,
+                                    Transcript = transcript,
+                                    AudioUrl = "/uploads/audio/placeholder.mp3",
+                                    Questions = new List<Question>()
+                                };
+                                _context.ListeningResources.Add(currentResource);
+                            }
+                            else
+                            {
+                                currentResource = null;
+                            }
                         }
                     }
                     else
@@ -1108,7 +1077,8 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             }
             return (count, errors);
         }
-        private async Task<(int count, List<ImportError> errors)> ProcessWriting(ExcelWorksheet ws, bool save)
+
+        private async Task<(int count, List<ImportError> errors)> ProcessWriting(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
             int count = 0;
@@ -1116,12 +1086,10 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
             for (int row = 8; row <= rowCount; row++)
             {
-                string content = ws.Cells[row, 1].Text?.Trim(); // Cột A: Đề bài
+                string content = ws.Cells[row, 1].Text?.Trim();
 
-                // Bỏ qua dòng trống hoàn toàn (Cả Content và Level trống)
                 if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 3].Text)) continue;
 
-                // 1. Validate Nội dung
                 if (string.IsNullOrEmpty(content))
                 {
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Đề bài không được để trống." });
@@ -1131,7 +1099,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Đề bài quá ngắn (tối thiểu 10 ký tự)." });
                 }
 
-                // 2. Validate Level (Cột C)
                 int level = ws.Cells[row, 3].GetValue<int>();
                 if (level < 1 || level > 5)
                 {
@@ -1140,45 +1107,47 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
                 if (errors.Any(e => e.Row == row)) continue;
 
-                // 3. Lưu dữ liệu
+                bool isSelected = selectedIndices.Contains(row - 1);
+
                 if (save)
                 {
-                    string hint = ws.Cells[row, 2].Text?.Trim();         // Cột B: Gợi ý
-                    string explanation = ws.Cells[row, 4].Text?.Trim();  // Cột D: Bài mẫu
-
-                    string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
-
-                    var q = new Question
+                    if (isSelected)
                     {
-                        Content = finalContent,
-                        SkillType = ExamSkill.Writing,
-                        QuestionType = QuestionType.Essay,
-                        Level = level,
-                        Explaination = explanation,
-                        CreatedDate = DateTime.Now
-                    };
-                    _context.Questions.Add(q);
+                        string hint = ws.Cells[row, 2].Text?.Trim();
+                        string explanation = ws.Cells[row, 4].Text?.Trim();
+
+                        string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
+
+                        var q = new Question
+                        {
+                            Content = finalContent,
+                            SkillType = ExamSkill.Writing,
+                            QuestionType = QuestionType.Essay,
+                            Level = level,
+                            Explaination = explanation,
+                            CreatedDate = DateTime.Now
+                        };
+                        _context.Questions.Add(q);
+                        count++;
+                    }
                 }
-                count++;
+                else { count++; }
             }
             return (count, errors);
         }
 
-        private async Task<(int count, List<ImportError> errors)> ProcessSpeaking(ExcelWorksheet ws, bool save)
+        private async Task<(int count, List<ImportError> errors)> ProcessSpeaking(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
             int count = 0;
             int rowCount = ws.Dimension.Rows;
 
-            // Duyệt từ dòng 8 (theo mẫu template chung)
             for (int row = 8; row <= rowCount; row++)
             {
-                string content = ws.Cells[row, 1].Text?.Trim(); // Cột A: Chủ đề/Câu hỏi nói
+                string content = ws.Cells[row, 1].Text?.Trim();
 
-                // Bỏ qua dòng trống
                 if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 3].Text)) continue;
 
-                // 1. Validate Nội dung
                 if (string.IsNullOrEmpty(content))
                 {
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi Speaking không được để trống." });
@@ -1188,7 +1157,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung quá ngắn." });
                 }
 
-                // 2. Validate Level (Cột C - Giả sử dùng chung cột với Writing/Grammar)
                 int level = ws.Cells[row, 3].GetValue<int>();
                 if (level < 1 || level > 5)
                 {
@@ -1197,33 +1165,72 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
                 if (errors.Any(e => e.Row == row)) continue;
 
-                // 3. Lưu dữ liệu
+                bool isSelected = selectedIndices.Contains(row - 1);
+
                 if (save)
                 {
-                    string hint = ws.Cells[row, 2].Text?.Trim();         // Cột B: Gợi ý trả lời
-                    string sampleAnswer = ws.Cells[row, 4].Text?.Trim(); // Cột D: Câu trả lời mẫu
-
-                    // Ghép gợi ý vào nội dung nếu cần, hoặc lưu vào Explaination
-                    string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
-
-                    var q = new Question
+                    if (isSelected)
                     {
-                        Content = finalContent,
-                        SkillType = ExamSkill.Speaking,
+                        string hint = ws.Cells[row, 2].Text?.Trim();
+                        string sampleAnswer = ws.Cells[row, 4].Text?.Trim();
 
-                        // [QUAN TRỌNG] Loại câu hỏi là Thu âm
-                        QuestionType = QuestionType.SpeakingRecording,
-                        
-                        Level = level,
-                        Explaination = sampleAnswer, // Lưu bài mẫu vào đây để giáo viên tham khảo khi chấm
-                        CreatedDate = DateTime.Now
-                        // Không cần tạo Answers (A,B,C,D)
-                    };
-                    _context.Questions.Add(q);
+                        string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
+
+                        var q = new Question
+                        {
+                            Content = finalContent,
+                            SkillType = ExamSkill.Speaking,
+                            QuestionType = QuestionType.SpeakingRecording,
+                            Level = level,
+                            Explaination = sampleAnswer,
+                            CreatedDate = DateTime.Now
+                        };
+                        _context.Questions.Add(q);
+                        count++;
+                    }
                 }
-                count++;
+                else { count++; }
             }
             return (count, errors);
+        }
+
+        // POST: Admin/Questions/BulkDelete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDelete([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any())
+            {
+                return Json(new { success = false, message = "Không có câu hỏi nào được chọn để xóa." });
+            }
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Lấy danh sách câu hỏi cần xóa
+                    var questionsToDelete = await _context.Questions
+                        .Where(q => ids.Contains(q.Id))
+                        .ToListAsync();
+
+                    if (!questionsToDelete.Any())
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy dữ liệu để xóa." });
+                    }
+
+                    // Tiến hành xóa
+                    _context.Questions.RemoveRange(questionsToDelete);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Json(new { success = true, message = $"Đã xóa vĩnh viễn {questionsToDelete.Count} câu hỏi!" });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return Json(new { success = false, message = "Lỗi hệ thống khi xóa: " + ex.Message });
+                }
+            }
         }
     }
 }

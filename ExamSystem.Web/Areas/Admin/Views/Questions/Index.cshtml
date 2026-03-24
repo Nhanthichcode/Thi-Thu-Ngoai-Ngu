@@ -101,6 +101,14 @@
             <div class="card shadow-sm mb-4 border-0 rounded-4 group-card @groupCss overflow-hidden">
 
                 <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom-0">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <div class="form-check mb-0 me-3">
+                            <input class="form-check-input checkbox-xl check-all-group shadow-sm m-0"
+                                   type="checkbox"
+                                   style="cursor: pointer;"
+                                   title="Chọn tất cả câu hỏi trong nhóm này">
+                        </div>
+                    
                     <div class="d-flex align-items-center flex-grow-1" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#@collapseId">
                         <i class="bi bi-chevron-down text-muted me-3 fs-5 transition-icon collapse-icon"></i>
 
@@ -133,6 +141,7 @@
                             <span class="fw-bold text-dark fs-5 text-truncate" style="max-width: 600px;" title="@group.GroupTitle">@group.GroupTitle</span>
                         </div>
                         <span class="badge bg-light text-muted border rounded-pill ms-3 px-3 py-2 shadow-sm">@group.QuestionCount câu</span>
+                    </div>
                     </div>
 
                     <div class="d-flex gap-2 ms-3">
@@ -237,6 +246,12 @@ else
         </a>
     </div>
 }
+<div id="bulkDeleteContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 d-none" style="z-index: 1050;">
+    <button id="btnBulkDelete" class="btn btn-danger rounded-pill px-4 py-3 shadow-lg fw-bold hover-up" type="button">
+        <i class="bi bi-trash3-fill me-2 fs-5 align-middle"></i>
+        XÓA <span id="bulkDeleteCount" class="badge bg-white text-danger ms-1 fs-6">0</span> CÂU HỎI
+    </button>
+</div>
 @section Scripts {
     <script src="~/js/question.js"></script>
 }
