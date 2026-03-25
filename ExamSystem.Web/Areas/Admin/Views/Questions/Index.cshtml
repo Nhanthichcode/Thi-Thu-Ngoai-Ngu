@@ -103,10 +103,17 @@
                 <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom-0">
                     <div class="d-flex align-items-center flex-grow-1">
                         <div class="form-check mb-0 me-3">
-                            <input class="form-check-input checkbox-xl check-all-group shadow-sm m-0"
-                                   type="checkbox"
-                                   style="cursor: pointer;"
-                                   title="Chọn tất cả câu hỏi trong nhóm này">
+                            @if (group.GroupType == "Reading" || group.GroupType == "Listening")
+                            {
+                                <input class="form-check-input checkbox-xl check-all-group shadow-sm m-0"
+                                       type="checkbox" style="cursor: pointer;" title="Chọn tất cả câu con bên dưới">
+                            }
+                            else
+                            {
+                                <input class="form-check-input checkbox-xl question-checkbox shadow-sm m-0"
+                                       type="checkbox" value="@group.Questions.FirstOrDefault()?.Id"
+                                       style="cursor: pointer;" title="Chọn câu hỏi này để xóa">
+                            }
                         </div>
                     
                     <div class="d-flex align-items-center flex-grow-1" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#@collapseId">
@@ -144,7 +151,7 @@
                     </div>
                     </div>
 
-                    <div class="d-flex gap-2 ms-3">
+                    @* <div class="d-flex gap-2 ms-3">
                         @{
                             string actionName = (group.GroupType == "Reading" || group.GroupType == "Listening") ? "BatchEdit" : "Edit";
                             object routeId = (group.GroupType == "Reading" || group.GroupType == "Listening") ? group.GroupId : group.Questions.FirstOrDefault()?.Id;
@@ -169,6 +176,40 @@
                                 <i class="bi bi-trash3-fill"></i>
                             </a>
                         }
+                    </div> *@
+
+                    <div class="d-flex gap-2 ms-3">
+                        @{
+                            string actionName = (group.GroupType == "Reading" || group.GroupType == "Listening") ? "BatchEdit" : "Edit";
+                            object routeId = (group.GroupType == "Reading" || group.GroupType == "Listening") ? group.GroupId : group.Questions.FirstOrDefault()?.Id;
+                            string controllerName = "Questions";
+                        }
+
+                        @if (routeId != null)
+                        {
+                            <a asp-controller="@controllerName" asp-action="@actionName" asp-route-id="@routeId" asp-route-type="@group.GroupType"
+                               class="btn btn-sm btn-outline-secondary text-primary rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;" title="Sửa">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+
+                            @if (group.GroupType == "Reading") { controllerName = "ReadingPassages"; routeId = group.GroupId; }
+                            else if (group.GroupType == "Listening") { controllerName = "ListeningResources"; routeId = group.GroupId; }
+                            else { controllerName = "Questions"; routeId = group.Questions.FirstOrDefault()?.Id; }
+
+                            @if (group.GroupType != "Reading" && group.GroupType != "Listening")
+                            {
+                                <form id="delete-form-@routeId" asp-controller="@controllerName" asp-action="Delete" asp-route-id="@routeId" method="post" class="d-none"></form>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary text-danger rounded-circle shadow-sm hover-up"
+                                        style="width:32px; height:32px; line-height:20px;"
+                                        title="Xóa"
+                                        data-title="@group.GroupTitle"
+                                        onclick="confirmDelete('@routeId', this.getAttribute('data-title'))">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            }
+                        }
                     </div>
                 </div>
 
@@ -178,6 +219,12 @@
                             <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
                                 <thead class="small">
                                     <tr>
+                                        @if (group.GroupType == "Reading" || group.GroupType == "Listening")
+                                        {
+                                            <th style="width: 50px;" class="text-center border-end align-middle">
+                                                <i class="bi bi-check2-square text-muted" title="Chọn"></i>
+                                            </th>
+                                        }
                                         <th style="width: 50px;" class="text-center">#</th>
                                         <th class="ps-3">Nội dung câu hỏi</th>
                                         @if (showImageCol)
@@ -191,6 +238,12 @@
                                     {
                                         var q = item.value;
                                         <tr>
+                                            @if (group.GroupType == "Reading" || group.GroupType == "Listening")
+                                            {
+                                                <td class="text-center border-end bg-light align-middle">
+                                                    <input class="form-check-input checkbox-xl question-checkbox shadow-sm m-0" type="checkbox" value="@q.Id" style="cursor: pointer;">
+                                                </td>
+                                            }
                                             <td class="text-center text-muted fw-bold border-end bg-light">@(item.i + 1)</td>
                                             <td class="ps-3">
                                                 <div class="text-dark fw-normal mb-1 text-truncate" style="max-width: 700px;" title="@q.Content">
@@ -246,12 +299,13 @@ else
         </a>
     </div>
 }
-<div id="bulkDeleteContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 d-none" style="z-index: 1050;">
+
+<div id="bulkDeleteContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 d-none" style="z-index: 1050; transition: all 0.3s ease;">    
     <button id="btnBulkDelete" class="btn btn-danger rounded-pill px-4 py-3 shadow-lg fw-bold hover-up" type="button">
         <i class="bi bi-trash3-fill me-2 fs-5 align-middle"></i>
-        XÓA <span id="bulkDeleteCount" class="badge bg-white text-danger ms-1 fs-6">0</span> CÂU HỎI
+        XÓA <span id="bulkDeleteCount" class="badge bg-white text-success ms-1 fs-6">0</span> MỤC ĐÃ CHỌN
     </button>
 </div>
 @section Scripts {
-    <script src="~/js/question.js"></script>
+    <script src="~/js/question.js" asp-append-version="true"></script>
 }
