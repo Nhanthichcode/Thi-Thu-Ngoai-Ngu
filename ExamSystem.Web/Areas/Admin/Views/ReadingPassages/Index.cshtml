@@ -29,15 +29,15 @@
                 <input type="text" name="searchString" value="@ViewData["CurrentFilter"]"
                        class="form-control border-0 shadow-none py-2"
                        placeholder="Nhập tiêu đề cần tìm..." />
-
-                <button type="submit" class="btn btn-primary px-4 fw-bold">Tìm kiếm</button>
-
                 @if (!String.IsNullOrEmpty((string)ViewData["CurrentFilter"]))
                 {
                     <a asp-action="Index" class="btn btn-light border-start px-3 text-danger d-flex align-items-center" title="Xóa bộ lọc">
                         <i class="bi bi-x-lg"></i>
                     </a>
                 }
+                <button type="submit" class="btn btn-primary px-4 fw-bold">Tìm kiếm</button>
+
+               
             </div>
         </div>
     </div>
@@ -52,8 +52,8 @@
                             <input class="form-check-input checkbox-xl shadow-sm" type="checkbox" id="checkAll_Users">
                         </th>
                         <th style="width: 25%;">Tiêu đề</th>
-                        <th style="width: 55%;">Nội dung (Preview)</th>                      
-                        <th style="width: 20%;" class="text-end">Thao tác</th>
+                        <th style="width: 55%;">Nội dung</th>                      
+                        <th style="width: 20%;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,12 +67,11 @@
                                 </td>
                                 <td class="fw-bold text-dark">@item.Title</td>
                                 <td>
-                                    <div class="text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
-                                        @* Dùng Raw để hiển thị nếu nội dung có HTML, nhưng cẩn thận XSS *@
+                                    <div class="text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">                                       
                                         @Html.Raw(item.Content?.Length > 150 ? item.Content.Substring(0, 150) + "..." : item.Content)
                                     </div>
                                 </td>                                
-                                <td class="text-end">
+                                <td>
                                     <div class="btn-group">                                     
 
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Sửa thông tin bài đọc">

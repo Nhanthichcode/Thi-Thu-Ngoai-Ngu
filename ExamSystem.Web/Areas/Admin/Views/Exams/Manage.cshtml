@@ -112,9 +112,9 @@
                                             @foreach (var eq in part.ExamQuestions.OrderBy(x => x.SortOrder))
                                             {
                                                 <tr>
-                                                    <td class="text-center">@eq.SortOrder</td>
+                                                    <td class="text-center text-dark">@eq.SortOrder</td>
                                                     <td>
-                                                        <div class="text-truncate" style="max-width: 500px;" title="@eq.Question?.Content">@eq.Question?.Content</div>
+                                                        <div class="text-dark" style="max-width: 500px;" title="@eq.Question?.Content">@eq.Question?.Content</div>
                                                         @if (eq.Question?.ReadingPassage != null)
                                                         {
                                                             <span class="badge bg-info text-dark border">Bài: @eq.Question.ReadingPassage.Title</span>
@@ -233,7 +233,7 @@
                 <h5 class="modal-title"><i class="bi bi-folder-plus"></i> Tạo Phần thi Mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-dark">
                 <form id="createPartForm">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tên Phần thi <span class="text-danger">*</span></label>
@@ -385,27 +385,30 @@
             });
         }
 
-        function renderTable(data, type) {
+            function renderTable(data, type) {
             var html = '';
-        if (!data || data.length === 0) {
-            html = '<tr><td colspan="2" class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Không tìm thấy dữ liệu phù hợp.</td></tr>';
+            if (!data || data.length === 0) {
+                // Thay đổi ở đây: Giữ text-muted cho icon để có độ sâu, nhưng dùng text-dark cho dòng chữ báo lỗi
+                html = '<tr><td colspan="2" class="text-center py-4 text-dark"><i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>Không tìm thấy dữ liệu phù hợp.</td></tr>';
             } else {
-            data.forEach(item => {
-                var btn = item.isSelected
-                    ? '<button disabled class="btn btn-secondary btn-sm"><i class="bi bi-check2"></i> Đã chọn</button>'
-                    : `<button class="btn btn-success btn-sm" onclick="addItem(${item.id})"><i class="bi bi-plus-lg"></i> Thêm</button>`;
+                data.forEach(item => {
+                    var btn = item.isSelected
+                        ? '<button disabled class="btn btn-secondary btn-sm"><i class="bi bi-check2"></i> Đã chọn</button>'
+                        : `<button class="btn btn-success btn-sm" onclick="addItem(${item.id})"><i class="bi bi-plus-lg"></i> Thêm</button>`;
 
-                var content = type === 'Independent'
-                    ? `<div>${item.content}</div><small class="text-muted">Level: ${item.level}</small>`
-                    : `<div class="fw-bold">${item.title}</div><small class="text-muted">${item.questionCount} câu hỏi</small>`;
+                    // Thay đổi ở đây: Gắn text-dark vào thẻ div bao ngoài nội dung chính, và xóa text-muted ở thẻ small nếu muốn nó cũng màu tối
+                    var content = type === 'Independent'
+                        ? `<div class="text-dark">${item.content}</div><small class="text-dark opacity-75">Level: ${item.level}</small>`
+                        : `<div class="fw-bold text-dark">${item.title}</div><small class="text-dark opacity-75">${item.questionCount} câu hỏi</small>`;
 
-                html += `<tr><td>${content}</td><td class="text-center">${btn}</td></tr>`;
-            });
+                    // Thay đổi ở đây: Đảm bảo cột chứa nút cũng có text-dark (dù thường không ảnh hưởng nút bấm)
+                    html += `<tr><td class="text-dark">${content}</td><td class="text-center align-middle">${btn}</td></tr>`;
+                });
             }
-        $('#modalTableBody').html(html);
+            $('#modalTableBody').html(html);
 
-        if(type === 'Independent') $('#modalHint').text('Chọn câu hỏi lẻ để thêm vào phần thi này.');
-        else $('#modalHint').text('Chọn bài đọc/nghe để thêm toàn bộ câu hỏi của bài đó.');
+            if (type === 'Independent') $('#modalHint').text('Chọn câu hỏi lẻ để thêm vào phần thi này.');
+            else $('#modalHint').text('Chọn bài đọc/nghe để thêm toàn bộ câu hỏi của bài đó.');
         }
 
         function addItem(itemId) {
@@ -469,9 +472,7 @@
             if (!confirm('Bạn muốn gỡ bỏ tất cả câu hỏi trong phần này (Giữ lại cấu trúc Part)?')) return;
 
         $.post('/Admin/ExamParts/ClearPartQuestionsAjax', {id: partId }, function(res) {
-                if (res.success) {
-            // Vì cấu trúc nút bấm "Thêm câu hỏi" phụ thuộc vào việc Part có trống hay không
-            // Nên ta reload trang. Nhờ logic saveTab ở trên, nó sẽ tự quay lại tab hiện tại.
+                if (res.success) {          
             window.location.reload();
                 } else {
             alert(res.message);

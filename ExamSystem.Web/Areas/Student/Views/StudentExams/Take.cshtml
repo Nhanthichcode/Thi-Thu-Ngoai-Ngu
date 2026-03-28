@@ -254,11 +254,11 @@
             return Html.Raw(sb.ToString());
         }
     }
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-
-    <script>
-        
+    <script>        
+        const questionSectionMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(questionSectionMap));
+        let timeLeft = @Model.DurationMinutes * 60;
     </script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/student.js" asp-append-version="true"></script>
 </body>
 </html>
