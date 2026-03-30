@@ -245,27 +245,27 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             switch (skill)
             {
                 case ExamSystem.Core.Enums.ExamSkill.Listening:
-                    newParts.Add(new StructurePart { Name = "Listening Part 1: Photographs", Description = "Mô tả tranh", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Listening Part 2: Question-Response", Description = "Hỏi - Đáp", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Listening Part 3: Conversations", Description = "Đoạn hội thoại ngắn", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Listening Part 4: Talks", Description = "Bài nói ngắn", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Listening Part 1: ", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Listening Part 2: ", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Listening Part 3: ", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Listening Part 4: ", Description = "", SkillType = skill });
                     break;
 
                 case ExamSystem.Core.Enums.ExamSkill.Reading:
-                    newParts.Add(new StructurePart { Name = "Reading Part 5: Incomplete Sentences", Description = "Điền vào câu", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Reading Part 6: Text Completion", Description = "Điền vào đoạn văn", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Reading Part 7: Reading Comprehension", Description = "Đọc hiểu", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Reading Part 5: ", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Reading Part 6: ", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Reading Part 7: ", Description = "", SkillType = skill });
                     break;
 
                 case ExamSystem.Core.Enums.ExamSkill.Writing:
-                    newParts.Add(new StructurePart { Name = "Writing Task 1", Description = "Viết câu dựa trên tranh/từ gợi ý", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Writing Task 2", Description = "Viết bài luận (Essay/Email)", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Writing Task 1", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Writing Task 2", Description = "", SkillType = skill });
                     break;
 
                 case ExamSystem.Core.Enums.ExamSkill.Speaking:
-                    newParts.Add(new StructurePart { Name = "Speaking Part 1", Description = "Giới thiệu & Phỏng vấn", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Speaking Part 2", Description = "Mô tả tranh / Nói theo chủ đề", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Speaking Part 3", Description = "Thảo luận sâu", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Speaking Part 1", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Speaking Part 2", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Speaking Part 3", Description = "", SkillType = skill });
                     break;
 
                 default:
@@ -283,7 +283,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             _context.StructureParts.AddRange(newParts);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true });
+            return Json(new { success = true, message = "Tạo phần thi thành công" });
         }
 
         [HttpPost]
