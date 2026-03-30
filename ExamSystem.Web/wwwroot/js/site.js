@@ -134,7 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Áp dụng theme ngay khi load
     document.documentElement.setAttribute('data-theme', currentTheme);
-    updateThemeIcon(currentTheme);
+    document.documentElement.setAttribute('data-bs-theme', currentTheme);
+
+    if (typeof updateThemeIcon === 'function') {
+        updateThemeIcon(currentTheme);
+    }
 
     // Bắt sự kiện click nút đổi màu
     if (themeToggleBtn) {
@@ -143,8 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let newTheme = theme === 'dark' ? 'light' : 'dark';
 
             document.documentElement.setAttribute('data-theme', newTheme);
+            document.documentElement.setAttribute('data-bs-theme', newTheme);
+
             localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
+
+            if (typeof updateThemeIcon === 'function') {
+                updateThemeIcon(newTheme);
+            }
         });
     }
 });

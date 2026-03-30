@@ -104,17 +104,57 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UnifiedCreateViewModel model)
         {
-            // Bỏ qua validate file vì xử lý thủ công
+            // --- 1. DỌN DẸP LỖI VALIDATE THEO TỪNG KỸ NĂNG ---
             ModelState.Remove("NewListeningFile");
             ModelState.Remove("CommonImageFile");
 
-            if (!ModelState.IsValid)
+            // Nếu không phải môn ĐỌC, xóa lỗi của Đọc
+            if (model.SkillType != ExamSkill.Reading)
             {
-                LoadDropdowns();
-                return View(model);
+                ModelState.Remove("NewReadingTitle");
+                ModelState.Remove("NewReadingContent");
+                ModelState.Remove("ReadingPassageId");
             }
 
-            // A. Xử lý Tạo Tài nguyên mới (Nếu có)
+            // Nếu không phải môn NGHE, xóa lỗi của Nghe
+            if (model.SkillType != ExamSkill.Listening)
+            {
+                ModelState.Remove("NewListeningTitle");
+                ModelState.Remove("NewListeningTranscript");
+                ModelState.Remove("ListeningResourceId");
+            }
+
+            // Nếu không phải môn NÓI, xóa lỗi của Nói
+            if (model.SkillType != ExamSkill.Speaking)
+            {
+                ModelState.Remove("NewSpeakingTitle");
+            }
+           
+            if (model.Questions != null)
+            {
+                for (int i = 0; i < model.Questions.Count; i++)
+                {
+                    // Giao diện ghi "Giải thích" là tùy chọn, nên mình xóa lỗi bắt buộc nhập của nó đi
+                    ModelState.Remove($"Questions[{i}].Explaination");
+
+                    // Nếu là môn Tự luận (Nói/Viết) thì KHÔNG CẦN đáp án A, B, C, D
+                    if (model.SkillType == ExamSkill.Speaking || model.SkillType == ExamSkill.Writing)
+                    {
+                        ModelState.Remove($"Questions[{i}].AnswerA");
+                        ModelState.Remove($"Questions[{i}].AnswerB");
+                        ModelState.Remove($"Questions[{i}].AnswerC");
+                        ModelState.Remove($"Questions[{i}].AnswerD");
+                    }
+                }
+            }
+            // --- 2. KIỂM TRA VALIDATE VÀ DEBUG ---
+            if (!ModelState.IsValid)
+            {
+                LoadDropdowns(); // Load lại các list Bài nghe/Đọc
+                return View(model); // Bật ngược lại màn hình cũ, kèm theo lỗi
+            }
+
+            // --- A. Xử lý Tạo Tài nguyên mới (Nếu có) ---
             if (model.SkillType == ExamSkill.Reading && !string.IsNullOrEmpty(model.NewReadingTitle))
             {
                 var newPassage = new ReadingPassage { Title = model.NewReadingTitle, Content = model.NewReadingContent };
@@ -136,21 +176,14 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 model.ListeningResourceId = newResource.Id;
             }
 
-            // B. Xử lý Ảnh chung (Cho Writing/Speaking)
+            // --- B. Xử lý Ảnh chung (Cho Writing/Speaking) ---
             string? uploadedImageUrl = null;
-
-            // CHỈ UPLOAD NẾU SKILL LÀ SPEAKING VÀ CÓ FILE ĐƯỢC CHỌN (KHÔNG BẮT BUỘC)
-            if (model.SkillType == ExamSkill.Speaking)
+            if (model.SkillType == ExamSkill.Speaking && model.CommonImageFile != null)
             {
-                // Chỉ chạy SaveFileAsync nếu người dùng thực sự chọn file
-                if (model.CommonImageFile != null)
-                {
-                    uploadedImageUrl = await SaveFileAsync(model.CommonImageFile, "images");
-                }
-                // ELSE: uploadedImageUrl vẫn là null (Không cần ảnh)
+                uploadedImageUrl = await SaveFileAsync(model.CommonImageFile, "images");
             }
 
-            // C. Lưu Câu hỏi
+            // --- C. Lưu Câu hỏi ---
             if (model.Questions != null && model.Questions.Any())
             {
                 var questionsToAdd = new List<Question>();
@@ -159,8 +192,15 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 {
                     if (string.IsNullOrWhiteSpace(item.Content)) continue;
 
-                    var q = new Question
+                    string finalContent = item.Content;
+                    // Ghép tiêu đề in đậm cho môn Nói
+                    if (model.SkillType == ExamSkill.Speaking && !string.IsNullOrWhiteSpace(model.NewSpeakingTitle))
                     {
+                        finalContent = $"{model.NewSpeakingTitle}";
+                    }
+
+                    var q = new Question
+                    {                        
                         Content = item.Content,
                         Explaination = item.Explaination,
                         SkillType = model.SkillType,
@@ -194,8 +234,111 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 }
             }
 
+            // Form truyền thống thì phải dùng RedirectToAction
             return RedirectToAction(nameof(Index));
         }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Create(UnifiedCreateViewModel model)
+        //{
+        //    // Bỏ qua validate file vì xử lý thủ công
+        //    ModelState.Remove("NewListeningFile");
+        //    ModelState.Remove("CommonImageFile");
+        //    ModelState.Remove("NewSpeakingTitle");
+
+        //    if (!ModelState.IsValid)
+        //    {
+        //        LoadDropdowns();
+        //        return View(model);
+        //    }
+
+        //    // A. Xử lý Tạo Tài nguyên mới (Nếu có)
+        //    if (model.SkillType == ExamSkill.Reading && !string.IsNullOrEmpty(model.NewReadingTitle))
+        //    {
+        //        var newPassage = new ReadingPassage { Title = model.NewReadingTitle, Content = model.NewReadingContent };
+        //        _context.ReadingPassages.Add(newPassage);
+        //        await _context.SaveChangesAsync();
+        //        model.ReadingPassageId = newPassage.Id;
+        //    }
+        //    else if (model.SkillType == ExamSkill.Listening && model.NewListeningFile != null)
+        //    {
+        //        var audioUrl = await SaveFileAsync(model.NewListeningFile, "audio");
+        //        var newResource = new ListeningResource
+        //        {
+        //            Title = model.NewListeningTitle ?? "Audio " + DateTime.Now.Ticks,
+        //            AudioUrl = audioUrl,
+        //            Transcript = model.NewListeningTranscript
+        //        };
+        //        _context.ListeningResources.Add(newResource);
+        //        await _context.SaveChangesAsync();
+        //        model.ListeningResourceId = newResource.Id;
+        //    }
+
+        //    // B. Xử lý Ảnh chung (Cho Writing/Speaking)
+        //    string? uploadedImageUrl = null;
+
+        //    // CHỈ UPLOAD NẾU SKILL LÀ SPEAKING VÀ CÓ FILE ĐƯỢC CHỌN (KHÔNG BẮT BUỘC)
+        //    if (model.SkillType == ExamSkill.Speaking)
+        //    {
+        //        // Chỉ chạy SaveFileAsync nếu người dùng thực sự chọn file
+        //        if (model.CommonImageFile != null)
+        //        {
+        //            uploadedImageUrl = await SaveFileAsync(model.CommonImageFile, "images");
+        //        }               
+        //    }
+
+        //    // C. Lưu Câu hỏi
+        //    if (model.Questions != null && model.Questions.Any())
+        //    {
+        //        var questionsToAdd = new List<Question>();
+
+        //        foreach (var item in model.Questions)
+        //        {
+        //            if (string.IsNullOrWhiteSpace(item.Content)) continue;
+
+        //            string finalContent = item.Content;
+        //            if (model.SkillType == ExamSkill.Speaking && !string.IsNullOrWhiteSpace(model.NewSpeakingTitle))
+        //            {                        
+        //                finalContent = $"<div class='fw-bold text-success mb-2' style='font-size: 1.1rem;'>{model.NewSpeakingTitle}</div>{item.Content}";
+        //            }
+        //            var q = new Question
+        //            {
+        //                Content = finalContent,
+        //                Explaination = item.Explaination,
+        //                SkillType = model.SkillType,
+        //                QuestionType = (model.SkillType == ExamSkill.Writing) ? QuestionType.Essay :
+        //                               (model.SkillType == ExamSkill.Speaking) ? QuestionType.SpeakingRecording :
+        //                               QuestionType.SingleChoice,
+        //                Level = model.Level,
+        //                CreatedDate = DateTime.Now,
+        //                ReadingPassageId = (model.SkillType == ExamSkill.Reading) ? model.ReadingPassageId : null,
+        //                ListeningResourceId = (model.SkillType == ExamSkill.Listening) ? model.ListeningResourceId : null,
+        //                MediaUrl = uploadedImageUrl,
+        //                Answers = new List<Answer>()
+        //            };
+
+        //            // Thêm đáp án nếu là trắc nghiệm
+        //            if (model.SkillType != ExamSkill.Speaking && model.SkillType != ExamSkill.Writing)
+        //            {
+        //                q.Answers.Add(new Answer { Content = item.AnswerA ?? "", IsCorrect = (item.CorrectAnswerIndex == 0) });
+        //                q.Answers.Add(new Answer { Content = item.AnswerB ?? "", IsCorrect = (item.CorrectAnswerIndex == 1) });
+        //                q.Answers.Add(new Answer { Content = item.AnswerC ?? "", IsCorrect = (item.CorrectAnswerIndex == 2) });
+        //                q.Answers.Add(new Answer { Content = item.AnswerD ?? "", IsCorrect = (item.CorrectAnswerIndex == 3) });
+        //            }
+
+        //            questionsToAdd.Add(q);
+        //        }
+
+        //        if (questionsToAdd.Any())
+        //        {
+        //            _context.Questions.AddRange(questionsToAdd);
+        //            await _context.SaveChangesAsync();
+        //        }
+        //    }
+
+        //    return Json(new { isSuccess = true, redirectUrl = Url.Action("Index"), message = "Đã tạo bài mới thành công." });
+        //}
 
         // ============================================================
         // 3. CHỈNH SỬA (EDIT) - Cho câu hỏi lẻ

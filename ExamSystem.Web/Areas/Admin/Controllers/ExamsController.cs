@@ -362,5 +362,20 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
             return Json(new { success = true });
         }
+
+        [Authorize(Roles = "Admin, Teacher")]
+        public async Task<IActionResult> TestTake(int id)
+        {
+            // Lấy đề thi kèm toàn bộ câu hỏi, bài đọc, bài nghe, đáp án...
+            var exam = await _context.Exams
+                .Include(e => e.ExamParts).ThenInclude(p => p.ExamQuestions).ThenInclude(eq => eq.Question).ThenInclude(q => q.Answers)
+                .Include(e => e.ExamParts).ThenInclude(p => p.ExamQuestions).ThenInclude(eq => eq.Question).ThenInclude(q => q.ReadingPassage)
+                .Include(e => e.ExamParts).ThenInclude(p => p.ExamQuestions).ThenInclude(eq => eq.Question).ThenInclude(q => q.ListeningResource)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (exam == null) return NotFound();
+
+            return View(exam); // Trả về file TestTake.cshtml
+        }
     }
 }

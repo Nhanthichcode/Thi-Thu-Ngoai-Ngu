@@ -30,9 +30,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@Model.Title - Thi Thử</title>
+    <title>@Model.Title - ExamPortal</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">  
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">   
     <link href="~/css/pages/exam-take.css" rel="stylesheet" asp-append-version="true" />
  
 </head>
@@ -40,15 +40,15 @@
 
     <header class="top-header">
         <div class="d-flex align-items-center gap-3">
-            <div class="brand-logo">LÀM BÀI</div>
-            <div class="exam-title text-muted border-start ps-3 ms-2">@Model.Title</div>
+            <div class="brand-logo"><i class="bi bi-eye"></i> PREVIEW</div>
+            <div class="exam-title text-muted border-start ps-3 ms-2">@Model.Title (Bản xem trước)</div>
         </div>
         <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-sm btn-outline-secondary border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                    id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
-                <i class="bi bi-sun-fill text-warning"></i>
-            </button>
             <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                        id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
+                    <i class="bi bi-sun-fill text-warning"></i>
+                </button>
                 <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold bg-secondary" style="width: 28px; height: 28px; font-size: 0.8rem;">
                     @(studentName.Substring(0, 1).ToUpper())
                 </div>
@@ -81,7 +81,7 @@
         <div class="d-flex align-items-center gap-3">
             <div class="timer-display" id="countdown">00:00</div>
             <button type="button" onclick="submitExam()" class="btn btn-danger btn-sm fw-bold px-3 py-1" style="background-color: var(--brand-red);">
-                NỘP BÀI
+                QUAY LẠI
             </button>
         </div>
     </div>
@@ -89,7 +89,7 @@
     <div class="exam-container">
 
         <main class="main-content" id="mainContent">
-            <form id="examForm" asp-action="Submit" method="post" enctype="multipart/form-data">
+            <form id="examForm" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="examId" value="@Model.Id" />
 
                 @{
@@ -265,5 +265,31 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/student.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Hàm này sẽ ghi đè lên hàm submitExam() trong student.js
+        window.submitExam = function () {
+            Swal.fire({
+                title: 'Kết thúc Xem trước?',
+                text: "Đây chỉ là bản xem thử, hệ thống sẽ không chấm điểm hay lưu kết quả của bạn.",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#0dcaf0',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đóng bản xem trước',
+                cancelButtonText: 'Làm tiếp',
+                customClass: { confirmButton: 'rounded-pill px-4', cancelButton: 'rounded-pill px-4', popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Đóng tab xem trước hiện tại (hoặc chuyển về trang Manage nếu không đóng được)
+                    if(window.opener) {
+                        window.close();
+                    } else {
+                        window.location.href = '/Admin/Exams/Manage/' + @Model.Id;
+                    }
+                }
+            });
+        };
+    </script>
 </body>
 </html>

@@ -65,30 +65,6 @@ function toggleAll(action) {
     }
 }
 
-function confirmDelete(e, url, title) {
-    e.preventDefault();
-    Swal.fire({
-        title: 'Xóa câu hỏi?',
-        html: `Bạn có chắc muốn xóa <b>${title || 'nhóm câu hỏi này'}</b>?<br><span class="text-danger small">Toàn bộ câu hỏi bên trong sẽ bị xóa vĩnh viễn!</span>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Đồng ý xóa',
-        cancelButtonText: 'Hủy bỏ',
-        customClass: {
-            confirmButton: 'rounded-pill px-4',
-            cancelButton: 'rounded-pill px-4',
-            popup: 'rounded-4'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = url;
-        }
-    });
-    return false;
-}
-
 // =========================================================================
 // 2. TRANG SOẠN THẢO / CHỈNH SỬA (CREATE.CSHTML & EDIT.CSHTML)
 // =========================================================================
@@ -115,7 +91,7 @@ $(document).ready(function () {
                 if (skill == "1") $("#block-listening").show();
                 else if (skill == "2") $("#block-reading").show();
                 else if (skill == "3") { $("#block-answers").hide(); $("#block-no-answers").show(); }
-                else if (skill == "4") { $("#block-image").show(); $("#block-answers").hide(); $("#block-no-answers").show(); }
+                else if (skill == "4") { $("#block-image").show(); $("#block-answers").hide(); $("#block-no-answers").hide(); }
             }
             // LOGIC CHO TRANG CREATE
             else if (skillSelectCreate) {
@@ -643,111 +619,108 @@ window.toggleChildRows = function (parentIndex, btn) {
     }
 };
 
-const container = document.querySelector('.question-list-container');
-const bulkContainer = document.getElementById('bulkDeleteContainer');
-const btnBulkDelete = document.getElementById('btnBulkDelete');
-const countSpan = document.getElementById('bulkDeleteCount');
+document.addEventListener("DOMContentLoaded", function () {
 
-if (container && bulkContainer) {
-    // 1. Lắng nghe mọi sự thay đổi checkbox trong danh sách
-    container.addEventListener('change', function (e) {
+    const container = document.querySelector('.question-list-container');
+    const bulkContainer = document.getElementById('bulkDeleteContainer');
+    const btnBulkDelete = document.getElementById('btnBulkDelete');
+    const countSpan = document.getElementById('bulkDeleteCount');
 
-        // Xử lý nút "Check All" của từng bảng
-        if (e.target.classList.contains('check-all-group')) {
-            const card = e.target.closest('.card');           
-            const checkboxes = card.querySelectorAll('.question-checkbox');
-            checkboxes.forEach(cb => cb.checked = e.target.checked);
+    if (container && bulkContainer) {
 
+        container.addEventListener('change', function (e) {
+
+            // 1. NẾU BẤM NÚT "CHỌN CẢ NHÓM" TRÊN HEADER
+            if (e.target.classList.contains('check-all-group')) {
+                // Tìm cái thẻ Card chứa nút này
+                const card = e.target.closest('.card');
+                // Lấy tất cả các checkbox câu con bên trong và tích/bỏ tích theo nút Header
+                const childCheckboxes = card.querySelectorAll('.question-checkbox');
+                childCheckboxes.forEach(cb => cb.checked = e.target.checked);
+            }
+
+            // 2. NẾU BẤM NÚT "CHỌN TỪNG CÂU"
+            else if (e.target.classList.contains('question-checkbox')) {
+                const card = e.target.closest('.card');
+                const checkAllBtn = card.querySelector('.check-all-group');
+                const total = card.querySelectorAll('.question-checkbox').length;
+                const checked = card.querySelectorAll('.question-checkbox:checked').length;
+
+                // Cập nhật trạng thái của nút Header (Nếu tích đủ con thì cha sáng, nếu thiếu thì cha tắt)
+                if (checkAllBtn) {
+                    checkAllBtn.checked = (total === checked && total > 0);
+                    // Dòng này tạo hiệu ứng dấu trừ (-) rất đẹp nếu chị chỉ chọn một vài câu con
+                    checkAllBtn.indeterminate = (checked > 0 && checked < total);
+                }
+            }
+
+            // Dù bấm nút nào thì cũng gọi hàm cập nhật giao diện
             updateBulkDeleteUI();
-        }
+        });
 
-        // Xử lý nút Checkbox của từng câu hỏi (Nếu bỏ chọn 1 câu thì tắt check all của bảng đó)
-        if (e.target.classList.contains('question-checkbox')) {
-            const card = e.target.closest('.card');
-            const checkAllBtn = card.querySelector('.check-all-group');
-            const total = card.querySelectorAll('.question-checkbox').length;
-            const checked = card.querySelectorAll('.question-checkbox:checked').length;
-
-            if (checkAllBtn) {
-                checkAllBtn.checked = (total === checked && total > 0);
-                checkAllBtn.indeterminate = (checked > 0 && checked < total);
+        // HÀM ĐẾM SỐ LƯỢNG: CHỈ ĐẾM CÁC CÂU HỎI CON
+        function updateBulkDeleteUI() {
+            // Chỉ đếm những checkbox có class 'question-checkbox'
+            const totalChecked = document.querySelectorAll('.question-checkbox:checked').length;
+            if (totalChecked > 0) {
+                bulkContainer.classList.remove('d-none');
+                countSpan.innerText = totalChecked;
+            } else {
+                bulkContainer.classList.add('d-none');
             }
         }
 
-            updateBulkDeleteUI();
-    });
+        if (btnBulkDelete) {
+            btnBulkDelete.addEventListener('click', function () {
+                // LẤY ID CỦA CÁC CÂU HỎI CON ĐỂ GỬI LÊN SERVER
+                const checkedBoxes = document.querySelectorAll('.question-checkbox:checked');
+                const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
 
-    // 2. Hàm hiển thị nút Xóa
-    function updateBulkDeleteUI() {
-        // Đếm số lượng ô có class 'question-checkbox' đang được check
-        const totalChecked = document.querySelectorAll('.question-checkbox:checked').length;
-        const bulkContainer = document.getElementById('bulkDeleteContainer');
-        const countSpan = document.getElementById('bulkDeleteCount');
+                if (idsToDelete.length === 0) return;
 
-        if (totalChecked > 0) {
-            bulkContainer.classList.remove('d-none'); // HIỆN NÚT
-            countSpan.innerText = totalChecked;      // CẬP NHẬT SỐ LƯỢNG
-        } else {
-            bulkContainer.classList.add('d-none');    // ẨN NÚT
+                Swal.fire({
+                    title: 'Xác nhận xóa hàng loạt?',
+                    html: `Bạn đang chọn xóa <b>${idsToDelete.length}</b> câu hỏi.<br><span class="text-danger small">Hành động này không thể hoàn tác!</span>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Vâng, Xóa tất cả!',
+                    cancelButtonText: 'Hủy bỏ',
+                    customClass: {
+                        confirmButton: 'rounded-pill px-4',
+                        cancelButton: 'rounded-pill px-4',
+                        popup: 'rounded-4'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+                        Swal.fire({
+                            title: 'Đang xóa...',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+
+                        fetch('/Admin/Questions/BulkDelete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': token
+                            },
+                            body: JSON.stringify(idsToDelete)
+                        })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire('Thành công', data.message, 'success').then(() => location.reload());
+                                } else {
+                                    Swal.fire('Lỗi', data.message, 'error');
+                                }
+                            });
+                    }
+                });
+            });
         }
     }
-
-    // 3. Xử lý khi bấm nút "Xóa X câu hỏi"
-    btnBulkDelete.addEventListener('click', function () {
-        const checkedBoxes = document.querySelectorAll('.question-checkbox:checked');
-        if (checkedBoxes.length === 0) return;
-
-        const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-
-        Swal.fire({
-            title: 'Xác nhận xóa hàng loạt?',
-            html: `Bạn đang chọn xóa <b>${idsToDelete.length}</b> câu hỏi.<br><span class="text-danger small">Hành động này không thể hoàn tác!</span>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Vâng, Xóa tất cả!',
-            cancelButtonText: 'Hủy bỏ',
-            customClass: {
-                confirmButton: 'rounded-pill px-4',
-                cancelButton: 'rounded-pill px-4',
-                popup: 'rounded-4'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Hiển thị Loading
-                Swal.fire({
-                    title: 'Đang xóa...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                // Lấy token bảo mật của form
-                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-
-                // Gửi API
-                fetch('/Admin/Questions/BulkDelete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(idsToDelete)
-                })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire('Đã xóa!', data.message, 'success').then(() => {
-                                location.reload(); // Tải lại trang để cập nhật danh sách
-                            });
-                        } else {
-                            Swal.fire('Lỗi', data.message, 'error');
-                        }
-                    })
-                    .catch(err => {
-                        Swal.fire('Lỗi hệ thống', 'Không thể kết nối tới máy chủ.', 'error');
-                    });
-            }
-        });
-    });
-}
+});

@@ -4,25 +4,56 @@
     ViewData["Title"] = "Quản lý Bài đọc";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <div>
-        <h2 class="fw-bold text-primary m-0"><i class="bi bi-book-half"></i> Quản lý Bài đọc</h2>
-        <span class="text-muted small">Danh sách các bài đọc hiểu (Reading Passages)</span>
+        <h3 class="fw-bold text-primary m-0"><i class="bi bi-book-half"></i> Quản lý Bài đọc</h3>
+        <span class="text-muted small">Danh sách các bài đọc hiểu</span>
     </div>
-    <a asp-action="Create" class="btn btn-primary shadow-sm fw-bold">
-        <i class="bi bi-plus-lg"></i> Thêm bài đọc mới
-    </a>
-</div>
+    <div class="d-flex gap-2 align-items-center">
+        <a asp-controller="Questions" asp-action="Import" class="btn bg-white border fw-bold shadow-sm rounded-pill px-3 hover-up">
+            <i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel
+        </a>
 
+        <a asp-action="Create" class="btn text-white btn-primary shadow-sm rounded-pill fw-bold px-4 hover-up" ">
+            <i class="bi bi-plus-circle-fill me-1"></i> Thêm mới
+        </a>
+    </div>
+</div>
+<form asp-action="Index" method="get" class="mb-4">
+    <div class="row">
+        <div class="col-lg-6 col-md-8">
+            <div class="input-group shadow-sm rounded-pill overflow-hidden border bg-white">
+                <span class="input-group-text bg-white border-0 text-muted ps-4">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" name="searchString" value="@ViewData["CurrentFilter"]"
+                       class="form-control border-0 shadow-none py-2"
+                       placeholder="Nhập tiêu đề cần tìm..." />
+                @if (!String.IsNullOrEmpty((string)ViewData["CurrentFilter"]))
+                {
+                    <a asp-action="Index" class="btn btn-light border-start px-3 text-danger d-flex align-items-center" title="Xóa bộ lọc">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+                <button type="submit" class="btn btn-primary px-4 fw-bold">Tìm kiếm</button>
+
+               
+            </div>
+        </div>
+    </div>
+</form>
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <div class="custom-table-scroll mb-3 shadow-sm">
             <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
                 <thead class="small">
                     <tr>
+                        <th class="text-center" style="width: 40px;">
+                            <input class="form-check-input checkbox-xl shadow-sm" type="checkbox" id="checkAll_Users">
+                        </th>
                         <th style="width: 25%;">Tiêu đề</th>
-                        <th style="width: 55%;">Nội dung (Preview)</th>                      
-                        <th style="width: 20%;" class="text-end">Thao tác</th>
+                        <th style="width: 55%;">Nội dung</th>                      
+                        <th style="width: 20%;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -31,14 +62,16 @@
                         @foreach (var item in Model)
                         {
                             <tr>
+                                <td class="text-center">
+                                    <input class="form-check-input user-checkbox checkbox-xl shadow-sm" type="checkbox" value="@item.Id">
+                                </td>
                                 <td class="fw-bold text-dark">@item.Title</td>
                                 <td>
-                                    <div class="text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
-                                        @* Dùng Raw để hiển thị nếu nội dung có HTML, nhưng cẩn thận XSS *@
+                                    <div class="text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">                                       
                                         @Html.Raw(item.Content?.Length > 150 ? item.Content.Substring(0, 150) + "..." : item.Content)
                                     </div>
                                 </td>                                
-                                <td class="text-end">
+                                <td>
                                     <div class="btn-group">                                     
 
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Sửa thông tin bài đọc">
@@ -70,4 +103,10 @@
             </table>
         </div>
     </div>
+</div>
+<div id="bulkActionContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow-lg rounded-pill bg-white px-4 py-3 d-flex align-items-center gap-3 d-none" style="z-index: 1050; border: 2px solid var(--bs-primary, #f47b25);">
+    <span class="fw-bold text-dark"><i class="bi bi-check2-square text-success me-2 fs-5"></i> Đã chọn <span id="selectedCount" class="text-primary fs-5 mx-1">0</span> bài đọc</span>
+    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultipleReading()">
+        <i class="bi bi-trash3-fill me-1"></i> Xóa tất cả
+    </button>
 </div>

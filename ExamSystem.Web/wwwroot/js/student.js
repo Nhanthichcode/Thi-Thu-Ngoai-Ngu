@@ -1,4 +1,4 @@
-﻿const questionSectionMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(questionSectionMap));
+﻿//const questionSectionMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(questionSectionMap));
 let currentIndex = 0;
 
 // --- 0. TOGGLE SIDEBAR (ẨN/HIỆN MENU) ---
@@ -80,7 +80,7 @@ function goToSection(index) {
 }
 
 // --- 3. ĐỒNG HỒ VÀ NỘP BÀI ---
-let timeLeft = @Model.DurationMinutes * 60;
+//let timeLeft = @Model.DurationMinutes * 60;
 setInterval(() => {
     if (timeLeft <= 0) { submitExam(); return; }
     let m = Math.floor(timeLeft / 60);

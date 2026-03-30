@@ -130,15 +130,15 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
                         <div class="mb-3">
-                            <label class="fw-bold small mb-2">Địa chỉ Email</label>
-                            <input asp-for="Email" class="form-control auth-input py-2 px-3" placeholder="name@company.com" />
+                            <label class="fw-bold small mb-2">Tên đăng nhập hoặc Email</label>
+                            <input asp-for="Email" autocomplete="new-password" class="form-control auth-input py-2 px-3" placeholder="name@company.com" />
                             <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold small mb-2">Mật khẩu</label>
                             <div class="position-relative">
-                                <input asp-for="Password" type="password" class="form-control auth-input py-2 px-3" placeholder="••••••••" id="Password" />
+                                <input asp-for="Password" type="password" autocomplete="new-password" class="form-control auth-input py-2 px-3" placeholder="••••••••" id="Password" />
                                 <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 text-muted cursor-pointer" id="togglePass" onclick="togglePassword('Password', 'togglePass')"></i>
                             </div>
                             <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
@@ -146,8 +146,8 @@
 
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class="form-check">
-                                <input asp-for="RememberMe" class="form-check-input shadow-none" type="checkbox" id="rememberMe">
-                                <label class="form-check-label text-muted small fw-medium" for="rememberMe">Ghi nhớ tôi</label>
+                                <input asp-for="RememberMe" class="form-check-input checkbox-xl shadow-none" type="checkbox" id="rememberMe" style="width:1em !important; height:1em !important; margin-top: .25em !important;">
+                                <label class="form-check-label text-muted small fw-medium" for="rememberMe"> Ghi nhớ tôi</label>
                             </div>
                             <a asp-action="ForgotPassword" class="text-decoration-none fw-bold small" style="color: #f47b25;">Quên mật khẩu?</a>
                         </div>

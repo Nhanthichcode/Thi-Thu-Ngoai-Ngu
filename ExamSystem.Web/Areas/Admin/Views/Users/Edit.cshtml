@@ -11,7 +11,7 @@
             </h3>
             <span class="text-muted small">Mã định danh (ID): @Model.Id</span>
         </div>
-        <a asp-action="Index" class="btn btn-outline-secondary border fw-bold text-muted shadow-sm rounded-pill px-4 hover-up">
+        <a asp-action="Index" class="btn btn-outline-secondary hover-up">
             <i class="bi bi-arrow-left me-1"></i> Trở về danh sách
         </a>
     </div>
@@ -53,7 +53,7 @@
                         <!-- KHU VỰC ĐỔI MẬT KHẨU -->
                         <h6 class="fw-bold text-uppercase mb-3" style="color: var(--bs-primary, #f47b25);"><i class="bi bi-shield-lock-fill me-2"></i>Bảo mật</h6>
                         <div class="p-4 rounded-4" style="background-color: rgba(244, 123, 37, 0.05); border: 1px dashed rgba(244, 123, 37, 0.4);">
-                            <label asp-for="NewPassword" class="form-label fw-bold text-dark small text-uppercase">Ghi đè mật khẩu mới</label>
+                            <label asp-for="NewPassword" class="form-label fw-bold text-dark small text-uppercase">Mật khẩu mới</label>
                             <input asp-for="NewPassword" type="text" class="form-control shadow-sm rounded-3 border-0 bg-white" placeholder="Bỏ trống nếu không muốn đổi mật khẩu..." autocomplete="off" />
                             <div class="form-text small mt-2">Nhập vào đây sẽ <b>xóa mật khẩu cũ</b> và áp dụng mật khẩu mới.</div>
                         </div>
@@ -71,7 +71,7 @@
 
                         <!-- CHỌN VAI TRÒ -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-muted small text-uppercase mb-3">Phân quyền tài khoản (Chọn 1)</label>
+                            <label class="form-label fw-bold text-muted small text-uppercase mb-3">Cấp quyền tài khoản</label>
                             <div class="d-flex flex-column gap-3">
                                 @foreach (var role in Model.AllRoles)
                                 {

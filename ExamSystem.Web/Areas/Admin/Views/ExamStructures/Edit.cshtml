@@ -30,8 +30,7 @@
 }
 
 <div class="d-flex justify-content-between mb-3 align-items-center">
-    <h3>✏️ Chỉnh sửa: @Model.Name</h3>
-    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+    <h3>Chỉnh sửa: @Model.Name</h3>   
 </div>
 
 <div class="row">
@@ -52,7 +51,7 @@
                         <label asp-for="Description" class="form-label">Mô tả</label>
                         <textarea asp-for="Description" class="form-control" rows="4"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Lưu Thông tin</button>
+                    <button type="submit" class="btn btn-primary w-100">Lưu và Thoát</button>
                 </form>
             </div>
         </div>

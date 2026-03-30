@@ -23,7 +23,7 @@ namespace ExamSystem.Web.Models
         // 4. Dành cho SPEAKING / WRITING (Nói/Viết)
         // Thường dùng hình ảnh để mô tả (Describe image / Chart)
         public IFormFile? CommonImageFile { get; set; }
-
+        public string? NewSpeakingTitle { get; set; }
         // 5. Danh sách câu hỏi con
         public List<QuestionItem> Questions { get; set; } = new List<QuestionItem>();
     }

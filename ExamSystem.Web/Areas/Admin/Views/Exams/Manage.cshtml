@@ -7,8 +7,16 @@
 <div class="d-flex justify-content-between mb-3 align-items-center">
     <div>
         <h2 class="fw-bold text-primary mb-0">@Model.Title</h2>
-        <span class="text-muted">Cấu trúc: @Model.ExamParts.Count phần thi nhỏ</span>
-    </div>   
+        <span class="text-muted">Cấu trúc: @Model.ExamParts.Count phần thi</span>
+    </div>  
+    <div class="btn-group bg-white rounded-pill shadow-sm p-1 border">
+        <button type="button" id="btnExpandAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary d-none" onclick="toggleAll('show')" title="Mở tất cả">
+            <i class="bi bi-arrows-expand"></i> <span class="ms-1">Mở rộng</span>
+        </button>
+        <button type="button" id="btnCollapseAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary" onclick="toggleAll('hide')" title="Thu gọn tất cả">
+            <i class="bi bi-arrows-collapse"></i> <span class="ms-1">Thu gọn</span>
+        </button>
+    </div>
 </div>
 
 <div class="card shadow-sm border-0 rounded-pill highlight-card sticky-result-tabs mb-4">
@@ -56,8 +64,11 @@
 
             <!-- Nút Quay lại (Đẩy sang phải) -->
             <li class="ms-auto d-flex align-items-center">
-                <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold hover-up shadow-sm">
-                    <i class="bi bi-arrow-left-short"></i> Quay lại
+                <a asp-action="TestTake" asp-route-id="@Model.Id" target="_blank" class="btn btn-sm btn-info text-white rounded-pill px-3 mx-1  fw-bold hover-up shadow-sm">
+                    <i class="bi bi-eye-fill"></i> Xem trước đề
+                </a>
+                <a asp-action="Index" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold hover-up shadow-sm">
+                    <i class="bi bi-arrow-left-short"></i> Lưu và thoát
                 </a>
             </li>
         </ul>
@@ -106,40 +117,85 @@
                                             <th width="50" class="text-center">Xóa</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @if (part.ExamQuestions.Any())
+                                    @if (part.ExamQuestions.Any())
+                                    {
+                                        var groupedQuestions = part.ExamQuestions.OrderBy(x => x.SortOrder)
+                                        .GroupBy(eq => new
                                         {
-                                            @foreach (var eq in part.ExamQuestions.OrderBy(x => x.SortOrder))
+                                            ReadingId = eq.Question?.ReadingPassageId,
+                                            ListeningId = eq.Question?.ListeningResourceId,
+                                            ReadingTitle = eq.Question?.ReadingPassage?.Title,
+                                            ListeningTitle = eq.Question?.ListeningResource?.Title
+                                        }).ToList();
+
+                                        foreach (var group in groupedQuestions)
+                                        {
+                                            bool isGrouped = group.Key.ReadingId != null || group.Key.ListeningId != null;
+                                            string collapseId = $"collapse-{part.Id}-{group.Key.ReadingId ?? group.Key.ListeningId ?? Guid.NewGuid().GetHashCode()}";
+
+                                            // 1. TBODY CHO HEADER (Thanh chứa Tiêu đề Bài Đọc/Nghe)
+                                            if (isGrouped)
                                             {
-                                                <tr>
-                                                    <td class="text-center">@eq.SortOrder</td>
-                                                    <td>
-                                                        <div class="text-truncate" style="max-width: 500px;" title="@eq.Question?.Content">@eq.Question?.Content</div>
-                                                        @if (eq.Question?.ReadingPassage != null)
-                                                        {
-                                                            <span class="badge bg-info text-dark border">Bài: @eq.Question.ReadingPassage.Title</span>
-                                                        }
-                                                        @if (eq.Question?.ListeningResource != null)
-                                                        {
-                                                            <span class="badge bg-warning text-dark border">Bài: @eq.Question.ListeningResource.Title</span>
-                                                        }
-                                                    </td>
-                                                    <td class="text-center fw-bold text-success">@eq.Score</td>
-                                                    <td class="text-center">
-                                                        <form asp-action="RemoveQuestionFromPart" method="post" onsubmit="return confirm('Xóa?');">
-                                                            <input type="hidden" name="examId" value="@Model.Id" />
-                                                            <input type="hidden" name="examQuestionId" value="@eq.Id" />
-                                                            <button class="btn btn-link text-danger p-0"><i class="bi bi-x-circle-fill"></i></button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
+                                                <tbody style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#@collapseId" title="Bấm để Thu gọn/Mở rộng">
+                                                    <tr class="table-active bg-light">
+                                                        <td colspan="4" class="fw-bold text-dark py-2 border-start border-4 @(group.Key.ReadingId != null ? "border-info" : "border-warning")">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <i class="bi bi-chevron-down text-muted me-2 transition-icon collapse-icon"></i>
+                                                                    @if (group.Key.ReadingId != null)
+                                                                    {
+                                                                        <span class="badge bg-info text-dark border me-2"><i class="bi bi-book me-1"></i> BÀI ĐỌC</span>
+                                                                        <span>@group.Key.ReadingTitle</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge bg-warning text-dark border me-2"><i class="bi bi-headphones me-1"></i> BÀI NGHE</span>
+                                                                        <span>@group.Key.ListeningTitle</span>
+                                                                    }
+                                                                </div>
+                                                                <span class="badge bg-white text-muted border rounded-pill px-3 py-1 shadow-sm">@group.Count() câu</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
                                             }
+
+                                            // 2. TBODY CHO NỘI DUNG (Gắn class group-collapse-content để khớp với file question.js)
+                                            <tbody id="@collapseId" class="collapse show @(isGrouped ? "group-collapse-content" : "")">
+                                                @foreach (var eq in group)
+                                                {
+                                                    <tr>
+                                                        <td class="text-center text-dark bg-white border-end">
+                                                            @if (isGrouped)
+                                                            {
+                                                                <i class="bi bi-arrow-return-right text-muted me-1"></i>
+                                                            }
+                                                            @eq.SortOrder
+                                                        </td>
+                                                        <td class="bg-white">
+                                                            <div class="text-dark" style="max-width: 500px;" title="@eq.Question?.Content">
+                                                                @Html.Raw(eq.Question?.Content)
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-center fw-bold text-success bg-white">@eq.Score</td>
+                                                        <td class="text-center bg-white">
+                                                            <form asp-action="RemoveQuestionFromPart" method="post" onsubmit="return confirm('Xóa khỏi phần thi này?');">
+                                                                <input type="hidden" name="examId" value="@Model.Id" />
+                                                                <input type="hidden" name="examQuestionId" value="@eq.Id" />
+                                                                <button class="btn btn-link text-danger p-0"><i class="bi bi-x-circle-fill fs-5"></i></button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
                                         }
-                                        else
-                                        {
-                                            <tr><td colspan="4" class="text-center text-muted py-3 small">Chưa có câu hỏi nào.</td></tr>
-                                        }
-                                    </tbody>
+                                    }
+                                    else
+                                    {
+                                        <tbody>
+                                            <tr><td colspan="4" class="text-center text-muted py-4 small bg-light"><i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>Chưa có câu hỏi nào.</td></tr>
+                                        </tbody>
+                                    }
                                 </table>
                             </div>
 
@@ -216,11 +272,7 @@
         }
     </div>
     <div class="tab-pane fade" id="other" role="tabpanel">
-        @{
-            // Logic cho tab Khác (Sửa lại một chút để dùng chung cấu trúc modal CreatePart)
-            // Tạm thời gọi hàm RenderParts với skill Other (cần đảm bảo Enum có giá trị này hoặc sửa logic Controller)
-            // Hoặc bạn giữ nguyên logic cũ của bạn ở đây nếu muốn.
-            // Dưới đây là ví dụ dùng lại RenderParts giả định skill Grammar/Vocab là skill thứ 5
+        @{            
             await RenderParts(ExamSystem.Core.Enums.ExamSkill.Grammar);
         }
     </div>
@@ -233,7 +285,7 @@
                 <h5 class="modal-title"><i class="bi bi-folder-plus"></i> Tạo Phần thi Mới</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-dark">
                 <form id="createPartForm">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tên Phần thi <span class="text-danger">*</span></label>
@@ -315,6 +367,7 @@
     </div>
 </div>
 @section Scripts {
+    <script src="~/js/question.js" asp-append-version="true"></script>
     <script>
             var examId = @Model.Id;
 
@@ -385,27 +438,30 @@
             });
         }
 
-        function renderTable(data, type) {
+            function renderTable(data, type) {
             var html = '';
-        if (!data || data.length === 0) {
-            html = '<tr><td colspan="2" class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Không tìm thấy dữ liệu phù hợp.</td></tr>';
+            if (!data || data.length === 0) {
+                // Thay đổi ở đây: Giữ text-muted cho icon để có độ sâu, nhưng dùng text-dark cho dòng chữ báo lỗi
+                html = '<tr><td colspan="2" class="text-center py-4 text-dark"><i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>Không tìm thấy dữ liệu phù hợp.</td></tr>';
             } else {
-            data.forEach(item => {
-                var btn = item.isSelected
-                    ? '<button disabled class="btn btn-secondary btn-sm"><i class="bi bi-check2"></i> Đã chọn</button>'
-                    : `<button class="btn btn-success btn-sm" onclick="addItem(${item.id})"><i class="bi bi-plus-lg"></i> Thêm</button>`;
+                data.forEach(item => {
+                    var btn = item.isSelected
+                        ? '<button disabled class="btn btn-secondary btn-sm"><i class="bi bi-check2"></i> Đã chọn</button>'
+                        : `<button class="btn btn-success btn-sm" onclick="addItem(${item.id})"><i class="bi bi-plus-lg"></i> Thêm</button>`;
 
-                var content = type === 'Independent'
-                    ? `<div>${item.content}</div><small class="text-muted">Level: ${item.level}</small>`
-                    : `<div class="fw-bold">${item.title}</div><small class="text-muted">${item.questionCount} câu hỏi</small>`;
+                    // Thay đổi ở đây: Gắn text-dark vào thẻ div bao ngoài nội dung chính, và xóa text-muted ở thẻ small nếu muốn nó cũng màu tối
+                    var content = type === 'Independent'
+                        ? `<div class="text-dark">${item.content}</div><small class="text-dark opacity-75">Level: ${item.level}</small>`
+                        : `<div class="fw-bold text-dark">${item.title}</div><small class="text-dark opacity-75">${item.questionCount} câu hỏi</small>`;
 
-                html += `<tr><td>${content}</td><td class="text-center">${btn}</td></tr>`;
-            });
+                    // Thay đổi ở đây: Đảm bảo cột chứa nút cũng có text-dark (dù thường không ảnh hưởng nút bấm)
+                    html += `<tr><td class="text-dark">${content}</td><td class="text-center align-middle">${btn}</td></tr>`;
+                });
             }
-        $('#modalTableBody').html(html);
+            $('#modalTableBody').html(html);
 
-        if(type === 'Independent') $('#modalHint').text('Chọn câu hỏi lẻ để thêm vào phần thi này.');
-        else $('#modalHint').text('Chọn bài đọc/nghe để thêm toàn bộ câu hỏi của bài đó.');
+            if (type === 'Independent') $('#modalHint').text('Chọn câu hỏi lẻ để thêm vào phần thi này.');
+            else $('#modalHint').text('Chọn bài đọc/nghe để thêm toàn bộ câu hỏi của bài đó.');
         }
 
         function addItem(itemId) {
@@ -469,9 +525,7 @@
             if (!confirm('Bạn muốn gỡ bỏ tất cả câu hỏi trong phần này (Giữ lại cấu trúc Part)?')) return;
 
         $.post('/Admin/ExamParts/ClearPartQuestionsAjax', {id: partId }, function(res) {
-                if (res.success) {
-            // Vì cấu trúc nút bấm "Thêm câu hỏi" phụ thuộc vào việc Part có trống hay không
-            // Nên ta reload trang. Nhờ logic saveTab ở trên, nó sẽ tự quay lại tab hiện tại.
+                if (res.success) {          
             window.location.reload();
                 } else {
             alert(res.message);
