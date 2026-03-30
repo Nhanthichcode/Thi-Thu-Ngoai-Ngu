@@ -75,7 +75,7 @@
                             </div>
                           <div class="mb-3">
                             <label asp-for="NewPassword" class="fw-bold small mb-1 ms-2">Đổi mật khẩu mới</label>
-                            <div class="auth-input-container">
+                                <div class="auth-input-container position-relative">
                                 <!-- Input sạch sẽ, bo góc theo chuẩn LinguistAI -->
                                 <input asp-for="NewPassword" 
                                        type="password"
@@ -86,8 +86,8 @@
                                        id="new-password" />
         
                                 <!-- Icon con mắt nằm gọn bên phải phía trong input -->
-                                <i class="bi bi-eye-slash auth-icon-right" 
-                                   id="toggleIconNew" 
+                                    <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 text-muted cursor-pointer"
+                                       id="toggleIconNew" 
                                    onclick="togglePassword('new-password', 'toggleIconNew')"></i>
                             </div>
                             <span asp-validation-for="NewPassword" class="text-danger small ms-2"></span>
