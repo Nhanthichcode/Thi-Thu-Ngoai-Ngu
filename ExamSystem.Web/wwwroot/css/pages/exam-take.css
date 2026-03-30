@@ -68,7 +68,7 @@ body {
     display: flex;
     align-items: center;
     background: #fff;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--bs-orange);
     border-radius: 6px;
     overflow: hidden;
     height: 32px;
@@ -84,7 +84,7 @@ body {
     display: flex;
     align-items: center;
     height: 100%;
-    border-right: 1px solid #ced4da;
+    border-right: 1px solid var(--bg-light);
     font-size: 0.8rem;
     text-transform: uppercase;
     transition: all 0.2s;
@@ -123,7 +123,7 @@ body {
     .skill-group.active-skill .skill-name {
         background: #f47b25;
         color: #fff;
-        border-right-color: var(--brand-red);
+        border-right-color: var(--bg-light);
     }
 
 .timer-display {
@@ -369,4 +369,123 @@ body {
 
     ::-webkit-scrollbar-thumb:hover {
         background: #adb5bd;
+    }
+
+[data-bs-theme="dark"], .dark-mode {
+    --bg-main: #121212;
+    --bg-card: #1e1e1e;
+    --text-main: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border-color: #333;
+    --highlight: #2c2c2c;
+}
+
+    [data-bs-theme="dark"] body,
+    .dark-mode body {
+        background-color: var(--bg-main) !important;
+        color: var(--text-main) !important;
+    }
+
+    /* Header & Thanh công cụ (Toolbar) */
+    [data-bs-theme="dark"] .top-header,
+    [data-bs-theme="dark"] .action-toolbar,
+    .dark-mode .top-header,
+    .dark-mode .action-toolbar {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important;
+    }
+
+    /* Sidebar & Bản đồ câu hỏi */
+    [data-bs-theme="dark"] .sidebar-container,
+    [data-bs-theme="dark"] .sidebar-inner,
+    .dark-mode .sidebar-container,
+    .dark-mode .sidebar-inner {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    /* Nút bấm trên bản đồ (Map buttons) */
+    [data-bs-theme="dark"] .map-btn,
+    .dark-mode .map-btn {
+        background-color: var(--highlight);
+        border-color: var(--border-color);
+        color: var(--text-main);
+    }
+
+        [data-bs-theme="dark"] .map-btn:hover,
+        .dark-mode .map-btn:hover {
+            background-color: #3a3a3a;
+        }
+
+        [data-bs-theme="dark"] .map-btn.active-view,
+        .dark-mode .map-btn.active-view {
+            border-color: var(--brand-red) !important;
+            background-color: #4a1919 !important; /* Đỏ sẫm */
+            color: white;
+        }
+
+        [data-bs-theme="dark"] .map-btn.answered,
+        .dark-mode .map-btn.answered {
+            background-color: #194a28 !important; /* Xanh lá sẫm */
+            border-color: var(--answered-color) !important;
+            color: white;
+        }
+
+    /* Thẻ câu hỏi (Question Card) & Bài đọc */
+    [data-bs-theme="dark"] .question-card,
+    [data-bs-theme="dark"] .passage-box,
+    .dark-mode .question-card,
+    .dark-mode .passage-box {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
+        color: var(--text-main) !important;
+    }
+
+    [data-bs-theme="dark"] .q-title,
+    .dark-mode .q-title {
+        color: #fff !important;
+    }
+
+    /* Các đáp án trắc nghiệm (Radio option) */
+    [data-bs-theme="dark"] .radio-option,
+    .dark-mode .radio-option {
+        background-color: var(--highlight) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-main);
+    }
+
+        [data-bs-theme="dark"] .radio-option:hover,
+        .dark-mode .radio-option:hover {
+            background-color: #3a3a3a !important;
+            border-color: #555 !important;
+        }
+
+    /* Đảo ngược màu cho Text Muted và Text Dark Bootstrap có sẵn */
+    [data-bs-theme="dark"] .text-dark,
+    .dark-mode .text-dark {
+        color: #e0e0e0 !important;
+    }
+
+    [data-bs-theme="dark"] .text-muted,
+    .dark-mode .text-muted {
+        color: #888 !important;
+    }
+
+    [data-bs-theme="dark"] .bg-light,
+    .dark-mode .bg-light {
+        background-color: var(--highlight) !important;
+    }
+
+    [data-bs-theme="dark"] .sidebar-header,
+    .legend-box {
+        background-color: var(--bg-main) !important;
+    }
+    /* Ô nhập chữ (Writing textarea) */
+    [data-bs-theme="dark"] textarea.form-control,
+    .dark-mode textarea.form-control {
+        background-color: #1a1a1a !important;
+        color: #fff !important;
+        border-color: var(--border-color) !important;
     }

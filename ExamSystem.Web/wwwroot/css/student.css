@@ -67,6 +67,6 @@
 .fixed-top-right {
     position: fixed;
     bottom: 40px;
-    right: 20px;
+    right: 0px;
     z-index: 1050;
 }

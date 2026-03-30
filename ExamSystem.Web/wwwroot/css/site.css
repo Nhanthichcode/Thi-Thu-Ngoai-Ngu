@@ -559,8 +559,8 @@ body {
 
 .sticky-result-tabs {
     position: sticky;
-    top: 72px; /* Khoảng cách này phải bằng hoặc lớn hơn chiều cao Navbar chính */
-    z-index: 1020; /* Đảm bảo nằm trên các thẻ Card nhưng dưới các Menu dropdown của Navbar */
+    top: 72px !important; /* Khoảng cách này phải bằng hoặc lớn hơn chiều cao Navbar chính */
+    z-index: 1020 !important; /* Đảm bảo nằm trên các thẻ Card nhưng dưới các Menu dropdown của Navbar */
     transition: all 0.3s ease;
     background-color: var(--bs-card-bg) !important;
 }
