@@ -7,8 +7,16 @@
 <div class="d-flex justify-content-between mb-3 align-items-center">
     <div>
         <h2 class="fw-bold text-primary mb-0">@Model.Title</h2>
-        <span class="text-muted">Cấu trúc: @Model.ExamParts.Count phần thi nhỏ</span>
-    </div>   
+        <span class="text-muted">Cấu trúc: @Model.ExamParts.Count phần thi</span>
+    </div>  
+    <div class="btn-group bg-white rounded-pill shadow-sm p-1 border">
+        <button type="button" id="btnExpandAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary d-none" onclick="toggleAll('show')" title="Mở tất cả">
+            <i class="bi bi-arrows-expand"></i> <span class="ms-1">Mở rộng</span>
+        </button>
+        <button type="button" id="btnCollapseAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary" onclick="toggleAll('hide')" title="Thu gọn tất cả">
+            <i class="bi bi-arrows-collapse"></i> <span class="ms-1">Thu gọn</span>
+        </button>
+    </div>
 </div>
 
 <div class="card shadow-sm border-0 rounded-pill highlight-card sticky-result-tabs mb-4">
@@ -56,8 +64,11 @@
 
             <!-- Nút Quay lại (Đẩy sang phải) -->
             <li class="ms-auto d-flex align-items-center">
-                <a asp-action="Index" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold hover-up shadow-sm">
-                    <i class="bi bi-arrow-left-short"></i> Quay lại
+                <a asp-action="TestTake" asp-route-id="@Model.Id" target="_blank" class="btn btn-sm btn-info text-white rounded-pill px-3 mx-1  fw-bold hover-up shadow-sm">
+                    <i class="bi bi-eye-fill"></i> Xem trước đề
+                </a>
+                <a asp-action="Index" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold hover-up shadow-sm">
+                    <i class="bi bi-arrow-left-short"></i> Lưu và thoát
                 </a>
             </li>
         </ul>
@@ -106,40 +117,85 @@
                                             <th width="50" class="text-center">Xóa</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @if (part.ExamQuestions.Any())
+                                    @if (part.ExamQuestions.Any())
+                                    {
+                                        var groupedQuestions = part.ExamQuestions.OrderBy(x => x.SortOrder)
+                                        .GroupBy(eq => new
                                         {
-                                            @foreach (var eq in part.ExamQuestions.OrderBy(x => x.SortOrder))
+                                            ReadingId = eq.Question?.ReadingPassageId,
+                                            ListeningId = eq.Question?.ListeningResourceId,
+                                            ReadingTitle = eq.Question?.ReadingPassage?.Title,
+                                            ListeningTitle = eq.Question?.ListeningResource?.Title
+                                        }).ToList();
+
+                                        foreach (var group in groupedQuestions)
+                                        {
+                                            bool isGrouped = group.Key.ReadingId != null || group.Key.ListeningId != null;
+                                            string collapseId = $"collapse-{part.Id}-{group.Key.ReadingId ?? group.Key.ListeningId ?? Guid.NewGuid().GetHashCode()}";
+
+                                            // 1. TBODY CHO HEADER (Thanh chứa Tiêu đề Bài Đọc/Nghe)
+                                            if (isGrouped)
                                             {
-                                                <tr>
-                                                    <td class="text-center text-dark">@eq.SortOrder</td>
-                                                    <td>
-                                                        <div class="text-dark" style="max-width: 500px;" title="@eq.Question?.Content">@eq.Question?.Content</div>
-                                                        @if (eq.Question?.ReadingPassage != null)
-                                                        {
-                                                            <span class="badge bg-info text-dark border">Bài: @eq.Question.ReadingPassage.Title</span>
-                                                        }
-                                                        @if (eq.Question?.ListeningResource != null)
-                                                        {
-                                                            <span class="badge bg-warning text-dark border">Bài: @eq.Question.ListeningResource.Title</span>
-                                                        }
-                                                    </td>
-                                                    <td class="text-center fw-bold text-success">@eq.Score</td>
-                                                    <td class="text-center">
-                                                        <form asp-action="RemoveQuestionFromPart" method="post" onsubmit="return confirm('Xóa?');">
-                                                            <input type="hidden" name="examId" value="@Model.Id" />
-                                                            <input type="hidden" name="examQuestionId" value="@eq.Id" />
-                                                            <button class="btn btn-link text-danger p-0"><i class="bi bi-x-circle-fill"></i></button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
+                                                <tbody style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#@collapseId" title="Bấm để Thu gọn/Mở rộng">
+                                                    <tr class="table-active bg-light">
+                                                        <td colspan="4" class="fw-bold text-dark py-2 border-start border-4 @(group.Key.ReadingId != null ? "border-info" : "border-warning")">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <div>
+                                                                    <i class="bi bi-chevron-down text-muted me-2 transition-icon collapse-icon"></i>
+                                                                    @if (group.Key.ReadingId != null)
+                                                                    {
+                                                                        <span class="badge bg-info text-dark border me-2"><i class="bi bi-book me-1"></i> BÀI ĐỌC</span>
+                                                                        <span>@group.Key.ReadingTitle</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="badge bg-warning text-dark border me-2"><i class="bi bi-headphones me-1"></i> BÀI NGHE</span>
+                                                                        <span>@group.Key.ListeningTitle</span>
+                                                                    }
+                                                                </div>
+                                                                <span class="badge bg-white text-muted border rounded-pill px-3 py-1 shadow-sm">@group.Count() câu</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
                                             }
+
+                                            // 2. TBODY CHO NỘI DUNG (Gắn class group-collapse-content để khớp với file question.js)
+                                            <tbody id="@collapseId" class="collapse show @(isGrouped ? "group-collapse-content" : "")">
+                                                @foreach (var eq in group)
+                                                {
+                                                    <tr>
+                                                        <td class="text-center text-dark bg-white border-end">
+                                                            @if (isGrouped)
+                                                            {
+                                                                <i class="bi bi-arrow-return-right text-muted me-1"></i>
+                                                            }
+                                                            @eq.SortOrder
+                                                        </td>
+                                                        <td class="bg-white">
+                                                            <div class="text-dark" style="max-width: 500px;" title="@eq.Question?.Content">
+                                                                @Html.Raw(eq.Question?.Content)
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-center fw-bold text-success bg-white">@eq.Score</td>
+                                                        <td class="text-center bg-white">
+                                                            <form asp-action="RemoveQuestionFromPart" method="post" onsubmit="return confirm('Xóa khỏi phần thi này?');">
+                                                                <input type="hidden" name="examId" value="@Model.Id" />
+                                                                <input type="hidden" name="examQuestionId" value="@eq.Id" />
+                                                                <button class="btn btn-link text-danger p-0"><i class="bi bi-x-circle-fill fs-5"></i></button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
                                         }
-                                        else
-                                        {
-                                            <tr><td colspan="4" class="text-center text-muted py-3 small">Chưa có câu hỏi nào.</td></tr>
-                                        }
-                                    </tbody>
+                                    }
+                                    else
+                                    {
+                                        <tbody>
+                                            <tr><td colspan="4" class="text-center text-muted py-4 small bg-light"><i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>Chưa có câu hỏi nào.</td></tr>
+                                        </tbody>
+                                    }
                                 </table>
                             </div>
 
@@ -216,11 +272,7 @@
         }
     </div>
     <div class="tab-pane fade" id="other" role="tabpanel">
-        @{
-            // Logic cho tab Khác (Sửa lại một chút để dùng chung cấu trúc modal CreatePart)
-            // Tạm thời gọi hàm RenderParts với skill Other (cần đảm bảo Enum có giá trị này hoặc sửa logic Controller)
-            // Hoặc bạn giữ nguyên logic cũ của bạn ở đây nếu muốn.
-            // Dưới đây là ví dụ dùng lại RenderParts giả định skill Grammar/Vocab là skill thứ 5
+        @{            
             await RenderParts(ExamSystem.Core.Enums.ExamSkill.Grammar);
         }
     </div>
@@ -315,6 +367,7 @@
     </div>
 </div>
 @section Scripts {
+    <script src="~/js/question.js" asp-append-version="true"></script>
     <script>
             var examId = @Model.Id;
 

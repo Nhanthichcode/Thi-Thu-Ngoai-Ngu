@@ -2,12 +2,6 @@
 @{
     ViewData["Title"] = "Soạn câu hỏi theo kỹ năng";
 }
-
-<style>
-    /* Tuỳ chỉnh khung hiển thị nội dung đọc/nghe */
-   
-</style>
-
 <form asp-action="Create" enctype="multipart/form-data" id="createForm">
 
     <div class="sticky-top bg-white border-bottom py-3 mb-4 shadow-sm" style="z-index: 1010; top: 56px;">
@@ -126,13 +120,20 @@
                     <div id="section-image" class="form-section" style="display:none;">
                         <div class="card border-success shadow-sm mb-3">
                             <div class="card-header bg-success text-white fw-bold">
-                                <i class="bi bi-image"></i> Hình ảnh minh họa (Bài Nói)
+                                <i class="bi bi-mic-fill"></i> Thông tin Bài Nói (Speaking)
                             </div>
                             <div class="card-body bg-light p-3">
-                                <input asp-for="CommonImageFile" type="file" class="form-control mb-3" accept="image/*" onchange="previewImage(this)" />
+
+                                <label class="fw-bold small mb-1 text-success">Tiêu đề bài Nói <span class="text-danger">*</span></label>
+                                <input asp-for="NewSpeakingTitle" class="form-control mb-3 fw-bold border-success shadow-sm" placeholder="Nhập tiêu đề phần thi Nói (VD: Speaking Part 1)..." />
+
+                                <label class="fw-bold small mb-1 text-success">Hình ảnh minh họa (Nếu có)</label>
+                                <input asp-for="CommonImageFile" type="file" class="form-control mb-3 border-success shadow-sm" accept="image/*" onchange="previewImage(this)" />
+
                                 <div class="text-center">
-                                    <img id="imgPreview" src="" alt="Preview" class="img-thumbnail shadow-sm d-none" style="max-height: 250px; width: 100%; object-fit: contain;" />
+                                    <img id="imgPreview" src="" alt="Preview" class="img-thumbnail shadow-sm d-none rounded-3" style="max-height: 250px; width: auto; max-width: 100%; object-fit: contain;" />
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -208,5 +209,5 @@
     </div>
 </template>
 @section Scripts {
-    <script src="~/js/question.js"></script>
+    <script src="~/js/question.js" asp-append-version="true"></script>
 }
