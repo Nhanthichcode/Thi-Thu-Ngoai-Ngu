@@ -91,7 +91,7 @@ $(document).ready(function () {
                 if (skill == "1") $("#block-listening").show();
                 else if (skill == "2") $("#block-reading").show();
                 else if (skill == "3") { $("#block-answers").hide(); $("#block-no-answers").show(); }
-                else if (skill == "4") { $("#block-image").show(); $("#block-answers").hide(); $("#block-no-answers").show(); }
+                else if (skill == "4") { $("#block-image").show(); $("#block-answers").hide(); $("#block-no-answers").hide(); }
             }
             // LOGIC CHO TRANG CREATE
             else if (skillSelectCreate) {
