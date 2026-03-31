@@ -8,7 +8,7 @@ namespace ExamSystem.Core.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; } // VD: "VSTEP Bậc 3-5", "IELTS Academic"
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         // Danh sách các phần mặc định của cấu trúc này
         public ICollection<StructurePart> Parts { get; set; } = new List<StructurePart>();
@@ -20,7 +20,7 @@ namespace ExamSystem.Core.Entities
         public int Id { get; set; }
         public string Name { get; set; } // VD: "Kỹ năng Nghe (Listening)"
         public int OrderIndex { get; set; } // Thứ tự: 1, 2, 3, 4
-        public string Description { get; set; } // VD: "35 phút, 3 phần nhỏ"
+        public string? Description { get; set; } // VD: "35 phút, 3 phần nhỏ"
         public ExamSkill SkillType { get; set; }
         public int ExamStructureId { get; set; }
         public ExamStructure ExamStructure { get; set; }

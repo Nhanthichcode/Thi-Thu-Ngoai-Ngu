@@ -6,15 +6,14 @@
     ViewData["Title"] = "Trang chủ";
 }
 
-<div class="container py-4">
-    <div class="p-5 mt-5 mb-5 hero-section" id="heroSection">
+@* <div class="container py-4">
+    <div class="py-5 mt-5 mb-5 hero-section" id="heroSection" style="min-height: 500px; display: flex; align-items: center;">
         <canvas id="particleCanvas" class="hero-pattern-canvas"></canvas>
         <div class="position-relative z-1 text-center text-lg-start d-flex flex-column flex-lg-row align-items-center justify-content-between">
 
             <div>
-                <h1 class="display-4 fw-bold mb-2 text-white">Hệ thống Thi Trực tuyến</h1>
-
-                <p class="fs-5 mb-4 text-white opacity-75" style="max-width: 600px;">
+                <h1 class="display-2 fw-bold mb-3 text-white">Hệ thống Thi Trực tuyến</h1>
+                <p class="fs-4 mb-5 text-white opacity-75" style="max-width: 700px;">
                     Nền tảng quản lý thi cử chuyên nghiệp.<br /> Nâng tầm ngoại ngữ - Vươn tới tương lai.
                 </p>
 
@@ -46,8 +45,121 @@
             </div>
         </div>
     </div>
-</div>
+</div> *@
 
+<style>
+    .hero-section {
+        /* Gradient nền sâu hơn để làm nổi bật các hạt trắng */
+        background: linear-gradient(135deg, #f47b25 0%, #d32f2f 100%);
+        position: relative;
+        overflow: hidden;
+        border-radius: 2.5rem; /* Bo góc cực đại cho hiện đại */
+        box-shadow: 0 20px 40px rgba(211, 47, 47, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+        /* Hiệu ứng Spotlight theo chuột */
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient( circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.15) 0%, transparent 60% );
+            pointer-events: none;
+            z-index: 2;
+        }
+
+    .hero-pattern-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        opacity: 0.6;
+    }
+
+    /* Hiệu ứng trôi lửng cho Icon */
+    .floating-icon {
+        animation: floating 4s ease-in-out infinite;
+        filter: drop-shadow(0 15px 15px rgba(0,0,0,0.2));
+    }
+
+    @@keyframes floating {
+        0%
+
+    {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(2deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+
+    }
+
+    /* Nâng cấp nút bấm */
+    .btn-brand-cta {
+        background: white !important;
+        color: #d32f2f !important;
+        border: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+        .btn-brand-cta:hover {
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+        }
+</style>
+<div class="container py-4">
+    <div class="hero-section mt-5 mb-5" id="heroSection" style="min-height: 550px; display: flex; align-items: center;">
+        <canvas id="particleCanvas" class="hero-pattern-canvas"></canvas>
+
+        <div class="container position-relative z-3">
+            <div class="row align-items-center">
+                <div class="col-lg-7 text-center text-lg-start">
+                    <h1 class="display-2 fw-bold mb-3 text-white">Hệ thống Thi <br /> Trực Tuyến</h1>
+                    <p class="fs-4 mb-5 text-white opacity-75" style="max-width: 600px; line-height: 1.6;">
+                        Nền tảng quản lý thi cử chuyên nghiệp.<br />
+                        <span class="fw-light">Nâng tầm ngoại ngữ - Vươn tới tương lai.</span>
+                    </p>
+
+                    <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var isAdmin = User.IsInRole("Admin") || User.IsInRole("Teacher");
+                            <a asp-area="@(isAdmin ? "Admin" : "Student")"
+                               asp-controller="@(isAdmin ? "Exams" : "StudentExams")"
+                               asp-action="Index"
+                               class="btn btn-brand-cta btn-lg rounded-pill px-5 py-3 shadow fw-bold">
+                                <i class="bi @(isAdmin ? "bi-speedometer2" : "bi-play-circle-fill") me-2"></i>
+                                @(isAdmin ? "TRANG QUẢN TRỊ" : "VÀO THI NGAY")
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-brand-cta btn-lg rounded-pill px-5 py-3 shadow fw-bold">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>ĐĂNG NHẬP NGAY
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+                    <div class="floating-icon">
+                        <i class="bi bi-laptop-fill" style="font-size: 15rem; color: rgba(255, 255, 255, 0.15);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const hero = document.getElementById('heroSection');
@@ -82,60 +194,113 @@
             mouse.y = undefined;
         });
 
-        class Particle {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.baseX = x;
-                this.baseY = y;               
-                this.size = 1.5;
-                this.density = (Math.random() * 30) + 5;
-            }
+        // class Particle {
+        //     constructor(x, y) {
+        //         this.x = x;
+        //         this.y = y;
+        //         this.baseX = x;
+        //         this.baseY = y;               
+        //         this.size = 1.5;
+        //         this.density = (Math.random() * 30) + 5;
+        //     }
 
-            draw() {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.closePath();
-                ctx.fill();
-            }
+        //     draw() {
+        //         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        //         ctx.beginPath();
+        //         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        //         ctx.closePath();
+        //         ctx.fill();
+        //     }
 
-            update() {
-                // CHỈ TÍNH TOÁN LỰC ĐẨY NẾU CHUỘT THỰC SỰ NẰM TRONG KHUNG HÌNH
-                if (mouse.x !== undefined && mouse.y !== undefined) {
-                    let dx = mouse.x - this.x;
-                    let dy = mouse.y - this.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
+        //     update() {
+        //         CHỈ TÍNH TOÁN LỰC ĐẨY NẾU CHUỘT THỰC SỰ NẰM TRONG KHUNG HÌNH
+        //         if (mouse.x !== undefined && mouse.y !== undefined) {
+        //             let dx = mouse.x - this.x;
+        //             let dy = mouse.y - this.y;
+        //             let distance = Math.sqrt(dx * dx + dy * dy);
 
-                    if (distance < mouse.radius) {
-                        let forceDirectionX = dx / distance;
-                        let forceDirectionY = dy / distance;
-                        let force = (mouse.radius - distance) / mouse.radius;
+        //             if (distance < mouse.radius) {
+        //                 let forceDirectionX = dx / distance;
+        //                 let forceDirectionY = dy / distance;
+        //                 let force = (mouse.radius - distance) / mouse.radius;
 
-                        let directionX = forceDirectionX * force * this.density;
-                        let directionY = forceDirectionY * force * this.density;
+        //                 let directionX = forceDirectionX * force * this.density;
+        //                 let directionY = forceDirectionY * force * this.density;
 
-                        this.x -= directionX;
-                        this.y -= directionY;
-                    } else {
-                        this.returnToBase();
-                    }
+        //                 this.x -= directionX;
+        //                 this.y -= directionY;
+        //             } else {
+        //                 this.returnToBase();
+        //             }
+        //         } else {
+        //             Nếu không có chuột, gọi hàm cho tất cả bay về chỗ cũ
+        //             this.returnToBase();
+        //         }
+        //     }
+
+        //     Tách riêng hàm nảy về vị trí gốc cho code gọn gàng
+        //     returnToBase() {
+        //         if (this.x !== this.baseX) {
+        //             this.x -= (this.x - this.baseX) / 10;
+        //         }
+        //         if (this.y !== this.baseY) {
+        //             this.y -= (this.y - this.baseY) / 10;
+        //         }
+        //     }
+        // }
+
+            class Particle {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.baseX = x;
+            this.baseY = y;
+            this.size = Math.random() * 2 + 1; // Kích thước hạt ngẫu nhiên nhẹ
+            this.density = (Math.random() * 20) + 10;
+        }
+
+        draw() {
+            // Thêm hiệu ứng phát sáng nhẹ cho hạt
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = "white";
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0; // Tắt shadow cho các hạt tiếp theo để đỡ lag
+        }
+
+        update() {
+            if (mouse.x !== undefined && mouse.y !== undefined) {
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Tăng bán kính tương tác lên 100 để mượt hơn
+                let forceRadius = 60;
+
+                if (distance < forceRadius) {
+                    let force = (forceRadius - distance) / forceRadius;
+                    let directionX = (dx / distance) * force * this.density;
+                    let directionY = (dy / distance) * force * this.density;
+
+                    this.x -= directionX;
+                    this.y -= directionY;
                 } else {
-                    // Nếu không có chuột, gọi hàm cho tất cả bay về chỗ cũ
                     this.returnToBase();
                 }
-            }
-
-            // Tách riêng hàm nảy về vị trí gốc cho code gọn gàng
-            returnToBase() {
-                if (this.x !== this.baseX) {
-                    this.x -= (this.x - this.baseX) / 10;
-                }
-                if (this.y !== this.baseY) {
-                    this.y -= (this.y - this.baseY) / 10;
-                }
+            } else {
+                this.returnToBase();
             }
         }
+
+        returnToBase() {
+            // Nảy về chỗ cũ nhanh hơn một chút để tạo cảm giác linh hoạt
+            this.x -= (this.x - this.baseX) / 15;
+            this.y -= (this.y - this.baseY) / 15;
+        }
+    }
 
         function initParticles() {
             particlesArray = [];

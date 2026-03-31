@@ -18,14 +18,51 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         }
 
         // Xem danh sách tất cả các lượt thi của thí sinh
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm, int? examId, int? dateRange, int? status)
         {
-            var attempts = await _context.TestAttempts
+            // 1. Khởi tạo Query ban đầu
+            var query = _context.TestAttempts
                 .Include(ta => ta.Exam)
                 .Include(ta => ta.User)
-                .Include(ta => ta.TestResults)
-                .OrderByDescending(ta => ta.SubmitTime) 
-                .ToListAsync();
+                .AsQueryable();
+
+            // 2. Lọc theo Tên hoặc Email
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(ta => ta.User.FullName.Contains(searchTerm) || ta.User.Email.Contains(searchTerm));
+            }
+
+            // 3. Lọc theo Đề thi cụ thể
+            if (examId.HasValue)
+            {
+                query = query.Where(ta => ta.ExamId == examId);
+            }
+
+            // 4. Lọc theo Trạng thái (Đã chấm / Chờ chấm)
+            if (status.HasValue)
+            {
+                query = query.Where(ta => ta.Status == status.Value);
+            }
+
+            // 5. Lọc theo Mốc thời gian (3, 5, 7, 21 ngày...)
+            if (dateRange.HasValue)
+            {
+                var cutoffDate = DateTime.Now.AddDays(-dateRange.Value);
+                query = query.Where(ta => ta.SubmitTime >= cutoffDate);
+            }
+
+            // 6. Thực thi truy vấn và sắp xếp mới nhất lên đầu
+            var attempts = await query.OrderByDescending(ta => ta.SubmitTime).ToListAsync();
+
+            // Gửi danh sách đề thi qua ViewBag để làm Dropdown
+            ViewBag.Exams = await _context.Exams.OrderBy(e => e.Title).ToListAsync();
+
+            // Giữ lại các giá trị lọc trên giao diện
+            ViewData["SearchTerm"] = searchTerm;
+            ViewData["SelectedExam"] = examId;
+            ViewData["SelectedDate"] = dateRange;
+            ViewData["SelectedStatus"] = status;
+
             return View(attempts);
         }
 

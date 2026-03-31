@@ -1,32 +1,171 @@
 ﻿@model IEnumerable<ExamSystem.Core.Entities.ExamPart>
 @{
-    ViewData["Title"] = "Các phần thi";
+    ViewData["Title"] = "Quản lý Phần thi";
 }
 
-<h1>Quản lý Phần thi</h1>
-<p><a asp-action="Create" class="btn btn-primary">Thêm phần thi mới</a></p>
-<div class="custom-table-scroll mb-3 shadow-sm">
-    <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
-        <thead class="small">
-        <tr><th>Tên phần</th><th>Thuộc đề thi</th><th>Thứ tự</th><th>Thao tác</th></tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Name</td>
-                <td>@item.Exam?.Title</td>
-                <td>@item.OrderIndex</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Sửa</a>
-                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline-block;"
-                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa phần thi: @item.Name không? Hành động này không thể hoàn tác.');">
-
-                        <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0" style="color: var(--bs-primary, #f47b25);">
+        <i class="bi bi-layers-half me-2"></i>Danh sách Phần thi
+    </h3>
+    <button type="button" class="btn text-white rounded-pill px-4 fw-bold shadow-sm hover-up"
+            style="background-color: var(--bs-primary, #f47b25);"
+            data-bs-toggle="modal" data-bs-target="#createPartModal">
+        <i class="bi bi-plus-lg me-1"></i> Tạo Phần thi Mới
+    </button>
 </div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+    <div class="custom-table-scroll mb-3 shadow-sm">
+        <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+            <thead class="small">
+                <tr>
+                    <th class="ps-4">Thứ tự</th>
+                    <th>Tên phần thi</th>
+                    <th>Thuộc đề thi</th>
+                    <th>Kỹ năng</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold text-primary">#@item.OrderIndex</td>
+                        <td class="fw-bold text-dark">@item.Name</td>
+                        <td class="text-secondary small">@item.Exam?.Title</td>
+                        <td>
+                            <span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info px-3">
+                                @item.SkillType.ToString()
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1"
+                                    onclick="openEditModal(@item.Id, '@item.Name', @item.ExamId, @((int)item.SkillType), @item.OrderIndex)">
+                                <i class="bi bi-pencil-square"></i> Sửa
+                            </button>
+                            <button type="button" onclick="confirmDelete(@item.Id, '@item.Name')"
+                                    class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                                <i class="bi bi-trash3"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createPartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-plus-circle-fill text-primary me-2"></i>Tạo Phần thi mới
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Chọn Đề thi <span class="text-danger">*</span></label>
+                        <select name="ExamId" class="form-select rounded-3 border shadow-sm" asp-items="ViewBag.ExamId"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Tên phần (VD: Part 1 - Listening)</label>
+                        <input name="Name" class="form-control rounded-3 border shadow-sm p-2" placeholder="Nhập tên phần thi..." required />
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Loại Kỹ năng</label>
+                            <select name="skillType" class="form-select rounded-3 border shadow-sm" required>
+                                <option value="1">🎧 Listening</option>
+                                <option value="2">📖 Reading</option>
+                                <option value="3">✍️ Writing</option>
+                                <option value="4">🗣️ Speaking</option>
+                                <option value="5">🔤 Grammar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Thứ tự</label>
+                            <input name="OrderIndex" type="number" class="form-control rounded-3 border shadow-sm" value="1" />
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn text-white fw-bold py-2 rounded-pill shadow-sm" style="background-color: var(--bs-primary, #f47b25);">Lưu Phần thi</button>
+                        <button type="button" class="btn btn-light border fw-bold py-2 rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editPartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-pencil-square text-warning me-2"></i>Chỉnh sửa Phần thi
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" id="edit_Id" name="Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Thuộc Đề thi</label>
+                        <select id="edit_ExamId" name="ExamId" class="form-select rounded-3 border shadow-sm" asp-items="ViewBag.ExamId"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Tên phần thi</label>
+                        <input id="edit_Name" name="Name" class="form-control rounded-3 border shadow-sm p-2" required />
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Loại Kỹ năng</label>
+                            <select id="edit_skillType" name="skillType" class="form-select rounded-3 border shadow-sm" required>
+                                <option value="1">Listening</option>
+                                <option value="2">Reading</option>
+                                <option value="3">Writing</option>
+                                <option value="4">Speaking</option>
+                                <option value="5">Grammar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Thứ tự xuất hiện</label>
+                            <input id="edit_OrderIndex" name="OrderIndex" type="number" class="form-control rounded-3 border shadow-sm" />
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold py-2 rounded-pill shadow-sm">Cập nhật thay đổi</button>
+                        <button type="button" class="btn btn-light border fw-bold py-2 rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Hàm mở Modal sửa và đổ dữ liệu vào các ô input
+        function openEditModal(id, name, examId, skillType, orderIndex) {
+            document.getElementById('edit_Id').value = id;
+            document.getElementById('edit_Name').value = name;
+            document.getElementById('edit_ExamId').value = examId;
+            document.getElementById('edit_skillType').value = skillType;
+            document.getElementById('edit_OrderIndex').value = orderIndex;
+
+            // Hiện modal bằng Bootstrap API
+            var myModal = new bootstrap.Modal(document.getElementById('edit_Id').closest('.modal'));
+            myModal.show();
+        }
+    </script>
+}

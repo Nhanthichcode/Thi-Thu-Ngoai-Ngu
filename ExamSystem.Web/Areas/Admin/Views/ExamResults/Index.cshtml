@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Quản lý Kết quả & Chấm điểm";
 }
-
+@* 
 <div class="container-fluid px-1">
     <h1 class="fw-bold text-primary">Quản lý Kết quả Thi</h1>
 
@@ -97,6 +97,154 @@
                         }
                 </tbody>
             </table>
+            </div>
+        </div>
+    </div>
+</div> *@
+
+<div class="container-fluid px-1">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary m-0"><i class="bi bi-clipboard2-check me-2"></i>Quản lý Kết quả Thi</h2>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted mb-1"><i class="bi bi-search me-1"></i> Tìm học viên</label>
+                    <input type="text" name="searchTerm" value="@ViewData["SearchTerm"]" class="form-control rounded-pill border shadow-sm ps-3" placeholder="Nhập tên hoặc email..." />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted mb-1"><i class="bi bi-journal-bookmark me-1"></i> Đề thi</label>
+                    <select name="examId" class="form-select rounded-pill border shadow-sm">
+                        <option value="">-- Tất cả đề thi --</option>
+                        @foreach (var e in (IEnumerable<ExamSystem.Core.Entities.Exam>)ViewBag.Exams)
+                        {
+                            <option value="@e.Id" selected="@(ViewData["SelectedExam"]?.ToString() == e.Id.ToString())">@e.Title</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted mb-1"><i class="bi bi-funnel me-1"></i> Trạng thái</label>
+                    <select name="status" class="form-select rounded-pill border shadow-sm">
+                        <option value="">Tất cả</option>
+                        <option value="1" selected="@(ViewData["SelectedStatus"]?.ToString() == "1")">Đã chấm</option>
+                        <option value="0" selected="@(ViewData["SelectedStatus"]?.ToString() == "0")">Chờ chấm</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="small fw-bold text-muted mb-1"><i class="bi bi-clock-history me-1"></i> Thời gian nộp</label>
+                    <select name="dateRange" class="form-select rounded-pill border shadow-sm">
+                        <option value="">Mọi lúc</option>
+                        <option value="3" selected="@(ViewData["SelectedDate"]?.ToString() == "3")">3 ngày qua</option>
+                        <option value="5" selected="@(ViewData["SelectedDate"]?.ToString() == "5")">5 ngày qua</option>
+                        <option value="7" selected="@(ViewData["SelectedDate"]?.ToString() == "7")">1 tuần qua</option>
+                        <option value="21" selected="@(ViewData["SelectedDate"]?.ToString() == "21")">3 tuần qua</option>
+                        <option value="30" selected="@(ViewData["SelectedDate"]?.ToString() == "30")">1 tháng qua</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 fw-bold shadow-sm">
+                        <i class="bi bi-filter"></i> Lọc
+                    </button>
+                    <a asp-action="Index" class="btn btn-light rounded-pill border shadow-sm" title="Xóa lọc">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="custom-table-scroll mb-3 shadow-sm">
+                <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+                    <thead class="small">
+                        <tr>
+                            <th>Thí sinh</th>
+                            <th>Đề thi</th>
+                            <th>Thời gian nộp</th>
+                            <th>Trạng thái</th>
+                            <th>Tổng điểm</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="align-middle transition-all">
+                                <td>
+                                    <div class="d-flex align-items-center py-2">
+                                        <div class="flex-shrink-0 me-3">
+                                            <img src="@(string.IsNullOrEmpty(item.User?.AvatarUrl) ? "/images/default-avatar.png" : item.User.AvatarUrl)"
+                                                 alt="Avatar"
+                                                 class="rounded-circle shadow-sm border border-2 border-white"
+                                                 style="width: 45px; height: 45px; object-fit: cover;"
+                                                 onerror="this.src='https://ui-avatars.com/api/?name=H+V&background=random';" />
+                                        </div>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold text-dark mb-1">@(item.User?.FullName ?? "Học viên ẩn danh")</span>
+                                            <small class="text-muted"><i class="bi bi-envelope me-1"></i>@(item.User?.Email ?? "Không có email")</small>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="fw-bold text-dark text-wrap" style="max-width: 250px;">
+                                        @item.Exam?.Title
+                                    </div>
+                                </td>
+
+                                <td class="text-muted small">
+                                    <i class="bi bi-calendar-event me-1"></i>@item.SubmitTime
+                                </td>
+
+                                <td>
+                                    @if (item.Status == (int)ExamSystem.Core.Enums.TestStatus.Graded)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2 shadow-sm">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Đã chấm
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3 py-2 shadow-sm">
+                                            <i class="bi bi-clock-fill me-1"></i> Chờ chấm điểm
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-center">
+                                    @if (item.Status == (int)ExamSystem.Core.Enums.TestStatus.Graded)
+                                    {
+                                        <span class="fw-bold text-success fs-5">@item.Score</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fw-bold fs-5">-</span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a asp-action="Grade" asp-route-id="@item.Id" class="btn btn-sm @(item.Status == (int)ExamSystem.Core.Enums.TestStatus.Graded ? "btn-outline-primary" : "btn-primary") rounded-pill px-3 fw-bold shadow-sm hover-up">
+                                            <i class="bi @(item.Status == (int)ExamSystem.Core.Enums.TestStatus.Graded ? "bi-eye-fill" : "bi-pencil-square") me-1"></i>
+                                            @(item.Status == (int)ExamSystem.Core.Enums.TestStatus.Graded ? "Xem lại" : "Chấm bài")
+                                        </a>
+
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm hover-up d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Xóa bài nộp" onclick="confirmDelete(@item.Id)">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

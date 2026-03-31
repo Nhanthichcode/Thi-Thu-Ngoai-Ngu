@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using ExamSystem.Core.Entities;
+﻿using ExamSystem.Core.Entities;
 using ExamSystem.Web.Models;
 //using ExamSystem.Web.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -7,9 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using System;
-using System.Diagnostics;
 using System.Security.Claims;
 
 public class AccountController : Controller
@@ -19,9 +15,9 @@ public class AccountController : Controller
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly IEmailSender _emailSender;
 
-    public AccountController(UserManager<AppUser> userManager, 
-        SignInManager<AppUser> signInManager, 
-        IWebHostEnvironment webHostEnvironment, 
+    public AccountController(UserManager<AppUser> userManager,
+        SignInManager<AppUser> signInManager,
+        IWebHostEnvironment webHostEnvironment,
         IEmailSender emailSender)
     {
         _userManager = userManager;
@@ -68,44 +64,50 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> Login(LoginVM model, string? returnUrl = null)
     {
-        if (ModelState.IsValid)
+        ViewData["ReturnUrl"] = returnUrl;
+
+        if (!ModelState.IsValid)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-            {
-                //TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đang được gửi vào Email của bạn."; 
-                TempData["ErrorMessage"] = "Tài khoản không tồn tại";
-                return View(model);
-            }
-
-            // 2. Kiểm tra xem Admin có đang khóa tài khoản này không (Dùng đúng logic của bạn)
-            if (await _userManager.IsLockedOutAsync(user))
-            {
-                return RedirectToAction("Lockout", "Account");
-            }
-
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
-            if (result.Succeeded)
-            {
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                    return Redirect(returnUrl);
-                //var user = await _userManager.FindByEmailAsync(model.Email);
-
-                if (await _userManager.IsInRoleAsync(user, "Admin") || await _userManager.IsInRoleAsync(user, "Teacher"))
-                {
-                    return RedirectToAction("Index", "Home", new { area = "Admin" });
-                }
-
-                if (await _userManager.IsInRoleAsync(user, "Student"))
-                {
-                    return RedirectToAction("Index", "Home", new { area = "" });
-                }
-                TempData["SuccessMessage"] = "Đăng nhập thành công";
-                // Mặc định cho khách -> Về trang chủ
-                return RedirectToAction("Index", "Home");
-            }
-            TempData["ErrorMessage"] = "Tên đăng nhập hoặc mật khẩu không đúng";
+            TempData["ErrorMessage"] = "Vui lòng điền đầy đủ thông tin đăng nhập.";
+            return View(model);
         }
+
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Tài khoản không tồn tại trên hệ thống.";
+            return View(model);
+        }
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            return RedirectToAction("Lockout", "Account");
+        }
+
+        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            // Xóa thông báo cũ nếu có
+            TempData.Remove("ErrorMessage");
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+
+            if (await _userManager.IsInRoleAsync(user, "Admin") || await _userManager.IsInRoleAsync(user, "Teacher"))
+            {
+                return RedirectToAction("Index", "Home", new { area = "Admin" });
+            }
+
+            if (await _userManager.IsInRoleAsync(user, "Student"))
+            {
+                return RedirectToAction("Index", "Home", new { area = "" });
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Nếu chạy đến đây tức là sai mật khẩu
+        TempData["ErrorMessage"] = "Mật khẩu không chính xác. Vui lòng thử lại.";
         return View(model);
     }
 
@@ -401,8 +403,8 @@ public class AccountController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword()
     {
-        TempData["SuccessMessage"] = "Tính năng đang được phát triển.";
-        return View();        
+        //TempData["SuccessMessage"] = "Tính năng đang được phát triển.";
+        return View();
     }
 
     [HttpPost]
@@ -420,27 +422,58 @@ public class AccountController : Controller
             TempData["ErrorMessage"] = "Thông tin không khớp với bất kỳ tài khoản nào.";
             return View(model);
         }
-     
-        //try
-        //{
-        //    TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đang được gửi vào Email của bạn.";
-        //    // 2. Chạy thẳng vào logic gửi Email luôn, không cần switch case
-        //    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        //    var callbackUrl = Url.Action("ResetPassword", "Account",
-        //        new { token = token, email = user.Email }, Request.Scheme);
 
-        //    string subject = "Đặt lại mật khẩu - Thi Thử Ngoại Ngữ";
-        //    string message = $@" ... (Nội dung HTML của bạn) ... ";
+        try
+        {
+            TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đang được gửi vào Email của bạn.";
+            // 2. Chạy thẳng vào logic gửi Email luôn, không cần switch case
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var callbackUrl = Url.Action("ResetPassword", "Account",
+                new { token = token, email = user.Email }, Request.Scheme);
 
-        //    await _emailSender.SendEmailAsync(user.Email, subject, message);
+            string subject = "Đặt lại mật khẩu - Thi Thử Ngoại Ngữ";
+            string message = $@"
+                                <div style='font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>
+                                    <div style='background-color: #f47b25; padding: 20px; text-align: center;'>
+                                        <h1 style='color: white; margin: 0; font-size: 24px;'>Thi Thử Ngoại Ngữ</h1>
+                                    </div>
+                                    <div style='padding: 30px; background-color: #ffffff;'>
+                                        <h2 style='color: #333; margin-top: 0;'>Chào bạn,</h2>
+                                        <p style='color: #555; line-height: 1.6; font-size: 16px;'>
+                                            Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn tại <strong>Thi Thử Ngoại Ngữ</strong>.
+                                        </p>
+                                        <p style='color: #555; line-height: 1.6; font-size: 16px;'>
+                                            Vui lòng nhấn vào nút bên dưới để tiến hành thay đổi mật khẩu mới. Liên kết này sẽ hết hạn sau một khoảng thời gian ngắn để bảo mật.
+                                        </p>
+                                        <div style='text-align: center; margin: 30px 0;'>
+                                            <a href='{callbackUrl}' 
+                                               style='background-color: #f47b25; color: white; padding: 12px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+                                               ĐẶT LẠI MẬT KHẨU NGAY
+                                            </a>
+                                        </div>
+                                        <p style='color: #888; font-size: 14px; border-top: 1px solid #eee; pt-20px; margin-top: 20px; padding-top: 20px;'>
+                                            Nếu nút trên không hoạt động, bạn có thể sao chép và dán liên kết dưới đây vào trình duyệt:
+                                            <br />
+                                            <span style='color: #f47b25; word-break: break-all;'>{callbackUrl}</span>
+                                        </p>
+                                        <p style='color: #d32f2f; font-size: 13px; font-style: italic;'>
+                                            * Nếu bạn không yêu cầu thay đổi mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn an toàn.
+                                        </p>
+                                    </div>
+                                    <div style='background-color: #f8f9fa; padding: 15px; text-align: center; color: #999; font-size: 12px;'>
+                                        &copy; 2026 LinguistAI - Hệ thống Thi Thử Ngoại Ngữ Trực Tuyến
+                                    </div>
+                                </div>";
 
-        //    TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đã được gửi vào Email của bạn.";
-        //}
-        //catch (Exception ex)
-        //{
-        //    TempData["ErrorMessage"] = "Lỗi gửi mail: " + ex.Message;
-        //    return View(model);
-        //}
+            await _emailSender.SendEmailAsync(user.Email, subject, message);
+
+            TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đã được gửi vào Email của bạn.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "Lỗi gửi mail: " + ex.Message;
+            return View(model);
+        }
 
         return RedirectToAction("ForgotPassword");
     }
@@ -449,6 +482,11 @@ public class AccountController : Controller
     [AllowAnonymous]
     public IActionResult ResetPassword(string token = null, string email = null)
     {
+        if (User.Identity.IsAuthenticated)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
         if (token == null || email == null)
         {
             return RedirectToAction("Error", "Home");
@@ -466,17 +504,22 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> ResetPassword(ResetPasswordVM model)
     {
+        if (User.Identity.IsAuthenticated)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
         if (!ModelState.IsValid) return View(model);
 
         var user = await _userManager.FindByEmailAsync(model.Email);
-        if (user == null) return RedirectToAction("ResetPasswordConfirmation");
+        if (user == null) return RedirectToAction("ResetPassword");
 
         // Thực hiện Reset
         var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
 
         if (result.Succeeded)
         {
-            return RedirectToAction("ResetPasswordConfirmation");
+            return RedirectToAction("Login");
         }
 
         foreach (var error in result.Errors)

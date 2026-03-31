@@ -2,10 +2,10 @@
 @{
     ViewData["Title"] = "Quản lý Cấu trúc Đề thi";
 }
-
+@* 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-2 text-primary">Cấu trúc Đề thi Mẫu</h3>
-    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tạo Cấu trúc Mới</a>
+    <a asp-action="Create" class="btn btn-primary rounded-pill"><i class="bi bi-plus-lg"></i> Tạo Cấu trúc Mới</a>
 </div>
 
 <div class="custom-table-scroll mb-3 shadow-sm">
@@ -35,8 +35,91 @@
         }
     </tbody>
 </table>
+</div> *@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0" style="color: var(--bs-primary, #f47b25);">
+        <i class="bi bi-diagram-3-fill me-2"></i>Cấu trúc Đề thi Mẫu
+    </h3>
+    <button type="button" class="btn text-white rounded-pill px-4 fw-bold shadow-sm hover-up"
+            style="background-color: var(--bs-primary, #f47b25);"
+            data-bs-toggle="modal" data-bs-target="#createStructureModal">
+        <i class="bi bi-plus-lg me-1"></i> Tạo Cấu trúc Mới
+    </button>
 </div>
 
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+    <div class="custom-table-scroll mb-3 shadow-sm">
+        <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+            <thead class="small">
+                <tr>
+                    <th class="ps-4">Tên Cấu trúc</th>
+                    <th>Mô tả</th>
+                    <th class="text-center">Số phần thi</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">@item.Name</td>
+                        <td class="text-secondary small">@item.Description</td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info px-3">
+                                @item.Parts.Count phần
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1">
+                                <i class="bi bi-pencil-square"></i> Sửa
+                            </a>
+                            <button type="button" onclick="confirmDelete(@item.Id, '@item.Name')"
+                                    class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                                <i class="bi bi-trash3"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="createStructureModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-plus-circle-fill text-primary me-2"></i>Tạo Cấu trúc Đề thi
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <form asp-action="Create" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Tên Cấu trúc <span class="text-danger">*</span></label>
+                        <input name="Name" class="form-control rounded-3 border shadow-sm p-2"
+                               placeholder="VD: TOEIC Reading & Listening" required />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted text-uppercase">Mô tả cấu trúc</label>
+                        <textarea name="Description" class="form-control rounded-3 border shadow-sm p-2"
+                                  rows="3" placeholder="Nhập mô tả ngắn gọn về cấu trúc này..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn text-white fw-bold py-2 rounded-pill shadow-sm"
+                                style="background-color: var(--bs-primary, #f47b25);">
+                            Lưu và Tiếp tục thêm Phần thi
+                        </button>
+                        <button type="button" class="btn btn-light border fw-bold py-2 rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script src="~/js/examStructures.js"></script>
 }
