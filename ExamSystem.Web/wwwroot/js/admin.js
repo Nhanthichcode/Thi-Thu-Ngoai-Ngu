@@ -1,43 +1,4 @@
-﻿function confirmDelete(id) {
-    Swal.fire({
-        title: 'Xóa kết quả?',
-        text: "Dữ liệu bài làm này sẽ bị xóa vĩnh viễn!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Xóa ngay',
-        cancelButtonText: 'Hủy'
-    }).then((result) => {
-        if (result.isConfirmed) {
-
-            // Dùng Fetch API gửi request POST
-            fetch(`/Admin/ExamResults/Delete/${id}`, {
-                method: 'POST'
-            })
-                .then(response => {
-                    if (response.ok) {
-                        Swal.fire(
-                            'Đã xóa!',
-                            'Dữ liệu bài làm đã được xóa.',
-                            'success'
-                        ).then(() => {
-                            // Tải lại trang để cập nhật danh sách
-                            window.location.reload();
-                        });
-                    } else {
-                        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xóa.', 'error');
-                    }
-                })
-                .catch(error => {
-                    Swal.fire('Lỗi!', 'Không thể kết nối tới máy chủ.', 'error');
-                });
-
-        }
-    })
-}
-
-function copyToClipboard(text) {
+﻿function copyToClipboard(text) {
     // Tạo đường dẫn đầy đủ
     var fullUrl = window.location.origin + text;
     navigator.clipboard.writeText(fullUrl).then(function () {
@@ -58,15 +19,15 @@ function copyToClipboard(text) {
     });
 }
 
-//function confirmDelete(userId, userName) {
+//function confirmDelete(id, title) {
 //    Swal.fire({
-//        title: 'Xóa tài khoản?',
-//        html: `Bạn có chắc chắn muốn xóa người dùng <b>${userName}</b>?<br><span class="text-danger small">Hành động này không thể hoàn tác!</span>`,
+//        title: 'Xác nhận xóa?',
+//        html: `Bạn có chắc chắn muốn xóa dữ liệu <b>${title}</b>?<br><span class="text-danger small">Hành động này không thể hoàn tác!</span>`,
 //        icon: 'warning',
 //        showCancelButton: true,
 //        confirmButtonColor: '#d33',
 //        cancelButtonColor: '#6c757d',
-//        confirmButtonText: 'Đồng ý xóa',
+//        confirmButtonText: 'Vâng, Xóa ngay',
 //        cancelButtonText: 'Hủy bỏ',
 //        customClass: {
 //            confirmButton: 'rounded-pill px-4 fw-bold',
@@ -75,12 +36,23 @@ function copyToClipboard(text) {
 //        }
 //    }).then((result) => {
 //        if (result.isConfirmed) {
-//            document.getElementById('delete-form-' + userId).submit();
+//            // Hiển thị loading cho đẹp trong lúc chờ server xử lý
+//            Swal.fire({
+//                title: 'Đang xóa...',
+//                allowOutsideClick: false,
+//                didOpen: () => { Swal.showLoading(); }
+//            });
+//            // Tìm cái form ẩn tương ứng với ID và bấm nút Submit
+//            document.getElementById('delete-form-' + id).submit();
 //        }
 //    });
 //}
 
-function confirmDelete(id, title) {
+// Thay thế hàm cũ trong admin.js bằng hàm này
+function confirmDelete(id, title, controller) {
+    // Lấy Token chống giả mạo (CSRF) từ trong trang HTML
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
     Swal.fire({
         title: 'Xác nhận xóa?',
         html: `Bạn có chắc chắn muốn xóa dữ liệu <b>${title}</b>?<br><span class="text-danger small">Hành động này không thể hoàn tác!</span>`,
@@ -97,14 +69,27 @@ function confirmDelete(id, title) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Hiển thị loading cho đẹp trong lúc chờ server xử lý
             Swal.fire({
                 title: 'Đang xóa...',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
-            // Tìm cái form ẩn tương ứng với ID và bấm nút Submit
-            document.getElementById('delete-form-' + id).submit();
+
+            // Tự động tạo một form ảo bằng Javascript và Submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            // Đảm bảo URL trỏ đúng đến hàm Delete trong Controller của anh
+            form.action = '/Admin/'+controller+'/Delete/' + id;
+
+            // Nhét token vào form
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+            form.appendChild(tokenInput);
+
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 }
@@ -143,17 +128,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
-// Hàm gọi API xóa nhiều
-function confirmDeleteMultiple() {
+function confirmDeleteMultiple(itemType, apiUrl) {
     const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
     const idsToDelete = Array.from(checkedBoxes).map(cb => cb.value);
 
-    if (idsToDelete.length === 0) return;
+    // Nếu không có checkbox nào được chọn thì thông báo nhẹ
+    if (idsToDelete.length === 0) {
+        Swal.fire({
+            title: 'Chưa chọn mục nào!',
+            text: `Vui lòng chọn ít nhất một ${itemType} để xóa.`,
+            icon: 'info',
+            confirmButtonColor: '#f47b25',
+            customClass: { popup: 'rounded-4' }
+        });
+        return;
+    }
 
+    // Hiển thị hộp thoại xác nhận
     Swal.fire({
         title: 'CẢNH BÁO!',
-        html: `Bạn đang chuẩn bị xóa <b>${idsToDelete.length}</b> tài khoản.<br/><span class="text-danger">Toàn bộ dữ liệu liên quan sẽ bị xóa vĩnh viễn.</span> Bạn có chắc không?`,
+        html: `Bạn đang chuẩn bị xóa <b>${idsToDelete.length}</b> ${itemType}.<br/><span class="text-danger">Toàn bộ dữ liệu liên quan sẽ bị xóa vĩnh viễn.</span> Bạn có chắc không?`,
         icon: 'error',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -163,15 +157,16 @@ function confirmDeleteMultiple() {
         customClass: { popup: 'rounded-4' }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Hiển thị loading
+
+            // 1. Hiển thị loading mượt mà
             Swal.fire({
-                title: 'Đang xóa...',
+                title: 'Đang xóa dữ liệu...',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
 
-            // Gọi Fetch API
-            fetch('/Admin/Users/DeleteMultiple', {
+            // 2. Gọi Fetch API bằng URL động
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -180,110 +175,16 @@ function confirmDeleteMultiple() {
             })
                 .then(res => res.json())
                 .then(data => {
+                    // 3. Xử lý kết quả trả về
                     if (data.success) {
-                        window.location.reload(); // Reload để hiển thị TempData SuccessMessage
+                        window.location.reload();
                     } else {
-                        Swal.fire('Lỗi', data.message, 'error');
+                        Swal.fire('Lỗi xóa dữ liệu', data.message || `Không thể xóa ${itemType} lúc này.`, 'error');
                     }
                 })
                 .catch(err => {
-                    Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
-                });
-        }
-    });
-}
-
-function confirmDeleteMultipleLisening() {
-    const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
-    const idsToDelete = Array.from(checkedBoxes).map(cb => cb.value);
-
-    if (idsToDelete.length === 0) return;
-
-    Swal.fire({
-        title: 'CẢNH BÁO!',
-        html: `Bạn đang chuẩn bị xóa <b>${idsToDelete.length}</b> bài nghe.<br/><span class="text-danger">Toàn bộ dữ liệu liên quan sẽ bị xóa vĩnh viễn.</span> Bạn có chắc không?`,
-        icon: 'error',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'XÓA TẤT CẢ',
-        cancelButtonText: 'Hủy bỏ',
-        customClass: { popup: 'rounded-4' }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Hiển thị loading
-            Swal.fire({
-                title: 'Đang xóa...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-
-            // Gọi Fetch API
-            fetch('/Admin/ListeningResources/DeleteMultiple', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(idsToDelete)
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload(); // Reload để hiển thị TempData SuccessMessage
-                    } else {
-                        Swal.fire('Lỗi', data.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
-                });
-        }
-    });
-}
-
-function confirmDeleteMultipleReading() {
-    const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
-    const idsToDelete = Array.from(checkedBoxes).map(cb => cb.value);
-
-    if (idsToDelete.length === 0) return;
-
-    Swal.fire({
-        title: 'CẢNH BÁO!',
-        html: `Bạn đang chuẩn bị xóa <b>${idsToDelete.length}</b> bài đọc.<br/><span class="text-danger">Toàn bộ dữ liệu liên quan sẽ bị xóa vĩnh viễn.</span> Bạn có chắc không?`,
-        icon: 'error',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'XÓA TẤT CẢ',
-        cancelButtonText: 'Hủy bỏ',
-        customClass: { popup: 'rounded-4' }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Hiển thị loading
-            Swal.fire({
-                title: 'Đang xóa...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-
-            // Gọi Fetch API
-            fetch('/Admin/ReadingPassages/DeleteMultiple', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(idsToDelete)
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.reload(); // Reload để hiển thị TempData SuccessMessage
-                    } else {
-                        Swal.fire('Lỗi', data.message, 'error');
-                    }
-                })
-                .catch(err => {
-                    Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ', 'error');
+                    console.error("Lỗi Fetch API:", err);
+                    Swal.fire('Lỗi kết nối', 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.', 'error');
                 });
         }
     });

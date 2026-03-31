@@ -362,6 +362,12 @@ if (fileInput) {
                 document.getElementById('questionTypeBadge').innerText = "Loại: " + detectedQuestionType;
                 document.getElementById('questionTypeBadge').classList.remove('d-none');
 
+                const validTypes = ["TYPE_GRAMMAR", "TYPE_WRITING", "TYPE_SPEAKING", "TYPE_READING", "TYPE_LISTENING"];
+
+                if (!validTypes.includes(detectedQuestionType)) {                     
+                    throw new Error(`Mã loại "${detectedQuestionType}" không hợp lệ. Vui lòng sử dụng file mẫu chuẩn của hệ thống.`);
+                }
+
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
 
@@ -432,6 +438,9 @@ if (fileInput) {
                             if (validAns < 2) { isValid = false; errorMsg += "Chưa đủ 2 đáp án; "; }
                             if (row[8] && !row[3 + parseInt(row[8])]) { isValid = false; errorMsg += `Đáp án đúng rỗng; `; }
                         }
+                    } else {                        
+                        isValid = false;
+                        errorMsg = "Loại câu hỏi không xác định;";
                     }
 
                     if (isValid) validCount++; else invalidCount++;
@@ -441,13 +450,13 @@ if (fileInput) {
                         : `<div class="text-danger small fw-bold" style="white-space: normal; line-height: 1.5;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Lỗi: ${errorMsg}</div>`;
 
                     let cbHtml = '';
-                    if (isValid) {
+                    if (isValid) {                        
                         if (isParent && (detectedQuestionType === "TYPE_READING" || detectedQuestionType === "TYPE_LISTENING")) {
-                            cbHtml = `<input class="form-check-input row-checkbox parent-checkbox shadow-sm" type="checkbox" value="${i}" data-index="${i}" checked style="cursor: pointer;">`;
+                            cbHtml = `<input class="form-check-input checkbox-xl row-checkbox parent-checkbox shadow-sm" type="checkbox" value="${i}" data-index="${i}" checked style="cursor: pointer; width:1em !important; height:1em !important; margin-top: .25em !important;">`;
                         } else if (isChild && !isParent) {
-                            cbHtml = `<input class="form-check-input row-checkbox child-checkbox shadow-sm" type="checkbox" value="${i}" data-parent="${currentParentIndex}" checked style="cursor: pointer;">`;
+                            cbHtml = `<input class="form-check-input checkbox-xl row-checkbox child-checkbox shadow-sm" type="checkbox" value="${i}" data-parent="${currentParentIndex}" checked style="cursor: pointer; width:1em !important; height:1em !important; margin-top: .25em !important;">`;
                         } else {
-                            cbHtml = `<input class="form-check-input row-checkbox shadow-sm" type="checkbox" value="${i}" checked style="cursor: pointer;">`;
+                            cbHtml = `<input class="form-check-input checkbox-xl row-checkbox shadow-sm" type="checkbox" value="${i}" checked style="cursor: pointer; width:1em !important; height:1em !important; margin-top: .25em !important;">`;
                         }
                     } else {
                         cbHtml = `<i class="bi bi-x-circle-fill text-danger fs-5"></i>`;
@@ -533,7 +542,7 @@ if (fileInput) {
         document.getElementById('selectedCountBadge').innerText = `Sẽ lưu: ${count} dòng`;
         const btnImport = document.getElementById('btnImport');
         btnImport.disabled = (count === 0);
-        btnImport.innerHTML = `<i class="bi bi-database-fill-up me-2"></i> LƯU ${count} DỮ LIỆU HỢP LỆ`;
+        btnImport.innerHTML = `<i class="bi bi-database-fill-up me-2"></i> LƯU ${count} DÒNG`;
     }
 
     // Submit lưu dữ liệu

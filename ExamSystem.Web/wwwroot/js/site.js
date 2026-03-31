@@ -127,45 +127,101 @@ function showNotification(message, isSuccess) {
 }
 
 // --- LOGIC ĐỔI THEME SÁNG / TỐI ---
+//document.addEventListener('DOMContentLoaded', () => {
+//    const themeToggleBtn = document.getElementById('theme-toggle');
+//    // Lấy theme đã lưu hoặc mặc định là light
+//    const currentTheme = localStorage.getItem('theme') || 'light';
+
+//    // Áp dụng theme ngay khi load
+//    document.documentElement.setAttribute('data-theme', currentTheme);
+//    document.documentElement.setAttribute('data-bs-theme', currentTheme);
+
+//    if (typeof updateThemeIcon === 'function') {
+//        updateThemeIcon(currentTheme);
+//    }
+
+//    // Bắt sự kiện click nút đổi màu
+//    if (themeToggleBtn) {
+//        themeToggleBtn.addEventListener('click', () => {
+//            let theme = document.documentElement.getAttribute('data-theme');
+//            let newTheme = theme === 'dark' ? 'light' : 'dark';
+
+//            document.documentElement.setAttribute('data-theme', newTheme);
+//            document.documentElement.setAttribute('data-bs-theme', newTheme);
+
+//            localStorage.setItem('theme', newTheme);
+
+//            if (typeof updateThemeIcon === 'function') {
+//                updateThemeIcon(newTheme);
+//            }
+//        });
+//    }
+//});
+
+//function updateThemeIcon(theme) {
+//    const icon = document.querySelector('#theme-toggle i');
+//    if (!icon) return;
+
+//    if (theme === 'dark') {
+//        icon.className = 'bi bi-moon-stars-fill text-warning';
+//    } else {
+//        icon.className = 'bi bi-sun-fill text-warning';
+//    }
+//}
+
+function toggleTheme() {
+    const checkbox = document.getElementById('theme-toggle');
+    const text = document.getElementById('theme-text');
+    const htmlElement = document.documentElement;
+
+    if (checkbox.checked) {
+        // Chế độ Tối (Bật đèn)
+        htmlElement.setAttribute('data-bs-theme', 'dark');
+        text.innerText = "Dark Mode";
+        localStorage.setItem('theme', 'dark');
+    } else {
+        // Chế độ Sáng (Tắt đèn)
+        htmlElement.setAttribute('data-bs-theme', 'light');
+        text.innerText = "Light Mode";
+        localStorage.setItem('theme', 'light');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    // Lấy theme đã lưu hoặc mặc định là light
+    const themeToggle = document.getElementById('theme-toggle');
     const currentTheme = localStorage.getItem('theme') || 'light';
 
-    // Áp dụng theme ngay khi load
-    document.documentElement.setAttribute('data-theme', currentTheme);
-    document.documentElement.setAttribute('data-bs-theme', currentTheme);
+    // 1. Áp dụng theme ngay khi load trang
+    applyTheme(currentTheme);
 
-    if (typeof updateThemeIcon === 'function') {
-        updateThemeIcon(currentTheme);
-    }
+    // 2. Đồng bộ trạng thái cho nút Bóng đèn
+    if (themeToggle) {
+        // Nếu là dark thì tích chọn checkbox để "bật đèn"
+        themeToggle.checked = (currentTheme === 'dark');
+        updateBulbUI(currentTheme);
 
-    // Bắt sự kiện click nút đổi màu
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            let theme = document.documentElement.getAttribute('data-theme');
-            let newTheme = theme === 'dark' ? 'light' : 'dark';
+        // Bắt sự kiện thay đổi trạng thái (Gạt công tắc)
+        themeToggle.addEventListener('change', () => {
+            const newTheme = themeToggle.checked ? 'dark' : 'light';
 
-            document.documentElement.setAttribute('data-theme', newTheme);
-            document.documentElement.setAttribute('data-bs-theme', newTheme);
-
+            applyTheme(newTheme);
             localStorage.setItem('theme', newTheme);
-
-            if (typeof updateThemeIcon === 'function') {
-                updateThemeIcon(newTheme);
-            }
+            updateBulbUI(newTheme);
         });
     }
 });
 
-function updateThemeIcon(theme) {
-    const icon = document.querySelector('#theme-toggle i');
-    if (!icon) return;
+// Hàm áp dụng thuộc tính theme vào hệ thống
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-bs-theme', theme);
+}
 
-    if (theme === 'dark') {
-        icon.className = 'bi bi-moon-stars-fill text-warning';
-    } else {
-        icon.className = 'bi bi-sun-fill text-warning';
+// Hàm cập nhật giao diện riêng cho nút Bóng đèn
+function updateBulbUI(theme) {
+    const themeText = document.getElementById('theme-text');
+    if (themeText) {
+        themeText.innerText = (theme === 'dark' ? 'TỐI' : 'SÁNG');
     }
 }
 
