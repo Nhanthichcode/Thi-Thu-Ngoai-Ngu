@@ -18,7 +18,7 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <header>
+    @* <header>
         <nav class="navbar navbar-expand-lg sticky-top py-2">
             <div class="container">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
@@ -75,11 +75,21 @@
                     </ul>
 
                     <ul class="navbar-nav d-flex flex-column flex-lg-row align-items-start align-items-lg-center gap-2 gap-lg-3">
-                         <li class="nav-item d-flex align-items-center me-3">
-                            <button class="btn btn-sm btn-outline-secondary border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                    id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
-                                <i class="bi bi-sun-fill text-warning"></i>
-                            </button>
+                         <li class="nav-item d-flex align-items-center me-3">                          
+                            <div class="theme-switch-wrapper">
+                                <label class="button-bulb" for="theme-toggle">
+                                    <input id="theme-toggle" type="checkbox" onchange="toggleTheme()" />
+                                    <div class="socket"></div>
+                                    <div class="light-bulb">
+                                        <svg fill="none" viewBox="0 0 131 151" width="22">
+                                            <path stroke-width="8" stroke="currentColor"
+                                                  d="M1.00043 50.4999C80.0004 57.4999 102 50.4999 102 50.4999C102 50.4999 125 45.9999 127 31.4999C129 16.9998 115 1.49988 107.5 3.49988C100 5.49988 83.5004 16.9999 83.5004 75.4999C83.5004 83.9786 83.8466 91.4701 84.4622 98.0884M1 100.5C43.5028 96.7338 69.5067 97.0201 84.4622 98.0884M84.4622 98.0884C97.3045 99.0058 102 100.5 102 100.5C102 100.5 125 105 127 119.5C129 134 115 149.5 107.5 147.5C101.087 145.79 88.0938 137.134 84.4622 98.0884Z">
+                                            </path>
+                                        </svg>
+                                        <p class="text-light-bulb m-0 flex-grow-1 text-center" id="theme-text">SÁNG</p>
+                                    </div>
+                                </label>
+                            </div>
                         </li>
                         @if (SignInManager.IsSignedIn(User))
                         {
@@ -116,6 +126,7 @@
                         }
                         else
                         {
+                            <a class="btn btn-outline-secondary btn-sm px-4 rounded-pill" asp-controller="Account" asp-action="Contact">Liên Hệ</a>
                             <a class="btn btn-outline-secondary btn-sm px-4 rounded-pill" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                             <a class="btn btn-primary btn-sm px-4 rounded-pill shadow-sm" asp-controller="Account" asp-action="Register">Đăng ký ngay</a>
                         }
@@ -123,8 +134,104 @@
                 </div>
             </div>
         </nav>
-    </header>
+    </header> *@
 
+
+    <header>
+        <nav class="navbar navbar-expand-lg sticky-top py-2 shadow-sm border-bottom">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi- mortarboard-fill me-2 text-primary fs-4"></i>
+                    <span class="fw-bolder">Thi Thử <span class="brand-highlight">Ngoại Ngữ</span></span>
+                </a>
+
+                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold px-3" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                        </li>
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+                            {
+                                <li class="nav-item"><a class="nav-link fw-bold px-3" asp-area="Admin" asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle fw-bold px-3" href="#" data-bs-toggle="dropdown">Quản lý</a>
+                                    <ul class="dropdown-menu shadow-lg border-0 rounded-4 mt-2">
+                                        <li><h6 class="dropdown-header text-primary">Ngân hàng đề</h6></li>
+                                        <li><a class="dropdown-item py-2" asp-area="Admin" asp-controller="Questions" asp-action="Index"><i class="bi bi-question-circle me-2"></i>Câu hỏi</a></li>
+                                        <li><a class="dropdown-item py-2" asp-area="Admin" asp-controller="Exams" asp-action="Index"><i class="bi bi-file-earmark-text me-2"></i>Đề thi</a></li>
+                                        <li><hr class="dropdown-divider mx-2"></li>
+                                        <li><h6 class="dropdown-header text-primary">Tài nguyên</h6></li>
+                                        <li><a class="dropdown-item py-2" asp-area="Admin" asp-controller="ReadingPassages" asp-action="Index"><i class="bi bi-book me-2"></i>Bài đọc</a></li>
+                                        <li><a class="dropdown-item py-2" asp-area="Admin" asp-controller="ListeningResources" asp-action="Index"><i class="bi bi-headphones me-2"></i>File nghe</a></li>
+                                    </ul>
+                                </li>
+                            }
+                        }
+                        <li class="nav-item"><a class="nav-link fw-bold px-3" asp-controller="Account" asp-action="Contact">Liên hệ</a></li>
+                    </ul>
+
+                    <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-3">
+                        <div class="theme-switch-wrapper py-2 py-lg-0">
+                            <label class="button-bulb" for="theme-toggle">
+                                <input id="theme-toggle" type="checkbox" onchange="toggleTheme()" />
+                                <div class="socket"></div>
+                                <div class="light-bulb shadow-sm">
+                                    <svg fill="none" viewBox="0 0 131 151" width="22">
+                                        <path stroke-width="10" stroke="currentColor" d="M1.00043 50.4999C80.0004 57.4999 102 50.4999 102 50.4999C102 50.4999 125 45.9999 127 31.4999C129 16.9998 115 1.49988 107.5 3.49988C100 5.49988 83.5004 16.9999 83.5004 75.4999C83.5004 83.9786 83.8466 91.4701 84.4622 98.0884M1 100.5C43.5028 96.7338 69.5067 97.0201 84.4622 98.0884M84.4622 98.0884C97.3045 99.0058 102 100.5 102 100.5C102 100.5 125 105 127 119.5C129 134 115 149.5 107.5 147.5C101.087 145.79 88.0938 137.134 84.4622 98.0884Z"></path>
+                                    </svg>
+                                    <p class="text-light-bulb m-0 flex-grow-1 text-center small fw-bold" id="theme-text">SÁNG</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            var user = await UserManager.GetUserAsync(User);
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+                                    <div class="rounded-circle overflow-hidden border shadow-sm" style="width: 38px; height: 38px; background-color: var(--bs-primary);">
+                                        @if (!string.IsNullOrEmpty(user?.AvatarUrl))
+                                        {
+                                            <img src="@user.AvatarUrl" class="w-100 h-100 object-fit-cover" />
+                                        }
+                                        else
+                                        {
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold">
+                                                @user?.FullName?.Substring(0, 1).ToUpper()
+                                            </div>
+                                        }
+                                    </div>
+                                    <span class="fw-bold d-none d-sm-inline">@user?.FullName</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2">
+                                    <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                                    <li><hr class="dropdown-divider mx-2"></li>
+                                    <li>
+                                        <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item text-danger fw-bold py-2"><i class="bi bi-power me-2"></i>Đăng xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-outline-light text-muted border fw-bold px-4 rounded-pill" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                                <a class="btn btn-primary fw-bold px-4 rounded-pill shadow" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
     <main role="main" class="flex-grow-1 pb-3">
         <div class="container">
             @RenderBody()
