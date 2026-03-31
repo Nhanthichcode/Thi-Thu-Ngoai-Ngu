@@ -1,5 +1,4 @@
-﻿@{
-    Layout = "_Layout"; // Hoặc Layout trống nếu muốn trang độc lập
+﻿@{   
     ViewData["Title"] = "Tài khoản bị khóa";
 }
 
@@ -22,9 +21,9 @@
         </p>
 
         <!-- Nút hành động -->
-        <div class="d-grid gap-2">
-            <a href="mailto:support@linguistai.com" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-orange">
-                <i class="bi bi-envelope-fill me-2"></i> Liên hệ hỗ trợ
+        <div class="d-grid gap-2">            
+            <a asp-area="" asp-controller="Account" asp-action="Contact" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-orange">
+                Liên hệ hỗ trợ
             </a>
             <a asp-controller="Home" asp-action="Index" class="btn btn-light-soft btn-lg rounded-pill fw-bold text-secondary">
                 Quay về trang chủ

@@ -24,6 +24,8 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var exams = await _context.Exams.OrderByDescending(e => e.StartDate).ToListAsync();
+            // Cần nạp Structures để Dropdown trong Modal Tạo mới hoạt động
+            ViewBag.Structures = await _context.ExamStructures.ToListAsync();
             return View(exams);
         }
 
@@ -84,7 +86,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             }
 
             ViewBag.Structures = await _context.ExamStructures.ToListAsync();
-            return View(exam);
+           return View("Index", exam);
         }
 
         // ==========================================
@@ -123,7 +125,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(exam);
+            return View("Index", exam);
         }
 
         // ==========================================

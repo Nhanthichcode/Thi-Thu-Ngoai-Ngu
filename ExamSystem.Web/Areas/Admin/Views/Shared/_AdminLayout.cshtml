@@ -45,37 +45,70 @@
     }
     <div class="d-flex" id="wrapper">
         <div id="sidebar-wrapper">
-            <div class="sidebar-heading">
-                <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="navbar-brand m-0">
-                    Quản<span class="brand-highlight">Lý</span>
+            <div class="sidebar-heading px-3 mb-4">
+                <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="text-decoration-none">
+                    <h4 class="fw-bolder m-0 text-dark">Quản <span class="brand-highlight">Lý</span></h4>
                 </a>
             </div>
 
-            <div class="list-group list-group-flush pb-4">
+            <div class="list-group list-group-flush">
                 <a asp-area="Admin" asp-controller="Home" asp-action="Index"
                    class="list-group-item list-group-item-action @(currentController == "Home" ? "active" : "")">
-                    <i class="bi bi-speedometer2"></i> Tổng quan
+                    <i class="bi bi-speedometer2 text-dark"></i> Tổng quan
                 </a>
 
                 @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
                 {
                     <div class="sidebar-group-title">Quản lý Đề thi</div>
-                    <a asp-area="Admin" asp-controller="Exams" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "Exams" ? "active" : "")"><i class="bi bi-file-earmark-text"></i> Danh sách Đề</a>
-                    <a asp-area="Admin" asp-controller="ExamStructures" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "ExamStructures" ? "active" : "")"><i class="bi bi-diagram-3"></i> Cấu trúc đề</a>
+                    <div class="sidebar-group-container shadow-sm border">
+                        <a asp-area="Admin" asp-controller="Exams" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "Exams" ? "active" : "")">
+                            <i class="bi bi-file-earmark-text text-danger"></i> Danh sách Đề
+                        </a>
+                        <a asp-area="Admin" asp-controller="ExamStructures" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "ExamStructures" ? "active" : "")">
+                            <i class="bi bi-diagram-3 text-info"></i> Cấu trúc đề
+                        </a>
+                    </div>
 
                     <div class="sidebar-group-title">Ngân hàng câu hỏi</div>
-                    <a asp-area="Admin" asp-controller="Questions" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "Questions" ? "active" : "")"><i class="bi bi-collection"></i> Tất cả câu hỏi</a>
-                    <a asp-area="Admin" asp-controller="ReadingPassages" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "ReadingPassages" ? "active" : "")"><i class="bi bi-book"></i> Bài đọc</a>
-                    <a asp-area="Admin" asp-controller="ListeningResources" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "ListeningResources" ? "active" : "")"><i class="bi bi-headphones"></i> File nghe</a>
+                    <div class="sidebar-group-container shadow-sm border">
+                        <a asp-area="Admin" asp-controller="Questions" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "Questions" ? "active" : "")">
+                            <i class="bi bi-collection text-warning"></i> Tất cả câu hỏi
+                        </a>
+                        <a asp-area="Admin" asp-controller="ReadingPassages" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "ReadingPassages" ? "active" : "")">
+                            <i class="bi bi-book text-success"></i> Bài đọc
+                        </a>
+                        <a asp-area="Admin" asp-controller="ListeningResources" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "ListeningResources" ? "active" : "")">
+                            <i class="bi bi-headphones text-danger"></i> File nghe
+                        </a>
+                    </div>
                 }
 
                 @if (User.IsInRole("Admin"))
                 {
                     <div class="sidebar-group-title">Hệ thống</div>
-                    <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "Users" ? "active" : "")"><i class="bi bi-people"></i> Người dùng</a>
-                    <a asp-area="Admin" asp-controller="ExamResults" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "ExamResults" ? "active" : "")"><i class="bi bi-check2-circle"></i> Chấm thi</a>
-                    <a asp-area="Admin" asp-controller="Media" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "Media" ? "active" : "")"><i class="bi bi-cloud-check"></i> Tài nguyên</a>
-                    <a asp-area="Admin" asp-controller="" asp-action="Index" class="list-group-item list-group-item-action @(currentController == "" ? "active" : "")"><i class="bi bi-gear"></i> Cấu hình</a>
+                    <div class="sidebar-group-container shadow-sm border">
+                        <a asp-area="Admin" asp-controller="Users" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "Users" ? "active" : "")">
+                            <i class="bi bi-people text-dark"></i> Người dùng
+                        </a>
+                        <a asp-area="Admin" asp-controller="ExamResults" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "ExamResults" ? "active" : "")">
+                            <i class="bi bi-check2-circle text-dark"></i> Chấm thi
+                        </a>
+                        <a asp-area="Admin" asp-controller="Media" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "Media" ? "active" : "")">
+                            <i class="bi bi-cloud-check text-dark"></i> Tài nguyên
+                        </a>
+                        <a asp-area="Admin" asp-controller="Home" asp-action="Index"
+                           class="list-group-item list-group-item-action @(currentController == "Settings" ? "active" : "")">
+                            <i class="bi bi-gear text-dark"></i> Cấu hình
+                        </a>
+                    </div>
                 }
             </div>
         </div>
@@ -90,10 +123,20 @@
 
                     <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
                         <li class="nav-item d-flex align-items-center me-3">
-                            <button class="btn btn-sm btn-outline-secondary border rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                                    id="theme-toggle" style="width: 35px; height: 35px;" title="Chuyển đổi giao diện">
-                                <i class="bi bi-sun-fill text-warning"></i>
-                            </button>
+                            <div class="theme-switch-wrapper">
+                                <label class="button-bulb" for="theme-toggle">
+                                    <input id="theme-toggle" type="checkbox" onchange="toggleTheme()" />
+                                    <div class="socket"></div>
+                                    <div class="light-bulb">
+                                        <svg fill="none" viewBox="0 0 131 151" width="24">
+                                            <path stroke-width="10" stroke="currentColor"
+                                                  d="M1.00043 50.4999C80.0004 57.4999 102 50.4999 102 50.4999C102 50.4999 125 45.9999 127 31.4999C129 16.9998 115 1.49988 107.5 3.49988C100 5.49988 83.5004 16.9999 83.5004 75.4999C83.5004 83.9786 83.8466 91.4701 84.4622 98.0884M1 100.5C43.5028 96.7338 69.5067 97.0201 84.4622 98.0884M84.4622 98.0884C97.3045 99.0058 102 100.5 102 100.5C102 100.5 125 105 127 119.5C129 134 115 149.5 107.5 147.5C101.087 145.79 88.0938 137.134 84.4622 98.0884Z">
+                                            </path>
+                                        </svg>
+                                        <p class="text-light-bulb ms-2" id="theme-text">SÁNG</p>
+                                    </div>
+                                </label>
+                            </div>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">

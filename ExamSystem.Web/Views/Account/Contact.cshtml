@@ -1,0 +1,77 @@
+﻿@using ExamSystem.Web.Models
+@model ContactViewModel
+@{
+    ViewData["Title"] = "Liên hệ với LinguistAI";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-md-5 p-5 text-white d-flex flex-column justify-content-center"
+                         style="background: linear-gradient(135deg, #f47b25 0%, #d85c0b 100%);">
+                        <h2 class="fw-bold mb-4">Kết nối với chúng tôi</h2>
+                        <p class="opacity-75 mb-5">Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ các bạn trong quá trình ôn luyện ngoại ngữ.</p>
+
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="rounded-circle bg-white bg-opacity-25 p-3 me-3">
+                                <i class="bi bi-envelope-at-fill fs-4 text-dark"></i>
+                            </div>
+                            <div>
+                                <div class="small opacity-75">Email hỗ trợ</div>
+                                <div class="fw-bold">support@linguistai.com</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-white bg-opacity-25 p-3 me-3">
+                                <i class="bi bi-geo-alt-fill fs-4 text-dark"></i>
+                            </div>
+                            <div>
+                                <div class="small opacity-75">Văn phòng</div>
+                                <div class="fw-bold">Đại học An Giang, Long Xuyên</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-7 p-5 bg-white">
+                        @if (TempData["SuccessMessage"] != null)
+                        {
+                            <div class="alert alert-success rounded-3 border-0 shadow-sm mb-4">
+                                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                            </div>
+                        }
+
+                        <h4 class="fw-bold text-dark mb-4">Gửi yêu cầu hỗ trợ</h4>
+                        <form asp-action="Contact" method="post">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Họ và tên</label>
+                                    <input asp-for="Name" class="form-control rounded-3" placeholder="Nhập tên của chị..." required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Email của chị</label>
+                                    <input asp-for="Email" type="email" class="form-control rounded-3" placeholder="email@vi-du.com" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Chủ đề</label>
+                                    <input asp-for="Subject" class="form-control rounded-3" placeholder="Chị cần hỗ trợ về vấn đề gì?" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-muted text-uppercase">Nội dung tin nhắn</label>
+                                    <textarea asp-for="Message" class="form-control rounded-3" rows="4" placeholder="Nhập chi tiết yêu cầu tại đây..." required></textarea>
+                                </div>
+                                <div class="col-12 mt-4 text-end">
+                                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-bold hover-up shadow">
+                                        Gửi tin nhắn <i class="bi bi-send-fill ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

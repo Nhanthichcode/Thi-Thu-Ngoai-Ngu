@@ -18,14 +18,51 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         }
 
         // Xem danh sách tất cả các lượt thi của thí sinh
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm, int? examId, int? dateRange, int? status)
         {
-            var attempts = await _context.TestAttempts
+            // 1. Khởi tạo Query ban đầu
+            var query = _context.TestAttempts
                 .Include(ta => ta.Exam)
                 .Include(ta => ta.User)
-                .Include(ta => ta.TestResults)
-                .OrderByDescending(ta => ta.SubmitTime) 
-                .ToListAsync();
+                .AsQueryable();
+
+            // 2. Lọc theo Tên hoặc Email
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(ta => ta.User.FullName.Contains(searchTerm) || ta.User.Email.Contains(searchTerm));
+            }
+
+            // 3. Lọc theo Đề thi cụ thể
+            if (examId.HasValue)
+            {
+                query = query.Where(ta => ta.ExamId == examId);
+            }
+
+            // 4. Lọc theo Trạng thái (Đã chấm / Chờ chấm)
+            if (status.HasValue)
+            {
+                query = query.Where(ta => ta.Status == status.Value);
+            }
+
+            // 5. Lọc theo Mốc thời gian (3, 5, 7, 21 ngày...)
+            if (dateRange.HasValue)
+            {
+                var cutoffDate = DateTime.Now.AddDays(-dateRange.Value);
+                query = query.Where(ta => ta.SubmitTime >= cutoffDate);
+            }
+
+            // 6. Thực thi truy vấn và sắp xếp mới nhất lên đầu
+            var attempts = await query.OrderByDescending(ta => ta.SubmitTime).ToListAsync();
+
+            // Gửi danh sách đề thi qua ViewBag để làm Dropdown
+            ViewBag.Exams = await _context.Exams.OrderBy(e => e.Title).ToListAsync();
+
+            // Giữ lại các giá trị lọc trên giao diện
+            ViewData["SearchTerm"] = searchTerm;
+            ViewData["SelectedExam"] = examId;
+            ViewData["SelectedDate"] = dateRange;
+            ViewData["SelectedStatus"] = status;
+
             return View(attempts);
         }
 
@@ -44,8 +81,58 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             _context.TestAttempts.Remove(examResult);
             await _context.SaveChangesAsync();
 
-            // Trả về mã thành công 200 OK cho AJAX
-            return Ok();
+
+            TempData["SuccessMessage"] = "Đã xóa bài thi thành công";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteMultiple([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any())
+            {
+                return Json(new { success = false, message = "Không có bài nộp nào được chọn." });
+            }
+
+            // Bật Transaction để đảm bảo an toàn (nếu lỗi giữa chừng thì sẽ hoàn tác)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Tìm tất cả các KẾT QUẢ BÀI THI có ID nằm trong danh sách được chọn
+                    var attemptsToDelete = await _context.TestAttempts
+                        .Where(t => ids.Contains(t.Id))
+                        .ToListAsync();
+
+                    if (!attemptsToDelete.Any())
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy dữ liệu để xóa." });
+                    }
+
+                    int count = attemptsToDelete.Count;
+
+                    // Xóa hàng loạt một lần duy nhất (Nhanh và tối ưu hơn dùng foreach)
+                    _context.TestAttempts.RemoveRange(attemptsToDelete);
+                    await _context.SaveChangesAsync();
+
+                    // Xác nhận hoàn tất
+                    await transaction.CommitAsync();
+
+                    // Setup TempData để khi JS gọi reload trang sẽ hiện thông báo thành công
+                    TempData["SuccessMessage"] = $"Đã xóa thành công {count} bài nộp của thí sinh!";
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Đã xóa thành công {count} bài nộp!"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return Json(new { success = false, message = "Lỗi hệ thống khi xóa: " + ex.Message });
+                }
+            }
         }
 
         // Trang chi tiết để giáo viên xem file và chấm điểm

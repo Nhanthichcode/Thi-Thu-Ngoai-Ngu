@@ -20,6 +20,11 @@
     --border-radius-sm: 8px;
     --border-radius-md: 12px;
     --border-radius-lg: 16px;
+    --bulb-socket: #e2e8f0; /* Màu đế ở chế độ sáng (Xám bạc) */
+    --bulb-socket-inner: #f1f5f9;
+    --bulb-text: #64748b;
+    --bulb-border-color: #cbd5e1; /* Màu xám bạc tinh tế */
+    --bulb-shadow: rgba(0, 0, 0, 0.05);
 }
 
     /* Chế độ Tối (Dark Mode) */
@@ -36,6 +41,9 @@
         --bs-table-striped-bg: rgb(242 128 70 / 8%);
         --bs-input-bg: #2d2d2d;
         --bs-input-color: #e2e8f0;
+        --bulb-socket: #3c3c3c; /* Màu đế ở chế độ tối (Than chì) */
+        --bulb-socket-inner: #2d2d2d;
+        --bulb-text: #ffffff;
     }
 
 /* =========================================
@@ -566,6 +574,11 @@ body {
 }
 
 /* Tùy chỉnh thêm để giao diện mượt hơn khi ở chế độ Dark Mode (nếu có) */
+[data-bs-theme="dark"] .btn-brand-cta {
+    background-color: var(--bs-primary) !important;
+    color: #ffffff !important;
+}
+
 [data-theme="dark"] .sticky-result-tabs {
     background-color: var(--bs-card-bg) !important;
 }
@@ -1064,4 +1077,248 @@ input:-ms-input-placeholder {
 [data-bs-theme="dark"] .checkbox-xl {
     background-color: #2b2b2b;
     border-color: #444 !important;
+}
+
+
+/* =========================================
+   6. NÚT TOGGLE BÓNG ĐÈN (THEME SWITCH)
+   ========================================= */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    transform: scale(0.6);
+    margin-right: -25px;
+}
+
+.button-bulb {
+    cursor: pointer;
+    display: flex;
+    gap: 1px;
+    transition: all 0.3s ease;
+}
+
+    .button-bulb:active {
+        transform: scale(0.95);
+    }
+
+    .button-bulb input {
+        display: none;
+    }
+
+    /* Socket (Đế cắm) */
+    .button-bulb .socket {
+        position: relative;
+        background-color: var(--bulb-socket);
+        width: 70px;
+        height: 60px;
+        border: 1.5px solid var(--bulb-border-color) !important;
+        border-radius: 50px 5px 5px 50px;
+        z-index: 9;
+        box-shadow: inset 0 -4px 8px rgba(0, 0, 0, 0.1), 2px 2px 5px var(--bulb-shadow) !important;
+        transition: all 0.3s ease;
+    }
+
+        .button-bulb .socket::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            right: 0;
+            width: 60px;
+            height: 35px;
+            border-radius: 50px 0 0 50px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border: 4px solid #353535;
+            border-right: 0;
+            box-shadow: inset 4px 0 8px 4px rgba(0, 0, 0, 0.8);
+            filter: blur(4px);
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+    /* Khi đèn BẬT (Checked) */
+    .button-bulb input:checked ~ .socket {
+        background-color: #5c5c5c;
+    }
+
+        .button-bulb input:checked ~ .socket::before {
+            opacity: 1;
+        }
+
+    /* Light Bulb (Thân bóng đèn) */
+    .button-bulb .light-bulb {
+        background-color: var(--bs-card-bg);
+        border: 1.5px solid var(--bulb-border-color) !important;
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 160px;
+        height: 60px;
+        color: #353535;
+/*        border: 1px solid rgba(255, 255, 255, 0.1);*/
+        border-radius: 5px 50px 50px 5px;
+        gap: 0.5rem;
+        box-shadow: inset 0 -4px 4px -1px rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        padding-left: 15px;
+    }
+
+    .button-bulb input:checked ~ .light-bulb {
+        color: #ffffff;
+        border-color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        filter: drop-shadow(0 0 10px rgba(var(--bs-primary-rgb), 0.4));
+    }
+
+    /* --- PHẦN MỚI: LÀM SÁNG DÂY TÓC (SVG) --- */
+    .button-bulb svg {
+        transition: all 0.3s ease;
+    }
+
+    .button-bulb input:checked ~ .light-bulb svg {
+        color: #fff !important;
+        /* Tạo hiệu ứng phát sáng đa lớp cho dây tóc */
+        filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 8px var(--bs-primary)) drop-shadow(0 0 15px var(--bs-primary)) !important;
+    }
+
+/* Chữ bên trong bóng đèn */
+.text-light-bulb {
+    user-select: none;
+    pointer-events: none;
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 0;
+}
+
+.button-bulb input:checked ~ .light-bulb .text-light-bulb {
+    text-shadow: 0 0 2px #ffbd44;
+}
+
+/* Vầng sáng tỏa ra */
+.button-bulb .text-light-bulb::after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    height: 80px;
+    width: 160px;
+    background-image: linear-gradient(to top, var(--bs-primary), transparent, transparent, var(--bs-primary));
+    border-radius: 0 50% 50% 0;
+    z-index: -1;
+    filter: blur(25px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.button-bulb input:checked ~ .light-bulb .text-light-bulb::after {
+    opacity: 0.5;
+    visibility: visible;
+    animation: light-pulse 2s linear infinite;
+}
+
+@keyframes light-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.6;
+    }
+}
+
+/* =========================================
+   7. GIAO DIỆN QUẢN TRỊ (ADMIN SIDEBAR)
+   ========================================= */
+#sidebar-wrapper {
+    background-color: var(--bs-card-bg);
+    border-right: 1px solid var(--bs-border-color);
+    padding: 1.5rem 1rem;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+}
+
+/* Tiêu đề nhóm chức năng */
+.sidebar-group-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--bs-text-muted);
+    letter-spacing: 1px;
+    margin: 1.5rem 0 0.5rem 0.5rem;
+    opacity: 0.8;
+}
+
+/* Khối bao bọc các menu (Tạo sự tách biệt) */
+.sidebar-group-container {
+    background-color: rgba(var(--bs-primary-rgb), 0.02);
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.1);
+    border-radius: var(--border-radius-md);
+    padding: 6px;
+    margin-bottom: 1rem;
+}
+
+/* Từng dòng Menu */
+#sidebar-wrapper .list-group-item {
+    background-color: transparent;
+    border: none;
+    border-radius: var(--border-radius-sm) !important;
+    margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--bs-body-color);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+    /* Hiệu ứng rê chuột (Hover) */
+    #sidebar-wrapper .list-group-item:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.08);
+        color: var(--bs-primary);
+        transform: translateX(4px); /* Nhích nhẹ sang phải */
+    }
+
+    /* Hiệu ứng khi đang ở trang đó (Active) */
+    #sidebar-wrapper .list-group-item.active {
+        background-color: var(--bs-primary) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.3);
+        transform: translateY(-1px);
+    }
+
+    /* Chỉnh icon trong Menu */
+    #sidebar-wrapper .list-group-item i {
+        font-size: 1.1rem;
+        transition: transform 0.2s ease;
+    }
+
+    #sidebar-wrapper .list-group-item:hover i {
+        transform: scale(1.15); /* Phóng to nhẹ icon khi hover */
+    }
+
+/* Tinh chỉnh cho Dark Mode */
+[data-theme="dark"] .sidebar-group-container,
+[data-bs-theme="dark"] .sidebar-group-container {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+
+.card-exam {
+    /* Chế độ Sáng: Dùng viền trong suốt để giữ khung, nhìn giống border-0 */
+    border: 1px solid transparent !important;
+    transition: all 0.3s ease;
+}
+
+/* Chế độ Tối: Kích hoạt viền dùng biến màu có sẵn của hệ thống */
+[data-theme="dark"] .card-exam,
+[data-bs-theme="dark"] .card-exam {
+    border: 1px solid var(--bs-border-color) !important;
+    background-color: var(--bs-card-bg) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important; /* Đổ bóng đậm hơn chút để thẻ nổi bật */
 }

@@ -24,20 +24,50 @@ namespace ExamSystem.Web.Areas.Student.Controllers
         }
 
         // --- 1. Xem danh sách kết quả ---
-        // URL: /student/test-results
-        public async Task<IActionResult> Index()
+        // GET: /student/test-results
+        public async Task<IActionResult> Index(int? statusFilter, int? daysFilter, string scoreSort)
         {
-            // 1. Lấy ID người dùng hiện tại
             var userId = _userManager.GetUserId(User);
+           
+            var query = _context.TestAttempts
+                .Include(ta => ta.Exam)
+                .Where(ta => ta.UserId == userId);
 
-            // 2. Lấy danh sách LƯỢT THI (TestAttempt) thay vì TestResult
-            var attempts = await _context.TestAttempts
-                .Include(ta => ta.Exam) // Để lấy tên đề thi
-                .Where(ta => ta.UserId == userId)
-                .OrderByDescending(ta => ta.SubmitTime)
-                .ToListAsync();
+            // 2. Lọc theo trạng thái (2: Hoàn thành, 1: Chờ chấm)
+            if (statusFilter.HasValue)
+            {
+                if (statusFilter.Value == 2)
+                    query = query.Where(ta => ta.Status == 2);
+                else
+                    query = query.Where(ta => ta.Status != 2);
+            }
 
-            // 3. Gửi 'attempts' (kiểu List<TestAttempt>) sang View
+            // 3. Lọc theo số ngày gần nhất
+            if (daysFilter.HasValue)
+            {
+                var targetDate = DateTime.Now.AddDays(-daysFilter.Value);
+                query = query.Where(ta => ta.StartTime >= targetDate);
+            }
+
+            // 4. Sắp xếp theo điểm số hoặc thời gian
+            if (!string.IsNullOrEmpty(scoreSort))
+            {
+                if (scoreSort == "desc")
+                    query = query.OrderByDescending(ta => ta.Score); // Cao đến thấp
+                else if (scoreSort == "asc")
+                    query = query.OrderBy(ta => ta.Score); // Thấp đến cao
+            }
+            else
+            {               
+                query = query.OrderByDescending(ta => ta.SubmitTime);
+            }
+
+            // 5. Lưu trạng thái bộ lọc để hiển thị lại trên View
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.DaysFilter = daysFilter;
+            ViewBag.ScoreSort = scoreSort;
+
+            var attempts = await query.ToListAsync();
             return View(attempts);
         }
 

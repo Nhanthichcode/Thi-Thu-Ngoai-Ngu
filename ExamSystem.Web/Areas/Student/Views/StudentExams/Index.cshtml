@@ -1,6 +1,8 @@
 ﻿@model IEnumerable<ExamSystem.Core.Entities.Exam>
 @{
     ViewData["Title"] = "Danh sách Đề thi";
+    // Lấy danh sách ID các đề đã làm từ Controller
+    var completedIds = ViewBag.CompletedExamIds as List<int> ?? new List<int>();
 }
 
 <div class="page-header-area px-3 py-5 px-lg-4">
@@ -13,11 +15,61 @@
 </div>
 
 <div class="container pb-5">
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" name="searchName" value="@ViewBag.SearchName" class="form-control border-start-0 rounded-end-pill" placeholder="Nhập tên đề thi cần tìm...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="durationRange" class="form-select rounded-pill">
+                            <option value="">thời lượng</option>
+                            <option value="30" selected="@(ViewBag.DurationRange == "30")">Dưới 30 phút</option>
+                            <option value="60" selected="@(ViewBag.DurationRange == "60")">Từ 30 đến 60 phút</option>
+                            <option value="90" selected="@(ViewBag.DurationRange == "90")">Từ 60 đến 90 phút</option>
+                            <option value="120" selected="@(ViewBag.DurationRange == "120")">Từ 90 đến 120 phút</option>
+                            <option value="120plus" selected="@(ViewBag.DurationRange == "120plus")">Trên 120 phút</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill w-100 shadow-sm">
+                            Lọc kết quả
+                        </button>
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchName) || !string.IsNullOrEmpty(ViewBag.DurationRange))
+                        {
+                            <a asp-action="Index" class="btn btn-light border rounded-pill text-muted" title="Xóa bộ lọc">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row">
         @foreach (var item in Model)
         {
+            // Kiểm tra xem đề thi này đã được làm chưa
+            bool isCompleted = completedIds.Contains(item.Id);
+
             <div class="col-md-4 mb-4">
-                <div class="card h-100 border-0 shadow-sm hover-up">
+                <div class="card h-100 shadow-sm hover-up position-relative card-exam">
+
+                    @if (isCompleted)
+                    {
+                        <span class="badge bg-success position-absolute shadow-sm" style="top: -10px; right: -10px; font-size: 0.85rem; padding: 8px 12px; border-radius: 20px;">
+                            <i class="bi bi-check-circle-fill me-1"></i> Đã làm
+                        </span>
+                    }
+
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <h5 class="fw-bold m-0" style="color: var(--bs-body-color);">@item.Title</h5>
@@ -35,8 +87,8 @@
                                 <i class="bi bi-layers-fill me-1"></i> @item.ExamParts.Count phần thi
                             </span>
 
-                            <a asp-action="Take" asp-route-id="@item.Id" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                                Bắt đầu <i class="bi bi-arrow-right-short"></i>
+                            <a asp-action="Take" asp-route-id="@item.Id" class="btn @(isCompleted ? "btn-outline-success" : "btn-primary") rounded-pill px-4 shadow-sm">
+                                @(isCompleted ? "Làm lại" : "Bắt đầu") <i class="bi @(isCompleted ? "bi-arrow-clockwise" : "bi-arrow-right-short")"></i>
                             </a>
                         </div>
                     </div>
@@ -47,8 +99,9 @@
         @if (!Model.Any())
         {
             <div class="col-12 text-center py-5">
-                <i class="bi bi-inbox text-muted opacity-25" style="font-size: 5rem;"></i>
-                <h5 class="text-muted fw-bold">Hiện chưa có đề thi nào được mở</h5>
+                <i class="bi bi-search text-muted opacity-25" style="font-size: 5rem;"></i>
+                <h5 class="text-muted fw-bold mt-3">Không tìm thấy đề thi nào phù hợp</h5>
+                <p class="text-muted small">Hãy thử thay đổi điều kiện lọc hoặc xóa bộ lọc để xem toàn bộ danh sách.</p>
             </div>
         }
     </div>

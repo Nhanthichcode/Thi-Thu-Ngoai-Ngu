@@ -1,8 +1,8 @@
 ﻿using ExamSystem.Core.Entities;
-using ExamSystem.Core.Enums;
 using ExamSystem.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 
 namespace ExamSystem.Web.Areas.Admin.Controllers
@@ -22,7 +22,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var items = await _context.ExamStructures
-                .Include(s => s.Parts) // Đếm số lượng part
+                .Include(s => s.Parts)
                 .ToListAsync();
             return View(items);
         }
@@ -35,20 +35,25 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                // KIỂM TRA: Tên cấu trúc đã tồn tại chưa?
                 bool exists = await _context.ExamStructures.AnyAsync(s => s.Name == model.Name);
                 if (exists)
                 {
-                    ModelState.AddModelError("Name", "Tên cấu trúc này đã tồn tại. Vui lòng chọn tên khác.");
-                    return View(model);
+                    TempData["ErrorMessage"] = "Tên cấu trúc này đã tồn tại.";
+                    return RedirectToAction(nameof(Index));
                 }
 
+             
                 _context.ExamStructures.Add(model);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Edit), new { id = model.Id });
+
+                TempData["SuccessMessage"] = "Đã tạo cấu trúc " + model.Name;
+              
+                return RedirectToAction("Edit", new { id = model.Id });
             }
-            return View(model);
-        }    
+
+            TempData["ErrorMessage"] = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại!";
+            return RedirectToAction(nameof(Index));
+        }
 
         // 2. EDIT (Sửa cấu trúc) - Thêm thông báo lỗi/thành công qua TempData
         public async Task<IActionResult> Edit(int? id)
@@ -85,10 +90,10 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
                 var existing = await _context.ExamStructures.FindAsync(id);
                 existing.Name = model.Name;
-                existing.Description = model.Description ?? "";
+                existing.Description = model.Description ?? "Không có";
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Cập nhật thông tin thành công!";
+                TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
                 return RedirectToAction(nameof(Index));
             }
             return View(model);
@@ -197,7 +202,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 int structureId = part.ExamStructureId;
                 _context.StructureParts.Remove(part);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Đã xóa phần thi.";
+                TempData["SuccessMessage"] = "Đã xóa phần thi.";
                 return RedirectToAction(nameof(Edit), new { id = structureId });
             }
             return RedirectToAction(nameof(Index));
@@ -205,7 +210,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
-        {          
+        {
             var examStructure = await _context.ExamStructures
                 .Include(e => e.Parts)
                 .FirstOrDefaultAsync(m => m.Id == id);
@@ -247,25 +252,29 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 case ExamSystem.Core.Enums.ExamSkill.Listening:
                     newParts.Add(new StructurePart { Name = "Listening Part 1: ", Description = "", SkillType = skill });
                     newParts.Add(new StructurePart { Name = "Listening Part 2: ", Description = "", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Listening Part 3: ", Description = "", SkillType = skill });
-                    newParts.Add(new StructurePart { Name = "Listening Part 4: ", Description = "", SkillType = skill });
+                    newParts.Add(new StructurePart { Name = "Listening Part 3: ", Description = "", SkillType = skill });                   
+                    TempData["SuccessMessage"] = "Đã thêm 4 phần thi";
                     break;
 
                 case ExamSystem.Core.Enums.ExamSkill.Reading:
+                    newParts.Add(new StructurePart { Name = "Reading Part 4: ", Description = "", SkillType = skill });
                     newParts.Add(new StructurePart { Name = "Reading Part 5: ", Description = "", SkillType = skill });
                     newParts.Add(new StructurePart { Name = "Reading Part 6: ", Description = "", SkillType = skill });
                     newParts.Add(new StructurePart { Name = "Reading Part 7: ", Description = "", SkillType = skill });
+                    TempData["SuccessMessage"] = "Đã thêm 4 phần thi"; 
                     break;
 
                 case ExamSystem.Core.Enums.ExamSkill.Writing:
                     newParts.Add(new StructurePart { Name = "Writing Task 1", Description = "", SkillType = skill });
                     newParts.Add(new StructurePart { Name = "Writing Task 2", Description = "", SkillType = skill });
+                    TempData["SuccessMessage"] = "Đã thêm 4 phần thi"; 
                     break;
 
                 case ExamSystem.Core.Enums.ExamSkill.Speaking:
                     newParts.Add(new StructurePart { Name = "Speaking Part 1", Description = "", SkillType = skill });
                     newParts.Add(new StructurePart { Name = "Speaking Part 2", Description = "", SkillType = skill });
                     newParts.Add(new StructurePart { Name = "Speaking Part 3", Description = "", SkillType = skill });
+                    TempData["SuccessMessage"] = "Đã thêm 4 phần thi"; 
                     break;
 
                 default:
@@ -302,9 +311,8 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             }
 
             _context.StructureParts.RemoveRange(partsToDelete);
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true, message="Xóa các phần thi thành công"});
+            await _context.SaveChangesAsync();           
+            return Json(new { success = true, message = "Đã xóa thành công" });
         }
 
     }

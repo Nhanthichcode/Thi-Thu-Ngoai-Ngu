@@ -86,21 +86,16 @@
                                     <div class="text-muted small fst-italic text-truncate" style="max-width: 250px;">
                                         @(string.IsNullOrEmpty(item.Transcript) ? "(Chưa có Transcript)" : item.Transcript)
                                     </div>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                      
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Sửa thông tin file">
-                                            <i class="bi bi-gear"></i> Sửa đề
-                                        </a>
+                                </td>                              
+                                <td class="text-end pe-4">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1" title="Sửa thông tin file">
+                                        <i class="bi bi-pencil-square"></i> Sửa đề
+                                    </a>
 
-                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
-                                              onsubmit="return confirm('CẢNH BÁO: Xóa bài nghe \n- @item.Title\n\nSẽ xóa toàn bộ câu hỏi đi kèm. Bạn có chắc chắn không?');">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger border-start-0 rounded-0 rounded-end">
-                                                <i class="bi bi-trash"></i> Xóa
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold"
+                                            onclick="confirmDelete(@item.Id, '@item.Title', 'ListeningResources')">
+                                        <i class="bi bi-trash3"></i> Xóa
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -122,7 +117,7 @@
 </div>
 <div id="bulkActionContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow-lg rounded-pill bg-white px-4 py-3 d-flex align-items-center gap-3 d-none" style="z-index: 1050; border: 2px solid var(--bs-primary, #f47b25);">
     <span class="fw-bold text-dark"><i class="bi bi-check2-square text-success me-2 fs-5"></i> Đã chọn <span id="selectedCount" class="text-primary fs-5 mx-1">0</span> bài nghe</span>
-    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultipleLisening()">
+    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultiple('bài nghe', '/Admin/ListeningResources/DeleteMultiple')">
         <i class="bi bi-trash3-fill me-1"></i> Xóa tất cả
     </button>
 </div>

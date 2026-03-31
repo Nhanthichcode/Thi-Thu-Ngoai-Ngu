@@ -11,10 +11,53 @@
         </h3>
     </div>
 
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <form method="get" asp-action="Index" id="filterForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <select name="statusFilter" class="form-select rounded-pill" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">-- Tất cả trạng thái --</option>
+                            <option value="2" selected="@(ViewBag.StatusFilter == 2)">Hoàn thành (Đã có điểm)</option>
+                            <option value="1" selected="@(ViewBag.StatusFilter == 1)">Chờ chấm điểm</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select name="daysFilter" class="form-select rounded-pill" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">-- Mọi thời điểm --</option>
+                            <option value="3" selected="@(ViewBag.DaysFilter == 3)">Trong 3 ngày qua</option>
+                            <option value="5" selected="@(ViewBag.DaysFilter == 5)">Trong 5 ngày qua</option>
+                            <option value="7" selected="@(ViewBag.DaysFilter == 7)">Trong 7 ngày qua</option>
+                            <option value="21" selected="@(ViewBag.DaysFilter == 21)">Trong 21 ngày qua</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select name="scoreSort" class="form-select rounded-pill" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">-- Sắp xếp Mặc định --</option>
+                            <option value="desc" selected="@(ViewBag.ScoreSort == "desc")">Điểm: Cao đến Thấp</option>
+                            <option value="asc" selected="@(ViewBag.ScoreSort == "asc")">Điểm: Thấp đến Cao</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 d-flex gap-2">
+                        @if (ViewBag.StatusFilter != null || ViewBag.DaysFilter != null || !string.IsNullOrEmpty(ViewBag.ScoreSort))
+                        {
+                            <a asp-action="Index" class="btn btn-light border rounded-pill text-muted w-100 shadow-sm hover-up">
+                                <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc
+                            </a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-         <div class="custom-table-scroll">
-                    <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
-                        <thead class="small">
+        <div class="custom-table-scroll">
+            <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
+                <thead class="small">
                     <tr>
                         <th class="ps-4">Đề thi</th>
                         <th>Ngày thi</th>
@@ -24,32 +67,43 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @if (!Model.Any())
                     {
                         <tr>
-                            <td class="ps-4 text-dark fw-bold">@item.Exam.Title</td>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                                Không tìm thấy kết quả làm bài nào phù hợp.
+                            </td>
+                        </tr>
+                    }
+
+                    @foreach (var item in Model)
+                    {
+                        // Tạo đường dẫn tuyệt đối (chứa cả tên miền) để user có thể copy và gửi đ                       
+
+                        <tr>
+                            <td class="ps-4 text-dark fw-bold">@item.Exam?.Title</td>
                             <td class="text-muted">@item.StartTime.ToString("dd/MM/yyyy HH:mm")</td>
                             <td class="text-center">
-                                <span class="badge bg-primary-soft text-primary fs-6 rounded-pill px-3">@item.Score</span>
+                                <span class="badge bg-primary-soft text-primary fs-6 rounded-pill px-3 shadow-sm">@item.Score</span>
                             </td>
                             <td class="text-center">
                                 @if (item.Status == 2)
                                 {
-                                    <span class="badge bg-success-soft text-success rounded-pill px-3">Hoàn thành</span>
+                                    <span class="badge bg-success-soft text-success rounded-pill px-3 border border-success border-opacity-25">Hoàn thành</span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-warning-soft text-warning rounded-pill px-3">Chờ chấm</span>
+                                    <span class="badge bg-warning-soft text-warning rounded-pill px-3 border border-warning border-opacity-25">Chờ chấm</span>
                                 }
                             </td>
                             <td class="text-end pe-4">
-                                <a asp-controller="StudentExams" asp-action="Result" asp-route-attemptId="@item.Id" 
-                                   class="btn btn-sm btn-outline-primary rounded-pill">
-                                    <i class="bi bi-eye-fill me-1"></i> Xem chi tiết
-                                </a>
-                                @* <a asp-controller="StudentExams" asp-action="Result" asp-route-attemptId="@item.Id" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye-fill"></i> Xem chi tiết
-                                </a>  *@
+                                <div class="d-flex justify-content-end gap-2">                                    
+                                    <a asp-controller="StudentExams" asp-action="Result" asp-route-attemptId="@item.Id"
+                                       class="btn btn-sm btn-outline-primary rounded-pill hover-up">
+                                        <i class="bi bi-eye-fill me-1"></i> Xem chi tiết
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -58,3 +112,29 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Hàm copy link vào Clipboard
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(function () {
+                // Lưu lại nội dung cũ của nút
+                var originalHtml = btnElement.innerHTML;
+
+                // Đổi giao diện nút thành "Đã copy"
+                btnElement.innerHTML = '<i class="bi bi-check2"></i> Đã copy';
+                btnElement.classList.replace('btn-light', 'btn-success');
+                btnElement.classList.add('text-white', 'border-success');
+
+                // Trả lại giao diện cũ sau 2 giây
+                setTimeout(function () {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.classList.replace('btn-success', 'btn-light');
+                    btnElement.classList.remove('text-white', 'border-success');
+                }, 2000);
+            }).catch(function (err) {
+                alert("Không thể copy link. Lỗi: " + err);
+            });
+        }
+    </script>
+}
