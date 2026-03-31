@@ -25,18 +25,57 @@ namespace ExamSystem.Web.Areas.Student.Controllers
             _userManager = userManager; // <--- Gán giá trị
         }
 
-        // GET: /Test/Index
-        public async Task<IActionResult> Index()
+        // GET: /Test/Index       
+        public async Task<IActionResult> Index(string searchName, string durationRange)
         {
-            // Lấy danh sách đề thi (Có thể thêm điều kiện .Where(e => e.IsPublished) nếu có)
-            var exams = await _context.Exams
-                .Include(e => e.ExamParts) // Include để đếm số phần thi
-               .Where(e => e.IsActive == true)
-                .OrderByDescending(e => e.Id)
-                .ToListAsync();
+            // 1. Khởi tạo câu truy vấn cơ bản
+            var query = _context.Exams
+                .Include(e => e.ExamParts)
+                .Where(e => e.IsActive == true);
+
+            // 2. Lọc theo tên đề thi (nếu có)
+            if (!string.IsNullOrEmpty(searchName))
+            {
+                query = query.Where(e => e.Title.Contains(searchName));
+            }
+
+            // 3. Lọc theo khoảng thời gian (nếu có)
+            if (!string.IsNullOrEmpty(durationRange))
+            {
+                switch (durationRange)
+                {
+                    case "30": query = query.Where(e => e.DurationMinutes <= 30); break;
+                    case "60": query = query.Where(e => e.DurationMinutes > 30 && e.DurationMinutes <= 60); break;
+                    case "90": query = query.Where(e => e.DurationMinutes > 60 && e.DurationMinutes <= 90); break;
+                    case "120": query = query.Where(e => e.DurationMinutes > 90 && e.DurationMinutes <= 120); break;
+                    case "120plus": query = query.Where(e => e.DurationMinutes > 120); break;
+                }
+            }
+
+            // Lấy danh sách đề thi sau khi lọc
+            var exams = await query.OrderByDescending(e => e.Id).ToListAsync();
+
+            // 4. Lấy danh sách ID các đề thi mà User này đã từng làm
+            var userId = _userManager.GetUserId(User);
+            List<int> completedExamIds = new List<int>();
+
+            if (!string.IsNullOrEmpty(userId))
+            {
+                completedExamIds = await _context.TestAttempts
+                    .Where(ta => ta.UserId == userId)
+                    .Select(ta => ta.ExamId)
+                    .Distinct()
+                    .ToListAsync();
+            }
+
+            // Gửi dữ liệu filter và danh sách đề đã làm sang View
+            ViewBag.SearchName = searchName;
+            ViewBag.DurationRange = durationRange;
+            ViewBag.CompletedExamIds = completedExamIds;
 
             return View(exams);
         }
+
         public async Task<IActionResult> Take(int id)
         {
             var exam = await _context.Exams
