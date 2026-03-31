@@ -22,7 +22,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var items = await _context.ExamStructures
-                .Include(s => s.Parts) // Đếm số lượng part
+                .Include(s => s.Parts)
                 .ToListAsync();
             return View(items);
         }

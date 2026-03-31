@@ -187,7 +187,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             if (user != null)
             {
                 await _userManager.DeleteAsync(user);
-                TempData["SuccessMessage"] = "Đã xóa người dùng.";
+                TempData["SuccessMessage"] = "Đã xóa người dùng "+user.FullName??""+" thành công";
             }
             return RedirectToAction(nameof(Index));
         }

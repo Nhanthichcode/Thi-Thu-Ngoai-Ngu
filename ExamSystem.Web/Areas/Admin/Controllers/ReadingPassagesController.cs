@@ -62,20 +62,14 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             }
             return View(readingPassage);
         }
-
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-            var item = await _context.ReadingPassages.FirstOrDefaultAsync(m => m.Id == id);
-            return item == null ? NotFound() : View(item);
-        }
+        
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var item = await _context.ReadingPassages.FindAsync(id);
-            if (item != null) { TempData["SuccessMessage"] = "Đã xóa bài đọc thành công."; } else { TempData["ErrorMessage"] = "Bài đọc không tồn tại"; }
+            if (item != null) { TempData["SuccessMessage"] = "Đã xóa bài đọc "+item.Title+" thành công."; } else { TempData["ErrorMessage"] = "Bài đọc không tồn tại"; }
             _context.ReadingPassages.Remove(item);
 
             await _context.SaveChangesAsync();

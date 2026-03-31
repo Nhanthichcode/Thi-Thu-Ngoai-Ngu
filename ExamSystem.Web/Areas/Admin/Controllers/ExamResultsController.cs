@@ -81,8 +81,58 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             _context.TestAttempts.Remove(examResult);
             await _context.SaveChangesAsync();
 
-            // Trả về mã thành công 200 OK cho AJAX
-            return Ok();
+
+            TempData["SuccessMessage"] = "Đã xóa bài thi thành công";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteMultiple([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any())
+            {
+                return Json(new { success = false, message = "Không có bài nộp nào được chọn." });
+            }
+
+            // Bật Transaction để đảm bảo an toàn (nếu lỗi giữa chừng thì sẽ hoàn tác)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Tìm tất cả các KẾT QUẢ BÀI THI có ID nằm trong danh sách được chọn
+                    var attemptsToDelete = await _context.TestAttempts
+                        .Where(t => ids.Contains(t.Id))
+                        .ToListAsync();
+
+                    if (!attemptsToDelete.Any())
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy dữ liệu để xóa." });
+                    }
+
+                    int count = attemptsToDelete.Count;
+
+                    // Xóa hàng loạt một lần duy nhất (Nhanh và tối ưu hơn dùng foreach)
+                    _context.TestAttempts.RemoveRange(attemptsToDelete);
+                    await _context.SaveChangesAsync();
+
+                    // Xác nhận hoàn tất
+                    await transaction.CommitAsync();
+
+                    // Setup TempData để khi JS gọi reload trang sẽ hiện thông báo thành công
+                    TempData["SuccessMessage"] = $"Đã xóa thành công {count} bài nộp của thí sinh!";
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = $"Đã xóa thành công {count} bài nộp!"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return Json(new { success = false, message = "Lỗi hệ thống khi xóa: " + ex.Message });
+                }
+            }
         }
 
         // Trang chi tiết để giáo viên xem file và chấm điểm

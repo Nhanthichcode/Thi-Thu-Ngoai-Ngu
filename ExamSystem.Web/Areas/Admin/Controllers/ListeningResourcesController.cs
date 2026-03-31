@@ -130,18 +130,17 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             return "/uploads/audio/" + fileName;
         }
 
-        // DELETE (Giữ nguyên như cũ)
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-            var item = await _context.ListeningResources.FirstOrDefaultAsync(m => m.Id == id);
-            return item == null ? NotFound() : View(item);
-        }
+        //// DELETE (Giữ nguyên như cũ)
+        //public async Task<IActionResult> Delete(int? id)
+        //{
+        //    if (id == null) return NotFound();
+        //    var item = await _context.ListeningResources.FirstOrDefaultAsync(m => m.Id == id);
+        //    return item == null ? NotFound() : View(item);
+        //}
 
         // POST: ListeningResources/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [HttpPost]       
+        public async Task<IActionResult> Delete(int id)
         {
             // 1. Tìm bản ghi trong Database
             var listeningResource = await _context.ListeningResources.FindAsync(id);
@@ -161,7 +160,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                         System.IO.File.Delete(filePath);
                     }
 
-                    TempData["SuccessMessage"] = "Đã xóa file âm thanh thành công.";
+                    TempData["SuccessMessage"] = "Đã xóa file "+listeningResource.Title+" thành công.";
                 }
                 else { TempData["ErrorMessage"] = "File âm thanh không tồn tại"; }
                 // 3. Xóa bản ghi trong Database
