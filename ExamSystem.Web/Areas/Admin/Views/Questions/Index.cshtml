@@ -149,34 +149,7 @@
                         </div>
                         <span class="badge bg-light text-muted border rounded-pill ms-3 px-3 py-2 shadow-sm">@group.QuestionCount câu</span>
                     </div>
-                    </div>
-
-                    @* <div class="d-flex gap-2 ms-3">
-                        @{
-                            string actionName = (group.GroupType == "Reading" || group.GroupType == "Listening") ? "BatchEdit" : "Edit";
-                            object routeId = (group.GroupType == "Reading" || group.GroupType == "Listening") ? group.GroupId : group.Questions.FirstOrDefault()?.Id;
-                            string controllerName = "Questions";
-                        }
-
-                        @if (routeId != null)
-                        {
-                            <a asp-controller="@controllerName" asp-action="@actionName" asp-route-id="@routeId" asp-route-type="@group.GroupType"
-                               class="btn btn-sm btn-outline-secondary text-primary rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;" title="Sửa">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-
-                            @if (group.GroupType == "Reading") { controllerName = "ReadingPassages"; routeId = group.GroupId; }
-                            else if (group.GroupType == "Listening") { controllerName = "ListeningResources"; routeId = group.GroupId; }
-                            else { controllerName = "Questions"; routeId = group.Questions.FirstOrDefault()?.Id; }
-
-                            <a href="@Url.Action("Delete", controllerName, new { id = routeId })"
-                               class="btn btn-sm btn-outline-secondary text-danger rounded-circle shadow-sm hover-up" style="width:32px; height:32px; line-height:20px;"
-                               title="Xóa"
-                               onclick="return confirmDelete(event, this.href, '@group.GroupTitle');">
-                                <i class="bi bi-trash3-fill"></i>
-                            </a>
-                        }
-                    </div> *@
+                    </div>                  
 
                     <div class="d-flex gap-2 ms-3">
                         @{

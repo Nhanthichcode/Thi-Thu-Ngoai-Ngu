@@ -166,13 +166,11 @@
                                             </button>
                                         </form>
 
-                                        <form id="delete-form-@user.Id" asp-action="Delete" asp-route-id="@user.Id" method="post" class="m-0 p-0 d-inline-block">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary text-danger rounded-circle shadow-sm hover-up border"
-                                                    style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
-                                                    title="Xóa tài khoản" onclick="confirmDelete('@user.Id', '@user.FullName')">
-                                                <i class="bi bi-trash3-fill fs-6"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm hover-up border"
+                                                style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;"
+                                                onclick="confirmDelete('@user.Id', '@user.FullName', 'Users')" title="Xóa">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -187,7 +185,7 @@
 <!-- THANH CÔNG CỤ XÓA HÀNG LOẠT (ẨN MẶC ĐỊNH) -->
 <div id="bulkActionContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow-lg rounded-pill bg-white px-4 py-3 d-flex align-items-center gap-3 d-none" style="z-index: 1050; border: 2px solid var(--bs-primary, #f47b25);">
     <span class="fw-bold text-dark"><i class="bi bi-check2-square text-success me-2 fs-5"></i> Đã chọn <span id="selectedCount" class="text-primary fs-5 mx-1">0</span> tài khoản</span>
-    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultiple()">
+    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultiple('tài khoản', '/Admin/Users/DeleteMultiple')">
         <i class="bi bi-trash3-fill me-1"></i> Xóa tất cả
-    </button>
+    </button>  
 </div>
