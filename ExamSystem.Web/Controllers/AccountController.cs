@@ -250,7 +250,7 @@ public class AccountController : Controller
     // --- PROFILE, ĐỔI MẬT KHẨU & XÓA ẢNH CŨ ---
 
     [HttpGet]
-    [Authorize(Roles = "Student")]
+    [Authorize]
     public async Task<IActionResult> Profile()
     {
         var user = await _userManager.GetUserAsync(User);
@@ -270,7 +270,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "Student")] // Tùy vào thiết kế, bạn có thể chỉ dùng [Authorize] để áp dụng cho mọi Role
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Profile(UserProfileVM model)
     {
@@ -424,8 +424,7 @@ public class AccountController : Controller
         }
 
         try
-        {
-            TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đang được gửi vào Email của bạn.";
+        {          
             // 2. Chạy thẳng vào logic gửi Email luôn, không cần switch case
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action("ResetPassword", "Account",
@@ -471,7 +470,8 @@ public class AccountController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "Lỗi gửi mail: " + ex.Message;
+            TempData.Remove("SuccessMessage");
+            TempData["ErrorMessage"] = "Lỗi ngoại lệ: "+ex.Message;
             return View(model);
         }
 
@@ -526,5 +526,82 @@ public class AccountController : Controller
             ModelState.AddModelError("", error.Description);
 
         return View();
+    }
+
+    [HttpGet]   
+    public async Task<IActionResult> Contact()
+    {     
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Contact(ContactViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        try
+        {
+            // 1. Cấu hình tiêu đề Mail
+            string subject = $"[YÊU CẦU HỖ TRỢ] - {model.Subject}";
+
+            // 2. Xây dựng nội dung Email (Dựa trên template chị gửi)
+            string message = $@"
+            <div style='font-family: Segoe UI, Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);'>
+                <div style='background: linear-gradient(135deg, #f47b25 0%, #d85c0b 100%); padding: 25px; text-align: center;'>
+                    <h1 style='color: white; margin: 0; font-size: 22px;'>Hô Trợ Khách Hàng</h1>
+                    <p style='color: rgba(255,255,255,0.8); margin: 5px 0 0 0; font-size: 13px;'>Thông báo có yêu cầu hỗ trợ mới từ Website</p>
+                </div>
+
+                <div style='padding: 35px; background-color: #ffffff;'>
+                    <h2 style='color: #334155; margin-top: 0; font-size: 18px; border-bottom: 2px solid #f47b25; padding-bottom: 10px; display: inline-block;'>Thông tin khách hàng</h2>
+                    
+                    <table style='width: 100%; border-collapse: collapse; margin-top: 20px;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #94a3b8; width: 30%; font-size: 14px;'>Họ và tên:</td>
+                            <td style='padding: 10px 0; color: #334155; font-weight: bold;'>{model.Name}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #94a3b8; font-size: 14px;'>Email liên hệ:</td>
+                            <td style='padding: 10px 0; color: #f47b25; font-weight: bold;'>{model.Email}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #94a3b8; font-size: 14px;'>Chủ đề:</td>
+                            <td style='padding: 10px 0; color: #334155;'>{model.Subject}</td>
+                        </tr>
+                    </table>
+
+                    <div style='margin-top: 30px; background-color: #f8fafc; border-radius: 8px; padding: 20px;'>
+                        <h3 style='color: #334155; font-size: 15px; margin-top: 0;'>Nội dung lời nhắn:</h3>
+                        <p style='color: #475569; line-height: 1.6; font-size: 15px; font-style: italic; white-space: pre-line;'>
+                            ""{model.Message}""
+                        </p>
+                    </div>
+
+                    <div style='text-align: center; margin-top: 35px;'>
+                        <a href='mailto:{model.Email}' 
+                           style='background-color: #f47b25; color: white; padding: 12px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block;'>
+                            PHẢN HỒI NGAY CHO KHÁCH
+                        </a>
+                    </div>
+                </div>
+
+                <div style='background-color: #f1f5f9; padding: 15px; text-align: center; color: #94a3b8; font-size: 11px;'>
+                    Email này được gửi tự động từ hệ thống hỗ trợ <strong>LinguistAI</strong>.<br>
+                    Thời gian gửi: {DateTime.Now.ToString("HH:mm - dd/MM/yyyy")}
+                </div>
+            </div>";
+
+            // 3. Gửi mail tới support@linguistai.com
+            await _emailSender.SendEmailAsync("support@linguistai.com", subject, message);
+
+            TempData["SuccessMessage"] = "Gửi yêu cầu thành công! Đội ngũ của chúng tôi sẽ phản hồi sớm nhất.";
+            return RedirectToAction(nameof(Contact));
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "Có lỗi xảy ra khi gửi mail: " + ex.Message;
+            return View(model);
+        }
     }
 }
