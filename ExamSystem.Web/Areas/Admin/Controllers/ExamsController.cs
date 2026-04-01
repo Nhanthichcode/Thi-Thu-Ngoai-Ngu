@@ -153,7 +153,8 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             {
                 _context.Exams.Remove(exam);
                 await _context.SaveChangesAsync();
-            }
+                TempData["SuccesMessage"] = "Đã xóa bài thi: " + exam.Title ?? "";
+            }            
             return RedirectToAction(nameof(Index));
         }
 

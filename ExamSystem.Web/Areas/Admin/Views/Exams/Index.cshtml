@@ -45,6 +45,9 @@
                             }
                         </td>
                         <td class="text-end pe-4">
+                            <a asp-action="Manage" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary rounded-pill px-3 me-1">
+                                <i class="bi bi-gear"></i> Quản lý
+                            </a>
                             <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1"
                                     onclick="openEditExamModal(@item.Id, '@item.Title', '@item.Description', @item.DurationMinutes, '@item.StartDate.ToString("yyyy-MM-ddTHH:mm")', '@item.IsActive.ToString().ToLower()')">
                                 <i class="bi bi-pencil-square"></i> Sửa
@@ -52,7 +55,7 @@
                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold"
                                     onclick="openDeleteExamModal(@item.Id, '@item.Title')">
                                 <i class="bi bi-trash3"></i> Xóa
-                            </button>
+                            </button>                            
                         </td>
                     </tr>
                 }
@@ -91,7 +94,7 @@
                         <textarea name="Description" class="form-control rounded-3 border shadow-sm" rows="3"></textarea>
                     </div>
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn text-white fw-bold py-3 rounded-pill shadow-sm" style="background-color: var(--bs-primary, #f47b25);">Tạo & Soạn đề ngay [cite: 92]</button>
+                        <button type="submit" class="btn text-white fw-bold py-3 rounded-pill shadow-sm" style="background-color: var(--bs-primary, #f47b25);">Tạo & Soạn đề ngay</button>
                         <button type="button" class="btn btn-light border fw-bold py-2 rounded-pill" data-bs-dismiss="modal">Hủy bỏ</button>
                     </div>
                 </form>

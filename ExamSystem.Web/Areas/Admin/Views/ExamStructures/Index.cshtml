@@ -52,9 +52,12 @@
         <table class="table mb-0 align-middle table-compact table-sticky-header table-custom-striped border-white">
             <thead class="small">
                 <tr>
+                    <th class="text-center" style="width: 40px;">
+                        <input class="form-check-input checkbox-xl shadow-sm" type="checkbox" id="checkAll_Users">
+                    </th>
                     <th class="ps-4">Tên Cấu trúc</th>
                     <th>Mô tả</th>
-                    <th class="text-center">Số phần thi</th>
+                    <th class="text-center" style="width:140px">Số phần thi</th>
                     <th class="text-end pe-4">Thao tác</th>
                 </tr>
             </thead>
@@ -62,6 +65,9 @@
                 @foreach (var item in Model)
                 {
                     <tr>
+                        <td class="text-center">
+                            <input class="form-check-input user-checkbox checkbox-xl shadow-sm" type="checkbox" value="@item.Id">
+                        </td>
                         <td class="ps-4 fw-bold text-dark">@item.Name</td>
                         <td class="text-secondary small">@item.Description</td>
                         <td class="text-center">
@@ -120,6 +126,12 @@
         </div>
     </div>
 </div>
+<div id="bulkActionContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow-lg rounded-pill bg-white px-4 py-3 d-flex align-items-center gap-3 d-none" style="z-index: 1050; border: 2px solid var(--bs-primary, #f47b25);">
+    <span class="fw-bold text-dark"><i class="bi bi-check2-square text-success me-2 fs-5"></i> Đã chọn <span id="selectedCount" class="text-primary fs-5 mx-1">0</span> bài nghe</span>
+    <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultiple('cấu trúc đề', '/Admin/ExamStructures/DeleteMultiple')">
+        <i class="bi bi-trash3-fill me-1"></i> Xóa tất cả
+    </button>
+</div>
 @section Scripts {
-    <script src="~/js/examStructures.js"></script>
+    <script src="~/js/examStructures.js" asp-append-version="true"></script>
 }

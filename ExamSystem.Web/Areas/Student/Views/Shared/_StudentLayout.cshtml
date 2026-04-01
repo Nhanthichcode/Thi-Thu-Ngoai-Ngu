@@ -3,8 +3,9 @@
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
 
-@{
-    string currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+@{    
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
 }
 
 <!DOCTYPE html>
@@ -53,23 +54,25 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="studentNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-nav-links">
                         <li class="nav-item">
                             <a class="nav-link text-dark @(currentController == "StudentExams" ? "active" : "")"
                                asp-area="Student" asp-controller="StudentExams" asp-action="Index">
                                 <i class="bi bi-grid-fill me-1"></i> Danh sách đề thi
                             </a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark @(currentController == "StudentExamsResults" ? "active" : "")"
                                asp-area="Student" asp-controller="StudentExamsResults" asp-action="Index">
                                 <i class="bi bi-journal-bookmark-fill me-1"></i> Lịch sử & Kết quả
                             </a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark @(currentController == "Account" ? "active" : "")"
-                                asp-area="" asp-controller="Account" asp-action="Contact">
-                                <i class="bi bi-envelope-at-fill  me-1"></i>Liên hệ
+                               asp-area="" asp-controller="Account" asp-action="Contact">
+                                <i class="bi bi-envelope-at-fill me-1"></i> Liên hệ
                             </a>
                         </li>
                     </ul>
