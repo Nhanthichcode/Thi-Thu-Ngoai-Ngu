@@ -191,20 +191,17 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAvailableQuestions(int examId, string type, int? skillType)
         {
-            // 1. LẤY DANH SÁCH ID CÂU HỎI ĐÃ CÓ TRONG ĐỀ (Để đánh dấu IsSelected)
-            var usedQuestionIds = await _context.ExamQuestions
+                     var usedQuestionIds = await _context.ExamQuestions
                 .Where(eq => eq.ExamPart.ExamId == examId)
                 .Select(eq => eq.QuestionId)
                 .ToListAsync();
 
-            // 2. XỬ LÝ THEO TỪNG LOẠI
-            if (type == "Independent") // A. CÂU HỎI LẺ (Writing, Speaking, Grammar, hoặc câu lẻ Reading/Listening)
+            // 2. Xử lý theo từng loại
+            if (type == "Independent") // Câu hỏi lẻ (Writing, Speaking, Grammar)
             {
-                // Bước 1: Lấy tất cả câu hỏi "mồ côi" (không thuộc bài đọc/nghe nào)
                 var query = _context.Questions.AsNoTracking()
                     .Where(q => q.ReadingPassageId == null && q.ListeningResourceId == null);
 
-                // Bước 2: LỌC NGHIÊM NGẶT THEO KỸ NĂNG (Đây là phần sửa lỗi)
                 if (skillType.HasValue)
                 {
                     var skillEnum = (ExamSkill)skillType.Value;
@@ -215,34 +212,33 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     .Select(q => new
                     {
                         q.Id,
-                        // Cắt ngắn nội dung để hiển thị gọn
                         Content = q.Content.Length > 100 ? q.Content.Substring(0, 100) + "..." : q.Content,
                         Skill = q.SkillType.ToString(),
                         q.Level,
-                        // Đánh dấu nếu đã có trong đề
                         IsSelected = usedQuestionIds.Contains(q.Id)
                     })
                     .ToListAsync();
 
                 return Json(data);
             }
-            else if (type == "Reading") // B. BÀI ĐỌC (PASSAGE)
+            else if (type == "Reading") // Bài đọc (Passage)
             {
                 var data = await _context.ReadingPassages.AsNoTracking()
+                    .Where(p => p.Questions.Any()) // QUAN TRỌNG: Chỉ lấy bài đã có câu hỏi trong ngân hàng
                     .Select(p => new
                     {
                         p.Id,
                         p.Title,
-                        QuestionCount = p.Questions.Count,
-                        // Nếu bất kỳ câu nào của bài này đã có trong đề -> Đánh dấu đã chọn
+                        QuestionCount = p.Questions.Count,                       
                         IsSelected = p.Questions.Any(q => usedQuestionIds.Contains(q.Id))
                     })
                     .ToListAsync();
                 return Json(data);
             }
-            else if (type == "Listening") // C. BÀI NGHE (RESOURCE)
+            else if (type == "Listening") // Bài nghe (Resource)
             {
                 var data = await _context.ListeningResources.AsNoTracking()
+                    .Where(r => r.Questions.Any()) // QUAN TRỌNG: Lọc bỏ các bài nghe "trống"
                     .Select(r => new
                     {
                         r.Id,
@@ -256,6 +252,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
             return BadRequest();
         }
+
         // POST: Add Single Question
         [HttpPost]
         public async Task<IActionResult> AddSingleQuestion(int examPartId, int questionId, float score)
