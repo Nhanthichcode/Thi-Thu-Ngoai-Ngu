@@ -1,5 +1,6 @@
 ﻿using ExamSystem.Core.Enums;
 using ExamSystem.Infrastructure.Data;
+using ExamSystem.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,44 +21,39 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         // Xem danh sách tất cả các lượt thi của thí sinh
         public async Task<IActionResult> Index(string searchTerm, int? examId, int? dateRange, int? status)
         {
-            // 1. Khởi tạo Query ban đầu
-            var query = _context.TestAttempts
-                .Include(ta => ta.Exam)
-                .Include(ta => ta.User)
-                .AsQueryable();
+            var query = _context.TestAttempts.AsQueryable();
 
-            // 2. Lọc theo Tên hoặc Email
+            // 1. Logic lọc (Giữ nguyên)
             if (!string.IsNullOrEmpty(searchTerm))
-            {
                 query = query.Where(ta => ta.User.FullName.Contains(searchTerm) || ta.User.Email.Contains(searchTerm));
-            }
 
-            // 3. Lọc theo Đề thi cụ thể
-            if (examId.HasValue)
-            {
-                query = query.Where(ta => ta.ExamId == examId);
-            }
-
-            // 4. Lọc theo Trạng thái (Đã chấm / Chờ chấm)
-            if (status.HasValue)
-            {
-                query = query.Where(ta => ta.Status == status.Value);
-            }
-
-            // 5. Lọc theo Mốc thời gian (3, 5, 7, 21 ngày...)
+            if (examId.HasValue) query = query.Where(ta => ta.ExamId == examId);
+            if (status.HasValue) query = query.Where(ta => ta.Status == status.Value);
             if (dateRange.HasValue)
             {
                 var cutoffDate = DateTime.Now.AddDays(-dateRange.Value);
                 query = query.Where(ta => ta.SubmitTime >= cutoffDate);
             }
 
-            // 6. Thực thi truy vấn và sắp xếp mới nhất lên đầu
-            var attempts = await query.OrderByDescending(ta => ta.SubmitTime).ToListAsync();
+            // 2. Map dữ liệu sang ViewModel để View hiểu được và lấy được Score
+            var attempts = await query
+                .OrderByDescending(ta => ta.SubmitTime)
+                .Select(ta => new ExamResultViewModel
+                {
+                    Id = ta.Id,
+                    StudentName = ta.User.FullName ?? "Học viên ẩn danh",
+                    StudentEmail = ta.User.Email ?? "Không có email",
+                    AvatarUrl = ta.User.AvatarUrl,
+                    ExamTitle = ta.Exam.Title,
+                    SubmitTime = ta.SubmitTime ?? DateTime.Now,
+                    Score = ta.Score, // Lấy điểm từ DB
+                    Status = ta.Status
+                })
+                .ToListAsync();
 
-            // Gửi danh sách đề thi qua ViewBag để làm Dropdown
             ViewBag.Exams = await _context.Exams.OrderBy(e => e.Title).ToListAsync();
 
-            // Giữ lại các giá trị lọc trên giao diện
+            // Giữ filter
             ViewData["SearchTerm"] = searchTerm;
             ViewData["SelectedExam"] = examId;
             ViewData["SelectedDate"] = dateRange;
@@ -138,6 +134,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         // Trang chi tiết để giáo viên xem file và chấm điểm
         public async Task<IActionResult> Grade(int id)
         {
+            // Đảm bảo Include đầy đủ các cấp độ dữ liệu
             var attempt = await _context.TestAttempts
                 .Include(ta => ta.Exam)
                 .Include(ta => ta.User)
@@ -147,13 +144,20 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
 
             if (attempt == null) return NotFound();
 
-            // LỌC DỮ LIỆU ĐỂ HIỂN THỊ:
-            // Chỉ giữ lại câu Tự luận (Essay) và Thu âm (SpeakingRecording)
-            // Để giáo viên tập trung chấm các câu này.
+            // Kiểm tra xem TestResults có dữ liệu chưa trước khi lọc
+            if (attempt.TestResults == null || !attempt.TestResults.Any())
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy dữ liệu câu trả lời cho lượt thi này.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Tạm thời bỏ lọc để kiểm tra xem có dữ liệu hay không, 
+            // Nếu có dữ liệu rồi thì mới bật lại lọc QuestionType
             attempt.TestResults = attempt.TestResults
-                .Where(tr => tr.Question.QuestionType == QuestionType.Essay ||
-                             tr.Question.QuestionType == QuestionType.SpeakingRecording)
-                .OrderBy(tr => tr.Id) // Sắp xếp theo thứ tự xuất hiện trong bài làm
+                .Where(tr => tr.Question != null &&
+                            (tr.Question.QuestionType == QuestionType.Essay ||
+                             tr.Question.QuestionType == QuestionType.SpeakingRecording))
+                .OrderBy(tr => tr.Id)
                 .ToList();
 
             return View(attempt);
