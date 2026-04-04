@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ExamSystem.Web.Models.QuestionGroup>
+﻿@* @model IEnumerable<ExamSystem.Web.Models.QuestionGroup>
 @using ExamSystem.Core.Enums
 @using ExamSystem.Web.Models
 
@@ -281,4 +281,301 @@ else
 </div>
 @section Scripts {
     <script src="~/js/question.js" asp-append-version="true"></script>
+} *@
+
+@model IEnumerable<ExamSystem.Web.Models.QuestionGroup>
+@using ExamSystem.Core.Enums
+@using ExamSystem.Web.Models
+
+@{
+    ViewData["Title"] = "Ngân hàng Câu hỏi";
+    var currentSkill = (ExamSkill?)(ViewData["CurrentSkill"] ?? ExamSystem.Core.Enums.ExamSkill.None);
+    var currentLevel = (int?)(ViewData["CurrentLevel"] ?? 0);
+    var currentSearch = ViewData["SearchTitle"] as string;
+}
+
+<div class="page-header-area px-3 px-lg-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-database-fill me-2"></i>Ngân hàng Câu hỏi
+            </h3>
+            <span class="text-muted small">Quản lý kho dữ liệu đề thi</span>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <div class="btn-group bg-white rounded-pill shadow-sm p-1 border d-none">
+                <button type="button" id="btnExpandAll" class="btn btn-sm rounded-pill px-3 fw-bold btn-theme-toggle d-none" onclick="toggleAll('show')" title="Mở tất cả">
+                    <i class="bi bi-arrows-expand"></i> <span class="d-none d-md-inline ms-1">Mở rộng</span>
+                </button>
+                <button type="button" id="btnCollapseAll" class="btn btn-sm rounded-pill px-3 fw-bold btn-theme-toggle" onclick="toggleAll('hide')" title="Thu gọn tất cả">
+                    <i class="bi bi-arrows-collapse"></i> <span class="d-none d-md-inline ms-1">Thu gọn</span>
+                </button>
+            </div>
+
+            <a asp-action="Import" class="btn bg-white border fw-bold btn-theme-toggle shadow-sm rounded-pill px-3 hover-up">
+                <i class="bi bi-file-earmark-excel-fill text-success me-1"></i> Excel
+            </a>
+            <a asp-action="Create" class="btn text-white shadow-sm rounded-pill fw-bold px-4 hover-up" style="background-color: var(--bs-primary, #f47b25);">
+                <i class="bi bi-plus-circle-fill me-1"></i> Thêm mới
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 mb-2 highlight-card">
+        <div class="card-body p-3">
+            <form asp-action="Index" method="get" id="filterForm" class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <input type="hidden" name="skillType" id="skillTypeHidden" value="@currentSkill" />
+
+                <ul class="nav nav-pills flex-grow-1 gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link @(currentSkill == ExamSkill.None ? "active" : "")" href="?skillType=@((int)ExamSkill.None)&level=@currentLevel">
+                            <i class="bi bi-grid-fill me-1"></i> Tất cả
+                        </a>
+                    </li>
+                    @foreach (ExamSkill skill in Enum.GetValues(typeof(ExamSkill)))
+                    {
+                        if (skill == ExamSkill.None) continue;
+                        <li class="nav-item">
+                            <a class="nav-link @(currentSkill == skill ? "active" : "")" href="?skillType=@((int)skill)&level=@currentLevel">
+                                <i class="bi @(skill == ExamSkill.Reading ? "bi-book" : (skill == ExamSkill.Listening ? "bi-headphones" : (skill == ExamSkill.Writing ? "bi-pencil-square" : "bi-mic"))) me-1"></i> @skill.ToString()
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+                <div class="d-flex align-items-center border-start ps-3 gap-2">
+                    <div class="input-group" style="width: 200px;">
+                        <span class="input-group-text bg-light border-0 rounded-start-pill text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="searchTitle" value="@currentSearch" class="form-control bg-light border-0 shadow-none rounded-end-pill" placeholder="Tên bài/câu hỏi..." onkeypress="if(event.keyCode==13) { document.getElementById('filterForm').submit(); return false; }">
+                    </div>
+
+                    <select name="level" id="levelSelect" class="form-select bg-light border-0 shadow-none fw-bold text-secondary rounded-pill px-3" style="width: 140px;">
+                        <option value="0"> Độ khó </option>
+                        <option value="1" selected="@(currentLevel == 1)">Dễ</option>
+                        <option value="2" selected="@(currentLevel == 2)">Trung bình</option>
+                        <option value="3" selected="@(currentLevel == 3)">Khó</option>
+                    </select>
+
+                    @{
+                        bool hasFilter = currentLevel > 0 || currentSkill != ExamSkill.None || !string.IsNullOrEmpty(currentSearch);
+                    }
+                    <a asp-action="Index" class="btn btn-sm text-danger hover-up @(hasFilter ? "" : "invisible")" title="Xóa bộ lọc">
+                        <i class="bi bi-x-circle-fill fs-5"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="question-list-container px-3 px-lg-4 pb-5">
+        <div class="custom-table-scroll bg-white shadow-sm border-0 rounded-4">
+            <table class="table mb-0 align-middle table-compact table-sticky-header table-hover table-custom-striped border-white">
+                <thead class="small text-muted text-uppercase">
+                    <tr>
+                        <th style="width: 50px;" class="text-center">
+                            <input class="form-check-input checkbox-xl shadow-sm m-0" type="checkbox" id="selectAllTable" style="cursor: pointer;">
+                        </th>
+                        <th style="width: 130px;">Kỹ năng</th>
+                        <th>Nội dung / Tiêu đề bài</th>
+                        <th class="text-center" style="width: 120px;">Số câu hỏi</th>
+                        <th class="text-end pe-4" style="width: 400px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var group in Model)
+                    {
+                        bool isResourceGroup = (group.GroupType == "Reading" || group.GroupType == "Listening") && group.GroupId.HasValue;
+
+                        <tr class="transition-all">
+                            <td class="text-center border-end">
+                                <input class="form-check-input checkbox-xl row-master-checkbox shadow-sm m-0" type="checkbox" style="cursor: pointer;">
+
+                                <div class="d-none hidden-checkboxes-container">
+                                    @foreach (var q in group.Questions)
+                                    {
+                                        <input type="checkbox" class="question-checkbox" value="@q.Id">
+                                    }
+                                </div>
+                            </td>
+
+                            <td>
+                                @if (group.GroupType == "Reading")
+                                {
+                                    <span class="badge bg-info bg-opacity-10 border border-info text-info rounded-pill px-3 py-2">READING</span>
+                                }
+                                else if (group.GroupType == "Listening")
+                                {
+
+                                    <span class="badge bg-warning bg-opacity-10 border border-warning text-warning rounded-pill px-3 py-2">LISTENING</span>
+                                }
+                                else if (group.GroupType == "Writing")
+                                {
+
+                                    <span class="badge bg-success bg-opacity-10 border border-success text-success rounded-pill px-3 py-2">WRITING</span>
+                                }
+                                else if (group.GroupType == "Speaking")
+                                {
+
+                                    <span class="badge bg-danger bg-opacity-10 border border-danger text-danger rounded-pill px-3 py-2">SPEAKING</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-secondary bg-opacity-10 border border-secondary text-secondary rounded-pill px-3 py-2">GRAMMAR</span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    @* Hiển thị Thumbnail cho bài Nghe nếu có ảnh *@
+                                    @if (group.GroupType == "Listening")
+                                    {
+                                        // Lấy ảnh đầu tiên tìm thấy trong các câu hỏi của nhóm
+                                        var firstImage = group.Questions.FirstOrDefault(q => !string.IsNullOrEmpty(q.MediaUrl))?.MediaUrl;
+
+                                        if (!string.IsNullOrEmpty(firstImage))
+                                        {
+                                            <div class="position-relative flex-shrink-0 group-img-container">
+                                                <img src="@firstImage"
+                                                     class="rounded border shadow-sm hover-zoom-btn"
+                                                     style="width: 50px; height: 50px; object-fit: cover; cursor: pointer;"
+                                                     onclick="zoomImage('@firstImage', @Html.Raw(Json.Serialize(group.GroupTitle)))"
+                                                     title="Phóng to ảnh" />
+                                                <div class="zoom-icon-overlay">
+                                                    <i class="bi bi-search"></i>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+
+                                    <div class="fw-bold text-dark text-truncate" style="max-width: 500px;" title="@group.GroupTitle">
+                                        @Html.Raw(group.GroupTitle)
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 shadow-sm">
+                                    @group.QuestionCount câu
+                                </span>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                @{
+                                    string actionName = (group.GroupType == "Reading" || group.GroupType == "Listening") ? "BatchEdit" : "Edit";
+                                    object routeId = (group.GroupType == "Reading" || group.GroupType == "Listening") ? group.GroupId : group.Questions.FirstOrDefault()?.Id;
+                                    string controllerName = "Questions";
+                                }
+
+                                @if (routeId != null)
+                                {
+                                    <a asp-controller="@controllerName" asp-action="@actionName" asp-route-id="@routeId" asp-route-type="@group.GroupType"
+                                       class="btn btn-sm btn-outline-warning rounded-pill shadow-sm px-3 fw-bold hover-up me-1" title="Sửa nội dung">
+                                        <i class="bi bi-pencil-square"></i> Sửa
+                                    </a>
+
+                                    @if (group.GroupType == "Reading") { controllerName = "ReadingPassages"; routeId = group.GroupId; }
+                                    else if (group.GroupType == "Listening") { controllerName = "ListeningResources"; routeId = group.GroupId; }
+                                    else { controllerName = "Questions"; routeId = group.Questions.FirstOrDefault()?.Id; }
+
+                                    <form id="delete-form-@routeId" asp-controller="@controllerName" asp-action="Delete" asp-route-id="@routeId" method="post" class="d-none"></form>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger rounded-pill shadow-sm px-3 fw-bold hover-up"
+                                            title="Xóa"
+                                            data-title="@group.GroupTitle"
+                                            onclick='confirmDelete("@routeId", @Html.Raw(Json.Serialize(group.GroupTitle ?? "")))'>
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center py-5 mt-5">
+        <div class="mb-3"><i class="bi bi-inbox text-muted opacity-25" style="font-size: 5rem;"></i></div>
+        <h4 class="fw-bold text-dark">Chưa có dữ liệu phù hợp</h4>
+        <p class="text-muted">Không tìm thấy câu hỏi hoặc bài thi nào khớp với bộ lọc của bạn.</p>
+        <a asp-action="Create" class="btn text-white fw-bold shadow-sm rounded-pill px-4 py-2 hover-up mt-2" style="background-color: var(--bs-primary, #f47b25);">
+            <i class="bi bi-plus-circle-fill me-2"></i>Soạn câu hỏi mới ngay
+        </a>
+    </div>
+}
+
+<div id="bulkDeleteContainer" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 d-none" style="z-index: 1050; transition: all 0.3s ease;">
+    <button id="btnBulkDelete" class="btn btn-danger rounded-pill px-4 py-3 shadow-lg fw-bold hover-up" type="button">
+        <i class="bi bi-trash3-fill me-2 fs-5 align-middle"></i>
+        XÓA <span id="bulkDeleteCount" class="badge bg-white text-danger ms-1 fs-6">0</span> CÂU ĐÃ CHỌN
+    </button>
+</div>
+
+@section Scripts {
+    <script src="~/js/question.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const selectAll = document.getElementById('selectAllTable');
+            const rowMasters = document.querySelectorAll('.row-master-checkbox');
+
+            // Xử lý Checkbox "Chọn tất cả" trên Header
+            if(selectAll) {
+                selectAll.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    rowMasters.forEach(cb => {
+                        cb.checked = isChecked;
+                        toggleHiddenChildren(cb, isChecked);
+                    });
+                    triggerBulkUpdate();
+                });
+            }
+
+            // Xử lý Checkbox từng dòng
+            rowMasters.forEach(master => {
+                master.addEventListener('change', function() {
+                    toggleHiddenChildren(this, this.checked);
+
+                    if(selectAll) {
+                        const total = rowMasters.length;
+                        const checked = document.querySelectorAll('.row-master-checkbox:checked').length;
+                        selectAll.checked = (total === checked && total > 0);
+                        selectAll.indeterminate = (checked > 0 && checked < total);
+                    }
+                    triggerBulkUpdate();
+                });
+            });
+
+            // Đồng bộ trạng thái vào các thẻ <input> ẩn để question.js bắt được ID
+            function toggleHiddenChildren(masterCb, isChecked) {
+                const hiddenContainer = masterCb.nextElementSibling;
+                if(hiddenContainer && hiddenContainer.classList.contains('hidden-checkboxes-container')) {
+                    hiddenContainer.querySelectorAll('.question-checkbox').forEach(qCb => {
+                        qCb.checked = isChecked;
+                    });
+                }
+            }
+
+            // Gọi hàm đếm số lượng để hiện/ẩn nút Bulk Delete đỏ ở dưới cùng
+            function triggerBulkUpdate() {
+                const totalChecked = document.querySelectorAll('.question-checkbox:checked').length;
+                const bulkContainer = document.getElementById('bulkDeleteContainer');
+                const countSpan = document.getElementById('bulkDeleteCount');
+
+                if (bulkContainer && countSpan) {
+                    if (totalChecked > 0) {
+                        bulkContainer.classList.remove('d-none');
+                        countSpan.innerText = totalChecked;
+                    } else {
+                        bulkContainer.classList.add('d-none');
+                    }
+                }
+            }
+        });
+    </script>
 }

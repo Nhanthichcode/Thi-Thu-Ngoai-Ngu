@@ -159,11 +159,13 @@ function confirmDeleteMultiple(itemType, apiUrl) {
         if (result.isConfirmed) {
 
             // 1. Hiển thị loading mượt mà
-            Swal.fire({
-                title: 'Đang xóa dữ liệu...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
+            Swal.update({
+                title: 'Đang xử lý...',
+                html: 'Vui lòng chờ trong giây lát',
+                showConfirmButton: false,
+                showCancelButton: false
             });
+            Swal.showLoading();
 
             // 2. Gọi Fetch API bằng URL động
             fetch(apiUrl, {

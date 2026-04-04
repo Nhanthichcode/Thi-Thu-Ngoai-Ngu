@@ -1322,3 +1322,55 @@ input:-ms-input-placeholder {
     background-color: var(--bs-card-bg) !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important; /* Đổ bóng đậm hơn chút để thẻ nổi bật */
 }
+
+/* =========================================
+   HIỆU ỨNG GẠCH CHÂN MENU NAVBAR
+   ========================================= */
+.custom-nav-links .nav-item {
+    position: relative;
+    margin: 0 4px;
+}
+
+/* Định dạng cơ bản của thẻ A */
+.custom-nav-links .nav-link {
+    color: var(--bs-body-color) !important;
+    transition: color 0.3s ease;
+    padding-bottom: 0.5rem !important; /* Tạo khoảng hở mỏng giữa chữ và đường gạch */
+}
+
+    /* Tạo đường gạch ẩn bên dưới */
+    .custom-nav-links .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%; /* Bắt đầu từ giữa */
+        transform: translateX(-50%); /* Căn giữa hoàn hảo */
+        width: 0; /* Mặc định độ rộng bằng 0 (Ẩn) */
+        height: 3px; /* Độ dày của đường gạch */
+        background-color: var(--bs-primary); /* Dùng màu cam thương hiệu */
+        border-radius: 4px 4px 0 0;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Hiệu ứng khi đang đứng ở trang đó (Active) */
+    .custom-nav-links .nav-link.active {
+        color: var(--bs-primary) !important;
+    }
+
+        .custom-nav-links .nav-link.active::after {
+            width: 80%; /* Đường gạch chiếm 80% độ rộng của chữ */
+        }
+
+    /* Hiệu ứng khi rê chuột vào (Hover) */
+    .custom-nav-links .nav-link:hover {
+        color: var(--bs-primary) !important;
+    }
+
+        .custom-nav-links .nav-link:hover::after {
+            width: 80%; /* Đường gạch trượt ra từ giữa */
+        }
+
+/* Fix nhỏ cho Dropdown: Không cần gạch chân chữ "Quản lý" khi hover vào các mục con bên trong bảng thả xuống */
+.custom-nav-links .dropdown-menu {
+    margin-top: 8px !important;
+}

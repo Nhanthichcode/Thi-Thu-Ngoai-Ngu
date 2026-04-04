@@ -209,6 +209,43 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> DeleteMultiple([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any())
+            {
+                return Json(new { success = false, message = "Không có cấu trúc nào được chọn." });
+            }
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Lấy danh sách kèm theo Parts để EF xóa sạch các phần thi con (Cascade Delete)
+                    var itemsToDelete = await _context.ExamStructures
+                        .Include(s => s.Parts)
+                        .Where(s => ids.Contains(s.Id))
+                        .ToListAsync();
+
+                    if (!itemsToDelete.Any())
+                    {
+                        return Json(new { success = false, message = "Không tìm thấy dữ liệu!" });
+                    }
+
+                    _context.ExamStructures.RemoveRange(itemsToDelete);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return Json(new { success = true, message = $"Đã xóa thành công {itemsToDelete.Count} cấu trúc đề!" });
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+                }
+            }
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
             var examStructure = await _context.ExamStructures

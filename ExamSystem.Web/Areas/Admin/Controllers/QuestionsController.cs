@@ -26,7 +26,73 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         // ============================================================
         // 1. DANH SÁCH (INDEX)
         // ============================================================
-        public async Task<IActionResult> Index(ExamSkill? skillType, int? level)
+        //public async Task<IActionResult> Index(ExamSkill? skillType, int? level)
+        //{
+        //    var query = _context.Questions
+        //        .Include(q => q.ReadingPassage)
+        //        .Include(q => q.ListeningResource)
+        //        .OrderByDescending(q => q.CreatedDate)
+        //        .AsQueryable();
+
+        //    if (skillType.HasValue && skillType.Value != ExamSkill.None)
+        //    {
+        //        query = query.Where(q => q.SkillType == skillType.Value);
+        //    }
+        //    if (level.HasValue && level.Value > 0)
+        //    {
+        //        query = query.Where(q => q.Level == level.Value);
+        //    }
+
+        //    var list = await query.ToListAsync();
+        //    var groupedList = new List<QuestionGroup>();
+
+        //    // Nhóm Reading
+        //    groupedList.AddRange(list.Where(q => q.ReadingPassageId.HasValue)
+        //        .GroupBy(q => q.ReadingPassageId)
+        //        .Select(g => new QuestionGroup
+        //        {
+        //            GroupType = "Reading",
+        //            GroupId = g.Key,
+        //            GroupTitle = g.First().ReadingPassage.Title,
+        //            QuestionCount = g.Count(),
+        //            Questions = g.ToList()
+        //        }));
+
+        //    // Nhóm Listening
+        //    groupedList.AddRange(list.Where(q => q.ListeningResourceId.HasValue && !q.ReadingPassageId.HasValue)
+        //        .GroupBy(q => q.ListeningResourceId)
+        //        .Select(g => new QuestionGroup
+        //        {
+        //            GroupType = "Listening",
+        //            GroupId = g.Key,
+        //            GroupTitle = g.First().ListeningResource.Title,
+        //            QuestionCount = g.Count(),
+        //            Questions = g.ToList()
+        //        }));
+
+        //    // Nhóm Câu lẻ (Independent) - Mỗi câu 1 Group để hiển thị Card riêng
+        //    foreach (var q in list.Where(q => !q.ReadingPassageId.HasValue && !q.ListeningResourceId.HasValue))
+        //    {
+        //        groupedList.Add(new QuestionGroup
+        //        {
+        //            GroupType = q.SkillType.ToString(),
+        //            GroupTitle = q.Content,
+        //            QuestionCount = 1,
+        //            Questions = new List<Question> { q }
+        //        });
+        //    }
+        //    ViewData["CurrentSkill"] = skillType ?? ExamSkill.None;
+        //    ViewData["CurrentLevel"] = level ?? 0;
+
+        //    // Sắp xếp ưu tiên Reading/Listening lên đầu
+        //    return View(groupedList.OrderByDescending(g => g.GroupType == "Reading" || g.GroupType == "Listening")
+        //                           .ThenByDescending(g => g.Questions.FirstOrDefault()?.CreatedDate).ToList());
+        //}
+
+        // ============================================================
+        // 1. DANH SÁCH (INDEX)
+        // ============================================================
+        public async Task<IActionResult> Index(ExamSkill? skillType, int? level, string searchTitle)
         {
             var query = _context.Questions
                 .Include(q => q.ReadingPassage)
@@ -34,13 +100,26 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 .OrderByDescending(q => q.CreatedDate)
                 .AsQueryable();
 
+            // Lọc theo Kỹ năng
             if (skillType.HasValue && skillType.Value != ExamSkill.None)
             {
                 query = query.Where(q => q.SkillType == skillType.Value);
             }
+
+            // Lọc theo Độ khó
             if (level.HasValue && level.Value > 0)
             {
                 query = query.Where(q => q.Level == level.Value);
+            }
+
+            // Lọc theo Tên/Nội dung
+            if (!string.IsNullOrEmpty(searchTitle))
+            {
+                query = query.Where(q =>
+                    (q.ReadingPassageId.HasValue && q.ReadingPassage.Title.Contains(searchTitle)) ||
+                    (q.ListeningResourceId.HasValue && q.ListeningResource.Title.Contains(searchTitle)) ||
+                    (!q.ReadingPassageId.HasValue && !q.ListeningResourceId.HasValue && q.Content.Contains(searchTitle))
+                );
             }
 
             var list = await query.ToListAsync();
@@ -70,7 +149,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     Questions = g.ToList()
                 }));
 
-            // Nhóm Câu lẻ (Independent) - Mỗi câu 1 Group để hiển thị Card riêng
+            // Nhóm Câu lẻ (Independent)
             foreach (var q in list.Where(q => !q.ReadingPassageId.HasValue && !q.ListeningResourceId.HasValue))
             {
                 groupedList.Add(new QuestionGroup
@@ -81,14 +160,14 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     Questions = new List<Question> { q }
                 });
             }
+
             ViewData["CurrentSkill"] = skillType ?? ExamSkill.None;
             ViewData["CurrentLevel"] = level ?? 0;
+            ViewData["SearchTitle"] = searchTitle; // Truyền từ khóa tìm kiếm xuống View
 
-            // Sắp xếp ưu tiên Reading/Listening lên đầu
             return View(groupedList.OrderByDescending(g => g.GroupType == "Reading" || g.GroupType == "Listening")
                                    .ThenByDescending(g => g.Questions.FirstOrDefault()?.CreatedDate).ToList());
         }
-
         // ============================================================
         // 2. TẠO MỚI (CREATE)
         // ============================================================

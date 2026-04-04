@@ -460,7 +460,7 @@ public class AccountController : Controller
                                         </p>
                                     </div>
                                     <div style='background-color: #f8f9fa; padding: 15px; text-align: center; color: #999; font-size: 12px;'>
-                                        &copy; 2026 LinguistAI - Hệ thống Thi Thử Ngoại Ngữ Trực Tuyến
+                                        &copy; 2026 - Hệ thống Thi Thử Ngoại Ngữ Trực Tuyến
                                     </div>
                                 </div>";
 
@@ -587,7 +587,7 @@ public class AccountController : Controller
                 </div>
 
                 <div style='background-color: #f1f5f9; padding: 15px; text-align: center; color: #94a3b8; font-size: 11px;'>
-                    Email này được gửi tự động từ hệ thống hỗ trợ <strong>LinguistAI</strong>.<br>
+                    Email này được gửi tự động từ hệ thống hỗ trợ <strong>TTNG</strong>.<br>
                     Thời gian gửi: {DateTime.Now.ToString("HH:mm - dd/MM/yyyy")}
                 </div>
             </div>";
