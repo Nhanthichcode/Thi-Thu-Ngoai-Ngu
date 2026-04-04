@@ -3,6 +3,7 @@ using ExamSystem.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -88,6 +89,14 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages();
+
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".webm"] = "audio/webm"; // Đảm bảo server hiểu file .webm
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = provider
+});
 
 using (var scope = app.Services.CreateScope())
 {

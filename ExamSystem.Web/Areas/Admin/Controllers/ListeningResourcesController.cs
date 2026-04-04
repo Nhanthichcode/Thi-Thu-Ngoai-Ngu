@@ -130,48 +130,42 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             return "/uploads/audio/" + fileName;
         }
 
-        //// DELETE (Giữ nguyên như cũ)
-        //public async Task<IActionResult> Delete(int? id)
-        //{
-        //    if (id == null) return NotFound();
-        //    var item = await _context.ListeningResources.FirstOrDefaultAsync(m => m.Id == id);
-        //    return item == null ? NotFound() : View(item);
-        //}
-
-        // POST: ListeningResources/Delete/5
-        [HttpPost]       
+        [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            // 1. Tìm bản ghi trong Database
-            var listeningResource = await _context.ListeningResources.FindAsync(id);
+            // 1. Tìm bản ghi và kèm theo danh sách Questions của nó
+            var listeningResource = await _context.ListeningResources
+                .Include(r => r.Questions)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (listeningResource != null)
             {
-                // 2. XÓA FILE VẬT LÝ TRÊN SERVER (Quan trọng)
+                // 2. XÓA FILE VẬT LÝ (Giữ nguyên logic của bạn)
                 if (!string.IsNullOrEmpty(listeningResource.AudioUrl))
                 {
-                    // Chuyển đường dẫn web (VD: /uploads/audio/abc.mp3) thành đường dẫn ổ cứng (D:\Project\wwwroot\uploads\audio\abc.mp3)
-                    // TrimStart('/') để bỏ dấu / ở đầu chuỗi
                     var filePath = Path.Combine(_environment.WebRootPath, listeningResource.AudioUrl.TrimStart('/'));
-
-                    // Kiểm tra xem file có tồn tại không rồi mới xóa
                     if (System.IO.File.Exists(filePath))
                     {
                         System.IO.File.Delete(filePath);
                     }
-
-                    TempData["SuccessMessage"] = "Đã xóa file "+listeningResource.Title+" thành công.";
                 }
-                else { TempData["ErrorMessage"] = "File âm thanh không tồn tại"; }
-                // 3. Xóa bản ghi trong Database
+
+                // 3. XÓA CÁC CÂU HỎI CON TRƯỚC
+                if (listeningResource.Questions != null && listeningResource.Questions.Any())
+                {
+                    _context.Questions.RemoveRange(listeningResource.Questions);
+                }
+
+                // 4. Xóa bản ghi chính trong Database
                 _context.ListeningResources.Remove(listeningResource);
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Đã xóa bài {listeningResource.Title} và các câu hỏi liên quan.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        // 10. XÓA NHIỀU BÀI NGHE (POST)
         [HttpPost]
         public async Task<IActionResult> DeleteMultiple([FromBody] List<int> ids)
         {
@@ -180,13 +174,13 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Không có bài nghe nào được chọn." });
             }
 
-            // Bật Transaction để đảm bảo an toàn (nếu lỗi giữa chừng thì sẽ hoàn tác)
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    // Tìm tất cả các bài nghe có ID nằm trong danh sách được chọn
+                    // 1. Tìm các bài nghe kèm theo câu hỏi
                     var resourcesToDelete = await _context.ListeningResources
+                        .Include(r => r.Questions)
                         .Where(r => ids.Contains(r.Id))
                         .ToListAsync();
 
@@ -195,27 +189,44 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                         return Json(new { success = false, message = "Không tìm thấy dữ liệu để xóa." });
                     }
 
-                    int count = resourcesToDelete.Count;
+                    // 2. Thu thập tất cả câu hỏi thuộc các bài nghe này
+                    var questionsToDelete = resourcesToDelete
+                        .SelectMany(r => r.Questions)
+                        .ToList();
 
-                    // Xóa hàng loạt một lần duy nhất (Nhanh và tối ưu hơn dùng foreach)
+                    // 3. Xóa file vật lý của từng bài (Nên làm để dọn dẹp server)
+                    foreach (var res in resourcesToDelete)
+                    {
+                        if (!string.IsNullOrEmpty(res.AudioUrl))
+                        {
+                            var filePath = Path.Combine(_environment.WebRootPath, res.AudioUrl.TrimStart('/'));
+                            if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
+                        }
+                    }
+
+                    // 4. Xóa câu hỏi trước, xóa bài nghe sau
+                    if (questionsToDelete.Any())
+                    {
+                        _context.Questions.RemoveRange(questionsToDelete);
+                    }
                     _context.ListeningResources.RemoveRange(resourcesToDelete);
-                    await _context.SaveChangesAsync();
 
-                    // Xác nhận hoàn tất
+                    await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
                     return Json(new
                     {
                         success = true,
-                        message = $"Đã xóa thành công {count} bài nghe và các câu hỏi đi kèm!"
+                        message = $"Đã xóa thành công {resourcesToDelete.Count} bài nghe và {questionsToDelete.Count} câu hỏi đi kèm!"
                     });
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    return Json(new { success = false, message = "Lỗi hệ thống khi xóa: " + ex.Message });
+                    return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
                 }
             }
         }
+
     }
 }

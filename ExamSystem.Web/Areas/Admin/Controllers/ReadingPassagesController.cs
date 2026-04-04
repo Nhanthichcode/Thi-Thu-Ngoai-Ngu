@@ -62,21 +62,39 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             }
             return View(readingPassage);
         }
-        
+
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var item = await _context.ReadingPassages.FindAsync(id);
-            if (item != null) { TempData["SuccessMessage"] = "Đã xóa bài đọc "+item.Title+" thành công."; } else { TempData["ErrorMessage"] = "Bài đọc không tồn tại"; }
-            _context.ReadingPassages.Remove(item);
+            // 1. Tìm bản ghi kèm theo danh sách câu hỏi con
+            var item = await _context.ReadingPassages
+                .Include(r => r.Questions) // Quan trọng: Tải các câu hỏi liên quan
+                .FirstOrDefaultAsync(m => m.Id == id);
 
-            await _context.SaveChangesAsync();
+            if (item != null)
+            {
+                // 2. Xóa các câu hỏi con trước để tránh bị "mồ côi" trong ngân hàng
+                if (item.Questions != null && item.Questions.Any())
+                {
+                    _context.Questions.RemoveRange(item.Questions);
+                }
+
+                // 3. Xóa bài đọc
+                _context.ReadingPassages.Remove(item);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Đã xóa bài đọc {item.Title} và các câu hỏi liên quan thành công.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Bài đọc không tồn tại";
+            }
+
             return RedirectToAction(nameof(Index));
         }
-    
-     // 10. XÓA NHIỀU BÀI NGHE (POST)
+
         [HttpPost]
         public async Task<IActionResult> DeleteMultiple([FromBody] List<int> ids)
         {
@@ -85,34 +103,39 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Không có bài đọc nào được chọn." });
             }
 
-            // Bật Transaction để đảm bảo an toàn (nếu lỗi giữa chừng thì sẽ hoàn tác)
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    // Tìm tất cả các bài nghe có ID nằm trong danh sách được chọn
-                    var resourcesToDelete = await _context.ReadingPassages
+                    // 1. Tìm tất cả bài đọc kèm theo câu hỏi của chúng
+                    var passagesToDelete = await _context.ReadingPassages
+                        .Include(r => r.Questions)
                         .Where(r => ids.Contains(r.Id))
                         .ToListAsync();
 
-                    if (!resourcesToDelete.Any())
+                    if (!passagesToDelete.Any())
                     {
                         return Json(new { success = false, message = "Không tìm thấy dữ liệu để xóa." });
                     }
 
-                    int count = resourcesToDelete.Count;
+                    // 2. Thu thập tất cả câu hỏi thuộc về những bài đọc này
+                    var questionsToDelete = passagesToDelete.SelectMany(p => p.Questions).ToList();
 
-                    // Xóa hàng loạt một lần duy nhất (Nhanh và tối ưu hơn dùng foreach)
-                    _context.ReadingPassages.RemoveRange(resourcesToDelete);
+                    // 3. Thực hiện xóa câu hỏi trước, xóa bài đọc sau
+                    if (questionsToDelete.Any())
+                    {
+                        _context.Questions.RemoveRange(questionsToDelete);
+                    }
+
+                    _context.ReadingPassages.RemoveRange(passagesToDelete);
+
                     await _context.SaveChangesAsync();
-
-                    // Xác nhận hoàn tất
                     await transaction.CommitAsync();
 
                     return Json(new
                     {
                         success = true,
-                        message = $"Đã xóa thành công {count} bài đọc và các câu hỏi đi kèm!"
+                        message = $"Đã xóa thành công {passagesToDelete.Count} bài đọc và {questionsToDelete.Count} câu hỏi liên quan!"
                     });
                 }
                 catch (Exception ex)

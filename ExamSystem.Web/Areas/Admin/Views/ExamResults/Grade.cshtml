@@ -19,13 +19,19 @@
 
     int displayIndex = 1;
 }
-
+@if (Model.TestResults == null || !Model.TestResults.Any())
+{
+    <div class="alert alert-warning rounded-4 shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Không tìm thấy bất kỳ câu trả lời nào cho lượt thi này trong cơ sở dữ liệu.
+    </div>
+}
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold mb-0" style="color: var(--bs-primary, #f47b25);">
             <i class="bi bi-pen-fill me-2"></i>Chấm điểm Tự luận
         </h3>
-        <a asp-action="Index" class="btn btn-outline-secondary border fw-bold text-muted shadow-sm rounded-pill px-4">
+        <a asp-action="Index" class="btn btn-outline-secondary border fw-bold me-2 rounded-pill px-4">
             <i class="bi bi-arrow-left me-1"></i> Quay lại
         </a>
     </div>
@@ -58,7 +64,13 @@
 
     <form asp-action="SaveGrades" method="post" id="gradeForm">
         <input type="hidden" name="attemptId" value="@Model.Id" />
-
+        @if (Model.TestResults == null || !Model.TestResults.Any())
+        {
+            <div class="alert alert-warning rounded-4 shadow-sm">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Không tìm thấy bất kỳ câu trả lời nào cho lượt thi này trong cơ sở dữ liệu.
+            </div>
+        }
         @* =========================================================================
            PHẦN 1: KỸ NĂNG NÓI (SPEAKING)
            ========================================================================= *@
@@ -101,8 +113,7 @@
                     </span>
                     <span class="small">điểm</span>
                 </div>
-                <div>
-                    <a asp-action="Index" class="btn btn-outline-secondary border fw-bold me-2 rounded-pill px-4">Hủy bỏ</a>
+                <div>                   
                     <button type="submit" class="btn text-white fw-bold shadow-sm rounded-pill px-5" style="background-color: var(--bs-success, #10b981); transition: all 0.3s;">
                         <i class="bi bi-check2-circle me-1 fs-5 align-middle"></i> LƯU ĐIỂM SỐ
                     </button>
@@ -116,61 +127,73 @@
         void RenderQuestionCard(ExamSystem.Core.Entities.TestResult res, int index)
         {
             <div class="card mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
-                
+
                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
                     <div class="fw-bold text-dark fs-6">
-                        <span style="color: var(--bs-primary, #f47b25);">Câu @index:</span> 
-                        <span class="fw-normal ms-1">@Html.Raw(res.Question.Content)</span>
+                        <span style="color: var(--bs-primary, #f47b25);">Câu @index:</span>
+                        <span class="fw-normal ms-1">@Html.Raw(res.Question.Content)</span> @* Hiển thị đề bài để giáo viên biết thí sinh đang trả lời cái gì *@
                     </div>
                     <span class="badge rounded-pill bg-light text-muted border border-secondary border-opacity-25 fw-normal px-3 py-2">
                         @(res.Question.QuestionType == QuestionType.Essay ? "Tự luận" : "Thu âm")
                     </span>
                 </div>
 
-                <div class="card-body p-4">
-                    <label class="fw-bold text-muted small text-uppercase mb-2 d-block">
-                        <i class="bi bi-person-lines-fill me-1"></i> Học viên trả lời:
+                <div class="card-body p-4 bg-light bg-opacity-50">
+                    <label class="fw-bold text-primary small text-uppercase mb-2 d-block">
+                        <i class="bi bi-person-bounding-box me-1"></i> Bài làm của thí sinh:
                     </label>
-                    
-                    @if (!string.IsNullOrEmpty(res.TextAnswer))
-                    {
-                        <div class="p-3 bg-white border rounded-3 answer-box shadow-sm">@Html.Raw(res.TextAnswer)</div>
-                    }
 
+                    @* HIỂN THỊ NỘI DUNG BÀI VIẾT *@
+                    @if (!string.IsNullOrEmpty(res.TextAnswer))
+            {
+            <div class="p-3 bg-white border rounded-3 answer-box shadow-sm mb-3" style="white-space: pre-wrap; line-height: 1.6;">
+                @Html.Raw(res.TextAnswer)
+            </div>
+            }
+
+            @* HIỂN THỊ FILE ÂM THANH VÀ SỬA LỖI ĐƯỜNG DẪN *@
                     @if (!string.IsNullOrEmpty(res.AudioAnswerUrl))
                     {
-                        <div class="mt-2 p-3 bg-white border rounded-3 shadow-sm d-flex align-items-center justify-content-center">
-                            <i class="bi bi-soundwave fs-2 me-3" style="color: var(--bs-primary, #f47b25);"></i>
-                            <audio controls class="w-100" style="height: 45px;"><source src="@res.AudioAnswerUrl"></audio>
+                        <div class="p-3 bg-white border rounded-3 shadow-sm d-flex align-items-center">
+                            <i class="bi bi-play-circle-fill fs-2 me-3 text-success"></i>
+                            <audio controls class="w-100" style="height: 40px;">
+                                <source src="@Url.Content("~/" + res.AudioAnswerUrl.TrimStart('/'))" type="audio/webm">
+                                <source src="@Url.Content("~/" + res.AudioAnswerUrl.TrimStart('/'))" type="audio/mpeg">
+                                Trình duyệt không hỗ trợ nghe file âm thanh này.
+                            </audio>
+                        </div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-link-45deg"></i> Đường dẫn file: <a href="@res.AudioAnswerUrl" target="_blank">@res.AudioAnswerUrl</a>
                         </div>
                     }
 
-                    @if (string.IsNullOrEmpty(res.TextAnswer) && string.IsNullOrEmpty(res.AudioAnswerUrl))
-                    {
-                        <div class="alert alert-danger bg-danger bg-opacity-10 border-0 text-danger mt-2 py-2 small fw-bold">
-                            <i class="bi bi-exclamation-circle-fill me-1"></i> Học viên bỏ trống câu này.
-                        </div>
-                    }
-                </div>
+            @if (string.IsNullOrEmpty(res.TextAnswer) && string.IsNullOrEmpty(res.AudioAnswerUrl))
+            {
+            <div class="alert alert-danger bg-danger bg-opacity-10 border-0 text-danger py-2 small fw-bold mb-0">
+                <i class="bi bi-exclamation-circle-fill me-1"></i> Thí sinh không nộp bài cho câu hỏi này.
+            </div>
+            }
+        </div>
 
-                <div class="card-footer grading-section p-4">
-                    <div class="row g-4">
-                        <div class="col-md-3 col-lg-2">
-                            <label class="form-label fw-bold text-dark small text-uppercase">Điểm số</label>
-                            <div class="input-group shadow-sm">
-                                <input type="number" name="scores[@res.Id]" value="@(res.ScoreObtained)"
-                                       step="0.5" min="0" class="form-control fw-bold text-dark fs-5" required />
-                                <span class="input-group-text">điểm</span>
-                            </div>                            
-                        </div>
-                        <div class="col-md-9 col-lg-10">
-                            <label class="form-label fw-bold text-dark small text-uppercase">Nhận xét của Giáo viên</label>
-                            <textarea name="notes[@res.Id]" class="form-control bg-white shadow-sm" rows="2" placeholder="Ghi chú lỗi sai, điểm mạnh, lời khuyên... (Không bắt buộc)">@res.Feedback</textarea>
-                        </div>
+        <div class="card-footer grading-section p-4 bg-white">
+            <div class="row g-4">
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label fw-bold text-dark small text-uppercase">Cho điểm</label>
+                    <div class="input-group shadow-sm">
+                        <input type="number" name="scores[@res.Id]" value="@(res.ScoreObtained)"
+                               step="0.1" min="0" class="form-control fw-bold text-success fs-5" required />
+                        <span class="input-group-text bg-light small">điểm</span>
                     </div>
                 </div>
-
+                <div class="col-md-9 col-lg-10">
+                    <label class="form-label fw-bold text-dark small text-uppercase">Ghi chú & Nhận xét</label>
+                    <textarea name="notes[@res.Id]" class="form-control bg-white shadow-sm" rows="2"
+                              placeholder="Nhập nhận xét cho thí sinh...">@res.Feedback</textarea>
+                </div>
             </div>
+        </div>
+
+    </div>
         }
     }
 </div>

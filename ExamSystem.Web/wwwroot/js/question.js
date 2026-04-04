@@ -328,188 +328,118 @@ function submitForm() {
 const fileInput = document.getElementById('fileInput');
 
 if (fileInput) {
-    // [QUAN TRỌNG] FIX LỖI KHÔNG CẬP NHẬT DỮ LIỆU KHI CHỌN TRÙNG TÊN FILE
+    // 1. Reset file input khi click để ép trình duyệt load lại nếu chọn trùng file
     fileInput.addEventListener('click', function () {
-        this.value = null; // Quét sạch file cũ trong bộ nhớ để ép trình duyệt load lại từ đầu
+        this.value = null;
     });
 
+    // 2. SỰ KIỆN THAY ĐỔI FILE: Gửi lên Server để Phân tích & Check trùng DB
     fileInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Hiển thị trạng thái Loading
         document.getElementById('emptyState').classList.add('d-none');
         document.getElementById('previewSection').classList.add('d-none');
         document.getElementById('loadingArea').classList.remove('d-none');
 
-        if (typeof XLSX === 'undefined') {
-            Swal.fire('Lỗi', 'Chưa tải được thư viện Excel (SheetJS). Vui lòng F5 lại trang.', 'error');
-            return;
-        }
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("mode", "check"); // Chế độ kiểm tra (Preview), không lưu
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+        fetch('/Admin/Questions/Import', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token },
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('loadingArea').classList.add('d-none');
 
-                if (jsonData.length < 6 || !jsonData[5][0]) {
-                    throw new Error("Không tìm thấy mã định danh tại ô A6. Vui lòng tải file mẫu chuẩn.");
+                // Trường hợp lỗi hệ thống hoặc file không đúng định dạng
+                if (!data.isSuccess && (!data.rowPreviews || data.rowPreviews.length === 0)) {
+                    Swal.fire('Lỗi phân tích', data.message, 'error');
+                    document.getElementById('emptyState').classList.remove('d-none');
+                    return;
                 }
 
-                const detectedQuestionType = jsonData[5][0].toString().trim();
-                document.getElementById('questionTypeBadge').innerText = "Loại: " + detectedQuestionType;
-                document.getElementById('questionTypeBadge').classList.remove('d-none');
-
-                const validTypes = ["TYPE_GRAMMAR", "TYPE_WRITING", "TYPE_SPEAKING", "TYPE_READING", "TYPE_LISTENING"];
-
-                if (!validTypes.includes(detectedQuestionType)) {                     
-                    throw new Error(`Mã loại "${detectedQuestionType}" không hợp lệ. Vui lòng sử dụng file mẫu chuẩn của hệ thống.`);
-                }
+                // Hiển thị Badge loại câu hỏi (Reading, Listening, Grammar...)
+                const badge = document.getElementById('questionTypeBadge');
+                badge.innerText = "Loại: " + (data.detectedType || "Không xác định");
+                badge.classList.remove('d-none');
 
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
 
-                let validCount = 0;
-                let invalidCount = 0;
-
-                let currentParentIndex = -1;
-                let isCurrentParentValid = false;
-
-                for (let i = 7; i < jsonData.length; i++) {
-                    const row = jsonData[i];
-                    if (!row || row.length === 0 || (!row[0] && !row[1] && !row[2])) continue;
-
-                    let isValid = true;
-                    let errorMsg = "";
+                // 3. DUYỆT DỮ LIỆU TỪ SERVER TRẢ VỀ ĐỂ VẼ BẢNG PREVIEW
+                data.rowPreviews.forEach(item => {
                     let displayHtml = "";
+                    let cbHtml = "";
 
-                    let isParent = false;
-                    let isChild = false;
-
-                    // ----------------------------------------------------------------
-                    if (detectedQuestionType === "TYPE_GRAMMAR") {
-                        const qContent = row[0] ? row[0].toString().trim() : '';
-                        displayHtml = `<div class="text-wrap">${qContent}</div>`;
-                        if (!qContent) { isValid = false; errorMsg += "Câu hỏi bị trống; "; }
-                        if (!row[6]) { isValid = false; errorMsg += "Thiếu vị trí đáp án đúng; "; }
-                    }
-                    else if (detectedQuestionType === "TYPE_WRITING" || detectedQuestionType === "TYPE_SPEAKING") {
-                        const qContent = row[0] ? row[0].toString().trim() : '';
-                        displayHtml = `<div class="text-wrap">${qContent}</div>`;
-                        if (!qContent) { isValid = false; errorMsg += "Đề bài bị trống; "; }
-                    }
-                    // ----------------------------------------------------------------
-                    // ĐỌC / NGHE (CÓ CHA - CON)
-                    else if (detectedQuestionType === "TYPE_READING" || detectedQuestionType === "TYPE_LISTENING") {
-                        const title = row[0] ? row[0].toString().trim() : '';
-                        const passage = row[1] ? row[1].toString().trim() : '';
-                        const qContent = row[2] ? row[2].toString().trim() : '';
-
-                        // Phân tích bài Cha
-                        if (title) {
-                            isParent = true;
-                            currentParentIndex = i;
-
-                            // Gắn thêm class 'parent-toggle-icon' vào icon để nhận diện Đóng/Mở Tất Cả
-                            const toggleBtn = `<button class="btn btn-sm btn-light border py-0 px-1 ms-2" onclick="window.toggleChildRows(${i}, this)" title="Thu gọn/Mở rộng câu con"><i class="bi bi-chevron-down text-muted parent-toggle-icon"></i></button>`;
-
-                            displayHtml += `<div class="fw-bold text-primary mb-1 d-flex align-items-center"><i class="bi bi-journal-text me-2"></i> BÀI: ${title} ${toggleBtn}</div>`;
-
-                            if (detectedQuestionType === "TYPE_READING" && !passage) {
-                                isValid = false; errorMsg += "Bài đọc thiếu Nội dung; ";
-                                isCurrentParentValid = false;
-                            } else {
-                                isCurrentParentValid = true;
-                            }
-                        }
-
-                        // Phân tích câu Con
-                        if (qContent) {
-                            isChild = true;
-                            displayHtml += `<div class="${title ? 'ms-4 mt-2' : ''} text-wrap"><i class="bi bi-arrow-return-right text-muted me-2"></i> ${qContent}</div>`;
-
-                            if (!title && !isCurrentParentValid) {
-                                isValid = false; errorMsg += "Bài Cha phía trên bị lỗi, câu hỏi này mồ côi; ";
-                            }
-                            let validAns = 0;
-                            for (let j = 4; j <= 7; j++) if (row[j] && row[j].toString().trim()) validAns++;
-                            if (validAns < 2) { isValid = false; errorMsg += "Chưa đủ 2 đáp án; "; }
-                            if (row[8] && !row[3 + parseInt(row[8])]) { isValid = false; errorMsg += `Đáp án đúng rỗng; `; }
-                        }
-                    } else {                        
-                        isValid = false;
-                        errorMsg = "Loại câu hỏi không xác định;";
-                    }
-
-                    if (isValid) validCount++; else invalidCount++;
-
-                    const statusHtml = isValid
-                        ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Hợp lệ</span>'
-                        : `<div class="text-danger small fw-bold" style="white-space: normal; line-height: 1.5;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Lỗi: ${errorMsg}</div>`;
-
-                    let cbHtml = '';
-                    if (isValid) {                        
-                        if (isParent && (detectedQuestionType === "TYPE_READING" || detectedQuestionType === "TYPE_LISTENING")) {
-                            cbHtml = `<input class="form-check-input checkbox-xl row-checkbox parent-checkbox shadow-sm" type="checkbox" value="${i}" data-index="${i}" checked style="cursor: pointer; width:1em !important; height:1em !important; margin-top: .25em !important;">`;
-                        } else if (isChild && !isParent) {
-                            cbHtml = `<input class="form-check-input checkbox-xl row-checkbox child-checkbox shadow-sm" type="checkbox" value="${i}" data-parent="${currentParentIndex}" checked style="cursor: pointer; width:1em !important; height:1em !important; margin-top: .25em !important;">`;
-                        } else {
-                            cbHtml = `<input class="form-check-input checkbox-xl row-checkbox shadow-sm" type="checkbox" value="${i}" checked style="cursor: pointer; width:1em !important; height:1em !important; margin-top: .25em !important;">`;
-                        }
+                    // Xử lý hiển thị Nội dung (Cha/Con)
+                    if (item.isParent) {
+                        const toggleBtn = `<button class="btn btn-sm btn-light border py-0 px-1 ms-2" onclick="window.toggleChildRows(${item.rowIndex}, this)" title="Thu gọn/Mở rộng"><i class="bi bi-chevron-down text-muted parent-toggle-icon"></i></button>`;
+                        displayHtml = `<div class="fw-bold text-primary mb-1 d-flex align-items-center"><i class="bi bi-journal-text me-2"></i> ${item.content} ${toggleBtn}</div>`;
                     } else {
-                        cbHtml = `<i class="bi bi-x-circle-fill text-danger fs-5"></i>`;
+                        const indentClass = item.parentIndex !== -1 ? "ms-4 mt-2" : "";
+                        displayHtml = `<div class="${indentClass} text-wrap"><i class="bi bi-arrow-return-right text-muted me-2"></i> ${item.content}</div>`;
+                    }
+
+                    // Xử lý Trạng thái & Checkbox
+                    const statusHtml = item.isValid
+                        ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Hợp lệ</span>'
+                        : `<div class="text-danger small fw-bold" style="white-space: normal; line-height: 1.5;"><i class="bi bi-exclamation-triangle-fill me-1"></i>Lỗi: ${item.errorMessage}</div>`;
+
+                    if (item.isValid) {
+                        const parentAttr = item.parentIndex !== -1 ? `data-parent="${item.parentIndex}"` : `data-index="${item.rowIndex}"`;
+                        const typeClass = item.isParent ? "parent-checkbox" : "child-checkbox";
+
+                        cbHtml = `<input class="form-check-input checkbox-xl row-checkbox ${typeClass} shadow-sm" type="checkbox" value="${item.rowIndex - 1}" ${parentAttr} checked style="cursor: pointer; width:1.2em; height:1.2em;">`;
+                    } else {
+                        cbHtml = `<i class="bi bi-x-circle-fill text-danger fs-5" title="${item.errorMessage}"></i>`;
                     }
 
                     const tr = document.createElement('tr');
-                    tr.className = isValid ? "" : "bg-danger bg-opacity-10";
-
-                    // Gắn nhãn câu con để JS biết đường thu gọn
-                    if (isChild && !isParent && currentParentIndex !== -1) {
-                        tr.classList.add(`child-of-${currentParentIndex}`);
-                    }
+                    tr.className = item.isValid ? "" : "bg-danger bg-opacity-10";
+                    if (item.parentIndex !== -1) tr.classList.add(`child-of-${item.parentIndex}`);
 
                     tr.innerHTML = `
-                        <td class="text-center align-middle">${cbHtml}</td>
-                        <td class="text-center fw-bold align-middle">${i + 1}</td>
-                        <td class="align-middle py-2">${displayHtml}</td>
-                        <td class="align-middle" style="min-width: 150px;">${statusHtml}</td>
-                    `;
+                    <td class="text-center align-middle">${cbHtml}</td>
+                    <td class="text-center fw-bold align-middle">${item.rowIndex}</td>
+                    <td class="align-middle py-2">${displayHtml}</td>
+                    <td class="align-middle" style="min-width: 200px;">${statusHtml}</td>
+                `;
                     tbody.appendChild(tr);
-                }
+                });
 
-                document.getElementById('validCount').innerText = validCount;
-                document.getElementById('invalidCount').innerText = invalidCount;
-                updateSelectedCountBadge(validCount);
+                // Cập nhật các con số thống kê
+                document.getElementById('validCount').innerText = data.validCount;
+                document.getElementById('invalidCount').innerText = data.invalidCount;
+                updateSelectedCountBadge(data.validCount);
 
-                const btnImport = document.getElementById('btnImport');
-                btnImport.disabled = (validCount === 0);
-
-                document.getElementById('loadingArea').classList.add('d-none');
                 document.getElementById('previewSection').classList.remove('d-none');
 
-                // Đặt lại trạng thái nút Thu gọn về ban đầu khi load file mới
+                // Reset trạng thái toggle
                 window.isAllCollapsed = false;
                 document.getElementById('childRowsIcon').className = 'bi bi-arrows-collapse me-1';
                 document.getElementById('childRowsText').innerText = "Thu gọn câu con";
-
-            } catch (error) {
+            })
+            .catch(error => {
+                console.error("Fetch Error:", error);
                 document.getElementById('loadingArea').classList.add('d-none');
                 document.getElementById('emptyState').classList.remove('d-none');
-                Swal.fire('Lỗi định dạng', error.message, 'error');
-            }
-        };
-        reader.readAsArrayBuffer(file);
+                Swal.fire('Lỗi kết nối', 'Không thể gửi file lên server để phân tích.', 'error');
+            });
     });
 
-    // Checkbox Cha-Con Logic
+    // 4. LOGIC CHECKBOX (CHA-CON)
     document.getElementById('tableBody').addEventListener('change', function (e) {
         if (e.target.classList.contains('row-checkbox')) {
             if (e.target.classList.contains('parent-checkbox')) {
                 const parentIdx = e.target.getAttribute('data-index');
                 const isChecked = e.target.checked;
-                document.querySelectorAll(`.child-checkbox[data-parent="${parentIdx}"]:not(:disabled)`).forEach(cb => {
+                document.querySelectorAll(`.child-checkbox[data-parent="${parentIdx}"]`).forEach(cb => {
                     cb.checked = isChecked;
                 });
             }
@@ -521,21 +451,9 @@ if (fileInput) {
                     parentCb.checked = (checkedChildren > 0);
                 }
             }
-
-            const total = document.querySelectorAll('.row-checkbox:not(:disabled)').length;
             const checked = document.querySelectorAll('.row-checkbox:checked').length;
-            document.getElementById('checkAll_Import').checked = (total === checked && total > 0);
-
             updateSelectedCountBadge(checked);
         }
-    });
-
-    document.getElementById('checkAll_Import').addEventListener('change', function (e) {
-        const isChecked = e.target.checked;
-        document.querySelectorAll('.row-checkbox:not(:disabled)').forEach(cb => {
-            cb.checked = isChecked;
-        });
-        updateSelectedCountBadge(document.querySelectorAll('.row-checkbox:checked').length);
     });
 
     function updateSelectedCountBadge(count) {
@@ -545,11 +463,9 @@ if (fileInput) {
         btnImport.innerHTML = `<i class="bi bi-database-fill-up me-2"></i> LƯU ${count} DÒNG`;
     }
 
-    // Submit lưu dữ liệu
+    // 5. SUBMIT LƯU DỮ LIỆU
     document.getElementById('btnImport').addEventListener('click', function () {
         const file = document.getElementById('fileInput').files[0];
-        if (!file) return;
-
         const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
         const selectedIndices = Array.from(checkedBoxes).map(cb => cb.value).join(',');
 
@@ -557,10 +473,10 @@ if (fileInput) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("mode", "save");
-        formData.append("selectedRows", selectedIndices); 
+        formData.append("selectedRows", selectedIndices);
 
         Swal.fire({
-            title: 'Đang xử lý dữ liệu...',
+            title: 'Đang xử lý lưu dữ liệu...',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); }
         });
@@ -573,14 +489,13 @@ if (fileInput) {
             .then(res => res.json())
             .then(data => {
                 if (data.isSuccess) {
-                    Swal.fire('Hoàn tất!', data.message, 'success').then(() => window.location.href = data.redirectUrl);
+                    Swal.fire('Thành công!', data.message, 'success').then(() => window.location.href = data.redirectUrl);
                 } else {
                     Swal.fire('Lỗi nhập liệu', data.message, 'error');
                 }
             });
     });
 }
-
 // ==========================================
 // CÁC HÀM UI: THU GỌN / MỞ RỘNG CHA CON
 // ==========================================

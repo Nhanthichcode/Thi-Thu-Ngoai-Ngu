@@ -23,72 +23,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             _webHostEnvironment = environment;
         }
 
-        // ============================================================
-        // 1. DANH SÁCH (INDEX)
-        // ============================================================
-        //public async Task<IActionResult> Index(ExamSkill? skillType, int? level)
-        //{
-        //    var query = _context.Questions
-        //        .Include(q => q.ReadingPassage)
-        //        .Include(q => q.ListeningResource)
-        //        .OrderByDescending(q => q.CreatedDate)
-        //        .AsQueryable();
-
-        //    if (skillType.HasValue && skillType.Value != ExamSkill.None)
-        //    {
-        //        query = query.Where(q => q.SkillType == skillType.Value);
-        //    }
-        //    if (level.HasValue && level.Value > 0)
-        //    {
-        //        query = query.Where(q => q.Level == level.Value);
-        //    }
-
-        //    var list = await query.ToListAsync();
-        //    var groupedList = new List<QuestionGroup>();
-
-        //    // Nhóm Reading
-        //    groupedList.AddRange(list.Where(q => q.ReadingPassageId.HasValue)
-        //        .GroupBy(q => q.ReadingPassageId)
-        //        .Select(g => new QuestionGroup
-        //        {
-        //            GroupType = "Reading",
-        //            GroupId = g.Key,
-        //            GroupTitle = g.First().ReadingPassage.Title,
-        //            QuestionCount = g.Count(),
-        //            Questions = g.ToList()
-        //        }));
-
-        //    // Nhóm Listening
-        //    groupedList.AddRange(list.Where(q => q.ListeningResourceId.HasValue && !q.ReadingPassageId.HasValue)
-        //        .GroupBy(q => q.ListeningResourceId)
-        //        .Select(g => new QuestionGroup
-        //        {
-        //            GroupType = "Listening",
-        //            GroupId = g.Key,
-        //            GroupTitle = g.First().ListeningResource.Title,
-        //            QuestionCount = g.Count(),
-        //            Questions = g.ToList()
-        //        }));
-
-        //    // Nhóm Câu lẻ (Independent) - Mỗi câu 1 Group để hiển thị Card riêng
-        //    foreach (var q in list.Where(q => !q.ReadingPassageId.HasValue && !q.ListeningResourceId.HasValue))
-        //    {
-        //        groupedList.Add(new QuestionGroup
-        //        {
-        //            GroupType = q.SkillType.ToString(),
-        //            GroupTitle = q.Content,
-        //            QuestionCount = 1,
-        //            Questions = new List<Question> { q }
-        //        });
-        //    }
-        //    ViewData["CurrentSkill"] = skillType ?? ExamSkill.None;
-        //    ViewData["CurrentLevel"] = level ?? 0;
-
-        //    // Sắp xếp ưu tiên Reading/Listening lên đầu
-        //    return View(groupedList.OrderByDescending(g => g.GroupType == "Reading" || g.GroupType == "Listening")
-        //                           .ThenByDescending(g => g.Questions.FirstOrDefault()?.CreatedDate).ToList());
-        //}
-
+      
         // ============================================================
         // 1. DANH SÁCH (INDEX)
         // ============================================================
@@ -226,6 +161,24 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     }
                 }
             }
+
+            if (model.SkillType == ExamSkill.Reading && !string.IsNullOrEmpty(model.NewReadingTitle))
+            {
+                // Kiểm tra trong DB xem đã có bài đọc nào trùng tiêu đề chưa
+                if (await _context.ReadingPassages.AnyAsync(p => p.Title == model.NewReadingTitle))
+                {
+                    ModelState.AddModelError("NewReadingTitle", "Tên bài đọc này đã tồn tại. Vui lòng chọn tên khác.");
+                }
+            }
+            else if (model.SkillType == ExamSkill.Listening && !string.IsNullOrEmpty(model.NewListeningTitle))
+            {
+                // Kiểm tra trong DB xem đã có bài nghe nào trùng tiêu đề chưa
+                if (await _context.ListeningResources.AnyAsync(r => r.Title == model.NewListeningTitle))
+                {
+                    ModelState.AddModelError("NewListeningTitle", "Tên bài nghe này đã tồn tại. Vui lòng chọn tên khác.");
+                }
+            }
+
             // --- 2. KIỂM TRA VALIDATE VÀ DEBUG ---
             if (!ModelState.IsValid)
             {
@@ -316,112 +269,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             // Form truyền thống thì phải dùng RedirectToAction
             return RedirectToAction(nameof(Index));
         }
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create(UnifiedCreateViewModel model)
-        //{
-        //    // Bỏ qua validate file vì xử lý thủ công
-        //    ModelState.Remove("NewListeningFile");
-        //    ModelState.Remove("CommonImageFile");
-        //    ModelState.Remove("NewSpeakingTitle");
-
-        //    if (!ModelState.IsValid)
-        //    {
-        //        LoadDropdowns();
-        //        return View(model);
-        //    }
-
-        //    // A. Xử lý Tạo Tài nguyên mới (Nếu có)
-        //    if (model.SkillType == ExamSkill.Reading && !string.IsNullOrEmpty(model.NewReadingTitle))
-        //    {
-        //        var newPassage = new ReadingPassage { Title = model.NewReadingTitle, Content = model.NewReadingContent };
-        //        _context.ReadingPassages.Add(newPassage);
-        //        await _context.SaveChangesAsync();
-        //        model.ReadingPassageId = newPassage.Id;
-        //    }
-        //    else if (model.SkillType == ExamSkill.Listening && model.NewListeningFile != null)
-        //    {
-        //        var audioUrl = await SaveFileAsync(model.NewListeningFile, "audio");
-        //        var newResource = new ListeningResource
-        //        {
-        //            Title = model.NewListeningTitle ?? "Audio " + DateTime.Now.Ticks,
-        //            AudioUrl = audioUrl,
-        //            Transcript = model.NewListeningTranscript
-        //        };
-        //        _context.ListeningResources.Add(newResource);
-        //        await _context.SaveChangesAsync();
-        //        model.ListeningResourceId = newResource.Id;
-        //    }
-
-        //    // B. Xử lý Ảnh chung (Cho Writing/Speaking)
-        //    string? uploadedImageUrl = null;
-
-        //    // CHỈ UPLOAD NẾU SKILL LÀ SPEAKING VÀ CÓ FILE ĐƯỢC CHỌN (KHÔNG BẮT BUỘC)
-        //    if (model.SkillType == ExamSkill.Speaking)
-        //    {
-        //        // Chỉ chạy SaveFileAsync nếu người dùng thực sự chọn file
-        //        if (model.CommonImageFile != null)
-        //        {
-        //            uploadedImageUrl = await SaveFileAsync(model.CommonImageFile, "images");
-        //        }               
-        //    }
-
-        //    // C. Lưu Câu hỏi
-        //    if (model.Questions != null && model.Questions.Any())
-        //    {
-        //        var questionsToAdd = new List<Question>();
-
-        //        foreach (var item in model.Questions)
-        //        {
-        //            if (string.IsNullOrWhiteSpace(item.Content)) continue;
-
-        //            string finalContent = item.Content;
-        //            if (model.SkillType == ExamSkill.Speaking && !string.IsNullOrWhiteSpace(model.NewSpeakingTitle))
-        //            {                        
-        //                finalContent = $"<div class='fw-bold text-success mb-2' style='font-size: 1.1rem;'>{model.NewSpeakingTitle}</div>{item.Content}";
-        //            }
-        //            var q = new Question
-        //            {
-        //                Content = finalContent,
-        //                Explaination = item.Explaination,
-        //                SkillType = model.SkillType,
-        //                QuestionType = (model.SkillType == ExamSkill.Writing) ? QuestionType.Essay :
-        //                               (model.SkillType == ExamSkill.Speaking) ? QuestionType.SpeakingRecording :
-        //                               QuestionType.SingleChoice,
-        //                Level = model.Level,
-        //                CreatedDate = DateTime.Now,
-        //                ReadingPassageId = (model.SkillType == ExamSkill.Reading) ? model.ReadingPassageId : null,
-        //                ListeningResourceId = (model.SkillType == ExamSkill.Listening) ? model.ListeningResourceId : null,
-        //                MediaUrl = uploadedImageUrl,
-        //                Answers = new List<Answer>()
-        //            };
-
-        //            // Thêm đáp án nếu là trắc nghiệm
-        //            if (model.SkillType != ExamSkill.Speaking && model.SkillType != ExamSkill.Writing)
-        //            {
-        //                q.Answers.Add(new Answer { Content = item.AnswerA ?? "", IsCorrect = (item.CorrectAnswerIndex == 0) });
-        //                q.Answers.Add(new Answer { Content = item.AnswerB ?? "", IsCorrect = (item.CorrectAnswerIndex == 1) });
-        //                q.Answers.Add(new Answer { Content = item.AnswerC ?? "", IsCorrect = (item.CorrectAnswerIndex == 2) });
-        //                q.Answers.Add(new Answer { Content = item.AnswerD ?? "", IsCorrect = (item.CorrectAnswerIndex == 3) });
-        //            }
-
-        //            questionsToAdd.Add(q);
-        //        }
-
-        //        if (questionsToAdd.Any())
-        //        {
-        //            _context.Questions.AddRange(questionsToAdd);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //    }
-
-        //    return Json(new { isSuccess = true, redirectUrl = Url.Action("Index"), message = "Đã tạo bài mới thành công." });
-        //}
-
-        // ============================================================
-        // 3. CHỈNH SỬA (EDIT) - Cho câu hỏi lẻ
-        // ============================================================
+      
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -866,7 +714,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 return Json(result);
             }
 
-            // --- ĐIỂM SỬA 1: Giải mã danh sách các dòng được tick từ giao diện ---
             List<int> selectedIndices = new List<int>();
             if (!string.IsNullOrEmpty(selectedRows))
             {
@@ -881,36 +728,39 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 using (var package = new ExcelPackage(stream))
                 {
                     var ws = package.Workbook.Worksheets[0];
-
                     string typeCode = ws.Cells[6, 1].Text?.Trim();
+                    result.DetectedType = typeCode; // Trả về mã loại để hiện Badge
 
                     if (string.IsNullOrEmpty(typeCode) || !typeCode.StartsWith("TYPE_"))
                     {
-                        result.Errors.Add(new ImportError { Row = 6, ErrorMessage = "Ô A6 không chứa mã định danh hợp lệ (VD: TYPE_GRAMMAR)." });
+                        result.IsSuccess = false;
+                        result.Message = "File không đúng định dạng mẫu (Thiếu mã tại ô A6).";
                         return Json(result);
                     }
 
-                    using (var transaction = _context.Database.BeginTransaction())
+                    using (var transaction = await _context.Database.BeginTransactionAsync())
                     {
                         try
                         {
                             int count = 0;
                             List<ImportError> errors = new List<ImportError>();
+                            List<ImportRowPreview> previews = new List<ImportRowPreview>();
 
-                            // --- ĐIỂM SỬA 2: Truyền selectedIndices xuống các hàm xử lý ---
+                            // Gọi các hàm xử lý và nhận thêm danh sách previews
                             switch (typeCode)
                             {
-                                case "TYPE_READING": (count, errors) = await ProcessReading(ws, isSaveMode, selectedIndices); break;
-                                case "TYPE_LISTENING": (count, errors) = await ProcessListening(ws, isSaveMode, selectedIndices); break;
-                                case "TYPE_WRITING": (count, errors) = await ProcessWriting(ws, isSaveMode, selectedIndices); break;
-                                case "TYPE_GRAMMAR": (count, errors) = await ProcessGrammar(ws, isSaveMode, selectedIndices); break;
-                                case "TYPE_SPEAKING": (count, errors) = await ProcessSpeaking(ws, isSaveMode, selectedIndices); break;
-                                default: errors.Add(new ImportError { Row = 6, ErrorMessage = $"Mã loại '{typeCode}' chưa được hỗ trợ." }); break;
+                                case "TYPE_READING": (count, errors, previews) = await ProcessReading(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_LISTENING": (count, errors, previews) = await ProcessListening(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_WRITING": (count, errors, previews) = await ProcessWriting(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_GRAMMAR": (count, errors, previews) = await ProcessGrammar(ws, isSaveMode, selectedIndices); break;
+                                case "TYPE_SPEAKING": (count, errors, previews) = await ProcessSpeaking(ws, isSaveMode, selectedIndices); break;
+                                default: result.Message = "Loại câu hỏi này chưa được hỗ trợ."; break;
                             }
 
                             result.ValidCount = count;
+                            result.RowPreviews = previews; // QUAN TRỌNG: Gửi dữ liệu để vẽ bảng
                             result.Errors = errors;
-                            result.InvalidCount = errors.Count;
+                            result.InvalidCount = previews.Count(p => !p.IsValid && !p.IsParent);
 
                             if (isSaveMode)
                             {
@@ -923,25 +773,20 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                                 {
                                     await _context.SaveChangesAsync();
                                     await transaction.CommitAsync();
-
-                                    string msg = $"Đã lưu thành công {count} câu hỏi!";
-                                    return Json(new { isSuccess = true, redirectUrl = Url.Action("Index"), message = msg });
+                                    return Json(new { isSuccess = true, redirectUrl = Url.Action("Index"), message = $"Lưu thành công {count} câu!" });
                                 }
                             }
                             else
                             {
-                                result.IsSuccess = !errors.Any() && count > 0;
-                                if (result.IsSuccess)
-                                    result.Message = $"Tuyệt vời! File hợp lệ ({count} mục). Bạn có thể bấm Nhập ngay.";
-                                else
-                                    result.Message = $"Kiểm tra hoàn tất: Tìm thấy {errors.Count} lỗi.";
+                                result.IsSuccess = true; // Luôn Success để hiện bảng preview
+                                result.Message = errors.Any() ? $"Tìm thấy {errors.Count} lỗi." : "File hợp lệ.";
                             }
                         }
                         catch (Exception ex)
                         {
                             await transaction.RollbackAsync();
-                            result.Errors.Add(new ImportError { Row = 0, ErrorMessage = "Lỗi hệ thống: " + ex.Message });
                             result.IsSuccess = false;
+                            result.Message = "Lỗi hệ thống: " + ex.Message;
                         }
                     }
                 }
@@ -953,97 +798,121 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         // CÁC HÀM XỬ LÝ LOGIC CHI TIẾT (HELPER IMPORT)
         // Đã cập nhật chặn lưu theo danh sách Checkbox
         // ============================================================
-        private async Task<(int count, List<ImportError> errors)> ProcessGrammar(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+
+        private async Task<(int count, List<ImportError> errors, List<ImportRowPreview> previews)> ProcessGrammar(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
+            var previews = new List<ImportRowPreview>();
             int count = 0;
             int rowCount = ws.Dimension.Rows;
 
             for (int row = 8; row <= rowCount; row++)
             {
                 string content = ws.Cells[row, 1].Text?.Trim();
-
+                // Bỏ qua dòng rỗng hoàn toàn
                 if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 2].Text)) continue;
 
-                if (string.IsNullOrEmpty(content))
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi không được để trống." });
-                else if (content.Length < 5)
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi quá ngắn (tối thiểu 5 ký tự)." });
+                var rowPreview = new ImportRowPreview { RowIndex = row, IsValid = true, Content = content };
+                bool isSelected = selectedIndices.Contains(row - 1);
 
+                // 1. Kiểm tra trống nội dung
+                if (string.IsNullOrEmpty(content))
+                {
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Nội dung câu hỏi không được để trống.";
+                }
+                // 2. Kiểm tra trùng nội dung trong DB
+                else if (await _context.Questions.AnyAsync(q => q.Content == content && q.SkillType == ExamSkill.Grammar))
+                {
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Câu hỏi này đã tồn tại trong hệ thống.";
+                }
+
+                // 3. Kiểm tra Level (Cột 2)
                 int level = ws.Cells[row, 2].GetValue<int>();
                 if (level < 1 || level > 5)
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Level phải từ 1-5." });
+                {
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = (rowPreview.ErrorMessage ?? "") + " Level phải từ 1-5.";
+                }
 
+                // 4. Kiểm tra đáp án đúng (Cột 7)
                 int correctIdx = ws.Cells[row, 7].GetValue<int>();
                 if (correctIdx < 1 || correctIdx > 4)
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đáp án đúng phải là số từ 1-4." });
+                {
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = (rowPreview.ErrorMessage ?? "") + " Vị trí đáp án đúng phải từ 1-4.";
+                }
 
+                // 5. Kiểm tra số lượng đáp án (Cột 3-6)
                 int validAnswersCount = 0;
-                bool isCorrectAnswerEmpty = false;
-
                 for (int i = 0; i < 4; i++)
                 {
-                    string ansCheck = ws.Cells[row, 3 + i].Text?.Trim();
-                    if (!string.IsNullOrEmpty(ansCheck)) validAnswersCount++;
-
-                    if ((i + 1) == correctIdx && string.IsNullOrEmpty(ansCheck))
-                        isCorrectAnswerEmpty = true;
+                    if (!string.IsNullOrEmpty(ws.Cells[row, 3 + i].Text?.Trim())) validAnswersCount++;
                 }
-
                 if (validAnswersCount < 2)
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi phải có ít nhất 2 đáp án." });
-
-                if (isCorrectAnswerEmpty)
-                    errors.Add(new ImportError { Row = row, ErrorMessage = $"Bạn chọn đáp án đúng là vị trí {correctIdx} nhưng ô đáp án đó đang để trống." });
-
-                if (errors.Any(e => e.Row == row)) continue;
-
-                // --- ĐIỂM SỬA 3: Chặn lưu nếu không được tick ---
-                bool isSelected = selectedIndices.Contains(row - 1); // JS đếm mảng từ 0, nên dòng 8 trong Excel = index 7
-
-                if (save)
                 {
-                    if (isSelected)
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = (rowPreview.ErrorMessage ?? "") + " Phải có ít nhất 2 đáp án.";
+                }
+
+                // Lưu lỗi vào danh sách nếu có
+                if (!rowPreview.IsValid)
+                {
+                    errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage! });
+                }
+
+                // --- XỬ LÝ LƯU DỮ LIỆU ---
+                if (rowPreview.IsValid)
+                {
+                    if (save)
                     {
-                        string explanation = ws.Cells[row, 8].Text?.Trim();
-
-                        var q = new Question
+                        if (isSelected)
                         {
-                            Content = content,
-                            SkillType = ExamSkill.Grammar,
-                            QuestionType = QuestionType.SingleChoice,
-                            Level = level,
-                            Explaination = explanation,
-                            CreatedDate = DateTime.Now,
-                            Answers = new List<Answer>()
-                        };
-
-                        for (int i = 0; i < 4; i++)
-                        {
-                            string ans = ws.Cells[row, 3 + i].Text?.Trim();
-                            if (!string.IsNullOrEmpty(ans))
+                            string explanation = ws.Cells[row, 8].Text?.Trim();
+                            var q = new Question
                             {
-                                q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
-                            }
-                        }
-                        _context.Questions.Add(q);
-                        count++; // Chỉ tăng count khi thực sự lưu
-                    }
-                }
-                else
-                {
-                    count++; // Ở chế độ check thử thì đếm hết
-                }
-            }
-            return (count, errors);
-        }
+                                Content = content,
+                                SkillType = ExamSkill.Grammar,
+                                QuestionType = QuestionType.SingleChoice, // Đảm bảo gán đúng loại trắc nghiệm
+                                Level = level,
+                                Explaination = explanation,
+                                CreatedDate = DateTime.Now,
+                                Answers = new List<Answer>()
+                            };
 
-        private async Task<(int count, List<ImportError> errors)> ProcessReading(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+                            for (int i = 0; i < 4; i++)
+                            {
+                                string ansText = ws.Cells[row, 3 + i].Text?.Trim();
+                                if (!string.IsNullOrEmpty(ansText))
+                                {
+                                    q.Answers.Add(new Answer
+                                    {
+                                        Content = ansText,
+                                        IsCorrect = (i + 1) == correctIdx
+                                    });
+                                }
+                            }
+                            _context.Questions.Add(q);
+                            count++;
+                        }
+                    }
+                    else { count++; } // Chế độ check: đếm dòng hợp lệ
+                }
+
+                // Quan trọng: Phải thêm vào previews để hiển thị bảng ở giao diện
+                previews.Add(rowPreview);
+            }
+            return (count, errors, previews);
+        }
+        private async Task<(int count, List<ImportError> errors, List<ImportRowPreview> previews)> ProcessReading(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
+            var previews = new List<ImportRowPreview>();
             int count = 0;
             int rowCount = ws.Dimension.Rows;
-            ReadingPassage currentPassage = null;
+            ReadingPassage? currentPassage = null;
+            int currentParentIdx = -1;
 
             for (int row = 8; row <= rowCount; row++)
             {
@@ -1051,143 +920,104 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 string content = ws.Cells[row, 2].Text?.Trim();
                 string qContent = ws.Cells[row, 3].Text?.Trim();
 
-                bool hasTitle = !string.IsNullOrEmpty(title);
-                bool hasContent = !string.IsNullOrEmpty(content);
-                bool hasQuestion = !string.IsNullOrEmpty(qContent);
+                if (string.IsNullOrEmpty(title) && string.IsNullOrEmpty(content) && string.IsNullOrEmpty(qContent)) continue;
 
-                if (!hasTitle && !hasContent && !hasQuestion)
-                {
-                    continue; // Bỏ qua dòng rác
-                }
-
+                var rowPreview = new ImportRowPreview { RowIndex = row, IsValid = true };
                 bool isSelected = selectedIndices.Contains(row - 1);
 
-                // TRƯỜNG HỢP A: ĐÂY LÀ DÒNG CÂU HỎI CON
-                if (hasQuestion)
+                // A. DÒNG BÀI ĐỌC (CHA)
+                if (!string.IsNullOrEmpty(title))
                 {
-                    if (currentPassage == null && save)
+                    rowPreview.IsParent = true;
+                    rowPreview.Content = "BÀI: " + title;
+                    currentParentIdx = row;
+
+                    // Kiểm tra trùng tiêu đề
+                    if (await _context.ReadingPassages.AnyAsync(p => p.Title == title))
                     {
-                        if (!hasTitle && !hasContent && isSelected)
-                        {
-                            if (!errors.Any(e => e.Row == row && e.ErrorMessage.Contains("THIẾU")))
-                                errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài đọc hợp lệ nào." });
-                        }
+                        rowPreview.IsValid = false;
+                        rowPreview.ErrorMessage = $"Tiêu đề bài đọc '{title}' đã tồn tại.";
+                        errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage });
+                        currentPassage = null;
                     }
-
-                    if (qContent.Length < 5)
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi quá ngắn (tối thiểu 5 ký tự)." });
-
-                    int level = ws.Cells[row, 4].GetValue<int>();
-                    int correctIdx = ws.Cells[row, 9].GetValue<int>();
-
-                    if (level < 1 || level > 5)
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Level câu hỏi sai (1-5)." });
-
-                    if (correctIdx < 1 || correctIdx > 4)
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đáp án đúng sai (1-4)." });
-
-                    int validAnsCount = 0;
-                    for (int i = 0; i < 4; i++)
+                    else if (string.IsNullOrEmpty(content))
                     {
-                        if (!string.IsNullOrEmpty(ws.Cells[row, 5 + i].Text?.Trim())) validAnsCount++;
-                    }
-
-                    if (validAnsCount < 2)
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi trắc nghiệm phải có ít nhất 2 đáp án." });
-
-                    if (correctIdx >= 1 && correctIdx <= 4)
-                    {
-                        if (string.IsNullOrEmpty(ws.Cells[row, 5 + (correctIdx - 1)].Text?.Trim()))
-                            errors.Add(new ImportError { Row = row, ErrorMessage = $"Bạn chọn đáp án đúng là vị trí {correctIdx} nhưng ô đó lại rỗng." });
-                    }
-
-                    if (!errors.Any(e => e.Row == row))
-                    {
-                        if (save)
-                        {
-                            if (isSelected && currentPassage != null)
-                            {
-                                string explanation = ws.Cells[row, 10].Text?.Trim();
-                                var q = new Question
-                                {
-                                    Content = qContent,
-                                    SkillType = ExamSkill.Reading,
-                                    QuestionType = QuestionType.SingleChoice,
-                                    Level = level,
-                                    Explaination = explanation,
-                                    Answers = new List<Answer>()
-                                };
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    string ans = ws.Cells[row, 5 + i].Text?.Trim();
-                                    if (!string.IsNullOrEmpty(ans))
-                                        q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
-                                }
-                                currentPassage.Questions.Add(q);
-                                count++;
-                            }
-                        }
-                        else { count++; }
-                    }
-                }
-                // TRƯỜNG HỢP B: KHAI BÁO BÀI ĐỌC MỚI (CHA)
-                else
-                {
-                    bool isPassageValid = true;
-
-                    if (!hasTitle)
-                    {
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng khai báo bài đọc mới nhưng THIẾU TIÊU ĐỀ." });
-                        isPassageValid = false;
-                    }
-
-                    if (!hasContent)
-                    {
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng khai báo bài đọc mới nhưng THIẾU NỘI DUNG." });
-                        isPassageValid = false;
-                    }
-                    else if (content.Length < 10)
-                    {
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung bài đọc quá ngắn (phải > 10 ký tự)." });
-                        isPassageValid = false;
-                    }
-
-                    if (isPassageValid)
-                    {
-                        if (save && !errors.Any(e => e.Row == row))
-                        {
-                            if (isSelected)
-                            {
-                                currentPassage = new ReadingPassage
-                                {
-                                    Title = title,
-                                    Content = content,
-                                    Questions = new List<Question>()
-                                };
-                                _context.ReadingPassages.Add(currentPassage);
-                            }
-                            else
-                            {
-                                // Bị bỏ tick -> Vứt luôn bài đọc để các câu con bên dưới không có chỗ bấu víu
-                                currentPassage = null;
-                            }
-                        }
+                        rowPreview.IsValid = false;
+                        rowPreview.ErrorMessage = "Thiếu nội dung bài đọc.";
+                        errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage });
+                        currentPassage = null;
                     }
                     else
                     {
-                        currentPassage = null;
+                        if (save && isSelected)
+                        {
+                            currentPassage = new ReadingPassage { Title = title, Content = content, Questions = new List<Question>() };
+                            _context.ReadingPassages.Add(currentPassage);
+                        }
+                        else { currentPassage = new ReadingPassage { Title = title }; }
                     }
                 }
-            }
-            return (count, errors);
-        }
+                // B. DÒNG CÂU HỎI (CON)
+                else if (!string.IsNullOrEmpty(qContent))
+                {
+                    rowPreview.Content = qContent;
+                    rowPreview.ParentIndex = currentParentIdx;
 
-        private async Task<(int count, List<ImportError> errors)> ProcessListening(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+                    if (currentPassage == null)
+                    {
+                        rowPreview.IsValid = false;
+                        rowPreview.ErrorMessage = "Câu hỏi thiếu nội dung chính (do bài có lỗi hoặc đã tồn tại).";
+                        errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage });
+                    }
+                    else
+                    {
+                        // Validate các cột (Level, Đáp án...)
+                        int level = ws.Cells[row, 4].GetValue<int>();
+                        if (level < 1 || level > 5) { rowPreview.IsValid = false; rowPreview.ErrorMessage = "Level sai."; }
+
+                        if (rowPreview.IsValid)
+                        {
+                            if (save)
+                            {
+                                if (isSelected)
+                                {
+                                    var q = new Question
+                                    {
+                                        Content = qContent,
+                                        SkillType = ExamSkill.Reading,
+                                        QuestionType = QuestionType.SingleChoice,
+                                        Level = level,
+                                        Explaination = ws.Cells[row, 10].Text?.Trim(),
+                                        Answers = new List<Answer>()
+                                    };
+                                    int correctIdx = ws.Cells[row, 9].GetValue<int>();
+                                    for (int i = 0; i < 4; i++)
+                                    {
+                                        string ans = ws.Cells[row, 5 + i].Text?.Trim();
+                                        if (!string.IsNullOrEmpty(ans))
+                                            q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+                                    }
+                                    currentPassage.Questions.Add(q);
+                                    count++;
+                                }
+                            }
+                            else { count++; }
+                        }
+                        else { errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage! }); }
+                    }
+                }
+                previews.Add(rowPreview);
+            }
+            return (count, errors, previews);
+        }
+        private async Task<(int count, List<ImportError> errors, List<ImportRowPreview> previews)> ProcessListening(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
+            var previews = new List<ImportRowPreview>();
             int count = 0;
             int rowCount = ws.Dimension.Rows;
-            ListeningResource currentResource = null;
+            ListeningResource? currentResource = null;
+            int currentParentIdx = -1;
 
             for (int row = 8; row <= rowCount; row++)
             {
@@ -1195,58 +1025,64 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 string transcript = ws.Cells[row, 2].Text?.Trim();
                 string qContent = ws.Cells[row, 3].Text?.Trim();
 
-                bool hasTitle = !string.IsNullOrEmpty(title);
-                bool hasTranscript = !string.IsNullOrEmpty(transcript);
-                bool hasQuestion = !string.IsNullOrEmpty(qContent);
+                if (string.IsNullOrEmpty(title) && string.IsNullOrEmpty(transcript) && string.IsNullOrEmpty(qContent)) continue;
 
-                if (!hasTitle && !hasTranscript && !hasQuestion) continue;
-
+                var rowPreview = new ImportRowPreview { RowIndex = row, IsValid = true };
                 bool isSelected = selectedIndices.Contains(row - 1);
 
-                if (hasQuestion)
+                if (!string.IsNullOrEmpty(title))
                 {
-                    if (currentResource == null && save)
+                    rowPreview.IsParent = true;
+                    rowPreview.Content = "BÀI NGHE: " + title;
+                    currentParentIdx = row;
+
+                    if (await _context.ListeningResources.AnyAsync(r => r.Title == title))
                     {
-                        if (!hasTitle && isSelected)
-                            errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài nghe hợp lệ nào." });
+                        rowPreview.IsValid = false;
+                        rowPreview.ErrorMessage = $"Tiêu đề bài nghe '{title}' đã tồn tại.";
+                        errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage });
+                        currentResource = null;
                     }
-
-                    if (qContent.Length < 5)
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi quá ngắn." });
-
-                    int level = ws.Cells[row, 4].GetValue<int>();
-                    int correctIdx = ws.Cells[row, 9].GetValue<int>();
-
-                    if (level < 1 || level > 5) errors.Add(new ImportError { Row = row, ErrorMessage = "Level sai." });
-                    if (correctIdx < 1 || correctIdx > 4) errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đúng sai." });
-
-                    int validAnsCount = 0;
-                    for (int i = 0; i < 4; i++) if (!string.IsNullOrEmpty(ws.Cells[row, 5 + i].Text?.Trim())) validAnsCount++;
-
-                    if (validAnsCount < 2) errors.Add(new ImportError { Row = row, ErrorMessage = "Thiếu đáp án." });
-
-                    if (correctIdx >= 1 && correctIdx <= 4)
+                    else
                     {
-                        if (string.IsNullOrEmpty(ws.Cells[row, 5 + (correctIdx - 1)].Text?.Trim()))
-                            errors.Add(new ImportError { Row = row, ErrorMessage = $"Đáp án đúng bị rỗng." });
-                    }
-
-                    if (!errors.Any(e => e.Row == row))
-                    {
-                        if (save)
+                        if (save && isSelected)
                         {
-                            if (isSelected && currentResource != null)
+                            currentResource = new ListeningResource { Title = title, Transcript = transcript, AudioUrl = "/uploads/audio/placeholder.mp3", Questions = new List<Question>() };
+                            _context.ListeningResources.Add(currentResource);
+                        }
+                        else { currentResource = new ListeningResource { Title = title }; }
+                    }
+                }
+                else if (!string.IsNullOrEmpty(qContent))
+                {
+                    rowPreview.Content = qContent;
+                    rowPreview.ParentIndex = currentParentIdx;
+
+                    if (currentResource == null)
+                    {
+                        rowPreview.IsValid = false;
+                        rowPreview.ErrorMessage = "Câu hỏi mồ côi (Bài nghe cha lỗi).";
+                        errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage });
+                    }
+                    else
+                    {
+                        int level = ws.Cells[row, 4].GetValue<int>();
+                        if (level < 1 || level > 5) { rowPreview.IsValid = false; rowPreview.ErrorMessage = "Level sai."; }
+
+                        if (save && isSelected)
+                        {
+                            if (isSelected)
                             {
-                                string explanation = ws.Cells[row, 10].Text?.Trim();
                                 var q = new Question
                                 {
                                     Content = qContent,
                                     SkillType = ExamSkill.Listening,
                                     QuestionType = QuestionType.SingleChoice,
                                     Level = level,
-                                    Explaination = explanation,
+                                    Explaination = ws.Cells[row, 10].Text?.Trim(),
                                     Answers = new List<Answer>()
                                 };
+                                int correctIdx = ws.Cells[row, 9].GetValue<int>();
                                 for (int i = 0; i < 4; i++)
                                 {
                                     string ans = ws.Cells[row, 5 + i].Text?.Trim();
@@ -1256,53 +1092,19 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                                 currentResource.Questions.Add(q);
                                 count++;
                             }
+                            count++;
                         }
-                        else { count++; }
+                        else if (!save) { count++; }
                     }
                 }
-                else
-                {
-                    bool isResourceValid = true;
-
-                    if (!hasTitle)
-                    {
-                        errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng khai báo bài nghe mới THIẾU TIÊU ĐỀ." });
-                        isResourceValid = false;
-                    }
-
-                    if (isResourceValid)
-                    {
-                        if (save && !errors.Any(e => e.Row == row))
-                        {
-                            if (isSelected)
-                            {
-                                currentResource = new ListeningResource
-                                {
-                                    Title = title,
-                                    Transcript = transcript,
-                                    AudioUrl = "/uploads/audio/placeholder.mp3",
-                                    Questions = new List<Question>()
-                                };
-                                _context.ListeningResources.Add(currentResource);
-                            }
-                            else
-                            {
-                                currentResource = null;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        currentResource = null;
-                    }
-                }
+                previews.Add(rowPreview);
             }
-            return (count, errors);
+            return (count, errors, previews);
         }
-
-        private async Task<(int count, List<ImportError> errors)> ProcessWriting(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+        private async Task<(int count, List<ImportError> errors, List<ImportRowPreview> previews)> ProcessWriting(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
+            var previews = new List<ImportRowPreview>();
             int count = 0;
             int rowCount = ws.Dimension.Rows;
 
@@ -1310,57 +1112,78 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             {
                 string content = ws.Cells[row, 1].Text?.Trim();
 
+                // Bỏ qua dòng rỗng
                 if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 3].Text)) continue;
 
+                var rowPreview = new ImportRowPreview { RowIndex = row, Content = content, IsValid = true };
+                bool isSelected = selectedIndices.Contains(row - 1);
+
+                // --- VALIDATION ---
                 if (string.IsNullOrEmpty(content))
                 {
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Đề bài không được để trống." });
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Đề bài không được để trống.";
                 }
                 else if (content.Length < 10)
                 {
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Đề bài quá ngắn (tối thiểu 10 ký tự)." });
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Đề bài quá ngắn (tối thiểu 10 ký tự).";
+                }
+                // Kiểm tra trùng đề bài trong DB
+                else if (await _context.Questions.AnyAsync(q => q.Content.Contains(content) && q.SkillType == ExamSkill.Writing))
+                {
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Đề bài viết này đã tồn tại trong hệ thống.";
                 }
 
                 int level = ws.Cells[row, 3].GetValue<int>();
                 if (level < 1 || level > 5)
                 {
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Level phải từ 1-5" });
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = (rowPreview.ErrorMessage ?? "") + " Level phải từ 1-5.";
                 }
 
-                if (errors.Any(e => e.Row == row)) continue;
-
-                bool isSelected = selectedIndices.Contains(row - 1);
-
-                if (save)
+                // Lưu lỗi vào danh sách errors nếu không hợp lệ
+                if (!rowPreview.IsValid)
                 {
-                    if (isSelected)
-                    {
-                        string hint = ws.Cells[row, 2].Text?.Trim();
-                        string explanation = ws.Cells[row, 4].Text?.Trim();
-
-                        string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
-
-                        var q = new Question
-                        {
-                            Content = finalContent,
-                            SkillType = ExamSkill.Writing,
-                            QuestionType = QuestionType.Essay,
-                            Level = level,
-                            Explaination = explanation,
-                            CreatedDate = DateTime.Now
-                        };
-                        _context.Questions.Add(q);
-                        count++;
-                    }
+                    errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage! });
                 }
-                else { count++; }
-            }
-            return (count, errors);
-        }
 
-        private async Task<(int count, List<ImportError> errors)> ProcessSpeaking(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+                // --- XỬ LÝ LƯU HOẶC ĐẾM ---
+                if (rowPreview.IsValid)
+                {
+                    if (save)
+                    {
+                        if (isSelected)
+                        {
+                            string hint = ws.Cells[row, 2].Text?.Trim();
+                            string explanation = ws.Cells[row, 4].Text?.Trim();
+                            string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
+
+                            var q = new Question
+                            {
+                                Content = finalContent,
+                                SkillType = ExamSkill.Writing,
+                                QuestionType = QuestionType.Essay,
+                                Level = level,
+                                Explaination = explanation,
+                                CreatedDate = DateTime.Now
+                            };
+                            _context.Questions.Add(q);
+                            count++;
+                        }
+                    }
+                    else { count++; } // Chế độ check: đếm các dòng hợp lệ
+                }
+
+                previews.Add(rowPreview);
+            }
+            return (count, errors, previews);
+        }
+        private async Task<(int count, List<ImportError> errors, List<ImportRowPreview> previews)> ProcessSpeaking(ExcelWorksheet ws, bool save, List<int> selectedIndices)
         {
             var errors = new List<ImportError>();
+            var previews = new List<ImportRowPreview>();
             int count = 0;
             int rowCount = ws.Dimension.Rows;
 
@@ -1368,53 +1191,549 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             {
                 string content = ws.Cells[row, 1].Text?.Trim();
 
+                // Bỏ qua dòng rỗng
                 if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 3].Text)) continue;
 
+                var rowPreview = new ImportRowPreview { RowIndex = row, Content = content, IsValid = true };
+                bool isSelected = selectedIndices.Contains(row - 1);
+
+                // --- VALIDATION ---
                 if (string.IsNullOrEmpty(content))
                 {
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi Speaking không được để trống." });
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Câu hỏi Speaking không được để trống.";
                 }
                 else if (content.Length < 5)
                 {
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung quá ngắn." });
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Nội dung quá ngắn.";
+                }
+                // Kiểm tra trùng câu hỏi trong DB
+                else if (await _context.Questions.AnyAsync(q => q.Content.Contains(content) && q.SkillType == ExamSkill.Speaking))
+                {
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = "Câu hỏi Speaking này đã tồn tại trong hệ thống.";
                 }
 
                 int level = ws.Cells[row, 3].GetValue<int>();
                 if (level < 1 || level > 5)
                 {
-                    errors.Add(new ImportError { Row = row, ErrorMessage = "Level phải từ 1-5" });
+                    rowPreview.IsValid = false;
+                    rowPreview.ErrorMessage = (rowPreview.ErrorMessage ?? "") + " Level phải từ 1-5.";
                 }
 
-                if (errors.Any(e => e.Row == row)) continue;
-
-                bool isSelected = selectedIndices.Contains(row - 1);
-
-                if (save)
+                // Lưu lỗi vào danh sách errors nếu không hợp lệ
+                if (!rowPreview.IsValid)
                 {
-                    if (isSelected)
-                    {
-                        string hint = ws.Cells[row, 2].Text?.Trim();
-                        string sampleAnswer = ws.Cells[row, 4].Text?.Trim();
-
-                        string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
-
-                        var q = new Question
-                        {
-                            Content = finalContent,
-                            SkillType = ExamSkill.Speaking,
-                            QuestionType = QuestionType.SpeakingRecording,
-                            Level = level,
-                            Explaination = sampleAnswer,
-                            CreatedDate = DateTime.Now
-                        };
-                        _context.Questions.Add(q);
-                        count++;
-                    }
+                    errors.Add(new ImportError { Row = row, ErrorMessage = rowPreview.ErrorMessage! });
                 }
-                else { count++; }
+
+                // --- XỬ LÝ LƯU HOẶC ĐẾM ---
+                if (rowPreview.IsValid)
+                {
+                    if (save)
+                    {
+                        if (isSelected)
+                        {
+                            string hint = ws.Cells[row, 2].Text?.Trim();
+                            string sampleAnswer = ws.Cells[row, 4].Text?.Trim();
+                            string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
+
+                            var q = new Question
+                            {
+                                Content = finalContent,
+                                SkillType = ExamSkill.Speaking,
+                                QuestionType = QuestionType.SpeakingRecording,
+                                Level = level,
+                                Explaination = sampleAnswer,
+                                CreatedDate = DateTime.Now
+                            };
+                            _context.Questions.Add(q);
+                            count++;
+                        }
+                    }
+                    else { count++; } // Chế độ check: đếm các dòng hợp lệ
+                }
+
+                previews.Add(rowPreview);
             }
-            return (count, errors);
+            return (count, errors, previews);
         }
+
+        //private async Task<(int count, List<ImportError> errors)> ProcessGrammar(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+        //{
+        //    var errors = new List<ImportError>();
+        //    int count = 0;
+        //    int rowCount = ws.Dimension.Rows;
+
+        //    for (int row = 8; row <= rowCount; row++)
+        //    {
+        //        string content = ws.Cells[row, 1].Text?.Trim();
+
+        //        if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 2].Text)) continue;
+
+        //        if (string.IsNullOrEmpty(content))
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi không được để trống." });
+        //        else if (content.Length < 5)
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi quá ngắn (tối thiểu 5 ký tự)." });
+
+        //        int level = ws.Cells[row, 2].GetValue<int>();
+        //        if (level < 1 || level > 5)
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Level phải từ 1-5." });
+
+        //        int correctIdx = ws.Cells[row, 7].GetValue<int>();
+        //        if (correctIdx < 1 || correctIdx > 4)
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đáp án đúng phải là số từ 1-4." });
+
+        //        int validAnswersCount = 0;
+        //        bool isCorrectAnswerEmpty = false;
+
+        //        for (int i = 0; i < 4; i++)
+        //        {
+        //            string ansCheck = ws.Cells[row, 3 + i].Text?.Trim();
+        //            if (!string.IsNullOrEmpty(ansCheck)) validAnswersCount++;
+
+        //            if ((i + 1) == correctIdx && string.IsNullOrEmpty(ansCheck))
+        //                isCorrectAnswerEmpty = true;
+        //        }
+
+        //        if (validAnswersCount < 2)
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi phải có ít nhất 2 đáp án." });
+
+        //        if (isCorrectAnswerEmpty)
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = $"Bạn chọn đáp án đúng là vị trí {correctIdx} nhưng ô đáp án đó đang để trống." });
+
+        //        if (errors.Any(e => e.Row == row)) continue;
+
+        //        // --- ĐIỂM SỬA 3: Chặn lưu nếu không được tick ---
+        //        bool isSelected = selectedIndices.Contains(row - 1); // JS đếm mảng từ 0, nên dòng 8 trong Excel = index 7
+
+        //        if (save)
+        //        {
+        //            if (isSelected)
+        //            {
+        //                string explanation = ws.Cells[row, 8].Text?.Trim();
+
+        //                var q = new Question
+        //                {
+        //                    Content = content,
+        //                    SkillType = ExamSkill.Grammar,
+        //                    QuestionType = QuestionType.SingleChoice,
+        //                    Level = level,
+        //                    Explaination = explanation,
+        //                    CreatedDate = DateTime.Now,
+        //                    Answers = new List<Answer>()
+        //                };
+
+        //                for (int i = 0; i < 4; i++)
+        //                {
+        //                    string ans = ws.Cells[row, 3 + i].Text?.Trim();
+        //                    if (!string.IsNullOrEmpty(ans))
+        //                    {
+        //                        q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+        //                    }
+        //                }
+        //                _context.Questions.Add(q);
+        //                count++; // Chỉ tăng count khi thực sự lưu
+        //            }
+        //        }
+        //        else
+        //        {
+        //            count++; // Ở chế độ check thử thì đếm hết
+        //        }
+        //    }
+        //    return (count, errors);
+        //}
+
+        //private async Task<(int count, List<ImportError> errors)> ProcessReading(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+        //{
+        //    var errors = new List<ImportError>();
+        //    int count = 0;
+        //    int rowCount = ws.Dimension.Rows;
+        //    ReadingPassage currentPassage = null;
+
+        //    for (int row = 8; row <= rowCount; row++)
+        //    {
+        //        string title = ws.Cells[row, 1].Text?.Trim();
+        //        string content = ws.Cells[row, 2].Text?.Trim();
+        //        string qContent = ws.Cells[row, 3].Text?.Trim();
+
+        //        bool hasTitle = !string.IsNullOrEmpty(title);
+        //        bool hasContent = !string.IsNullOrEmpty(content);
+        //        bool hasQuestion = !string.IsNullOrEmpty(qContent);
+
+        //        if (!hasTitle && !hasContent && !hasQuestion)
+        //        {
+        //            continue; // Bỏ qua dòng rác
+        //        }
+
+        //        bool isSelected = selectedIndices.Contains(row - 1);
+
+        //        // TRƯỜNG HỢP A: ĐÂY LÀ DÒNG CÂU HỎI CON
+        //        if (hasQuestion)
+        //        {
+        //            if (currentPassage == null && save)
+        //            {
+        //                if (!hasTitle && !hasContent && isSelected)
+        //                {
+        //                    if (!errors.Any(e => e.Row == row && e.ErrorMessage.Contains("THIẾU")))
+        //                        errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài đọc hợp lệ nào." });
+        //                }
+        //            }
+
+        //            if (qContent.Length < 5)
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung câu hỏi quá ngắn (tối thiểu 5 ký tự)." });
+
+        //            int level = ws.Cells[row, 4].GetValue<int>();
+        //            int correctIdx = ws.Cells[row, 9].GetValue<int>();
+
+        //            if (level < 1 || level > 5)
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Level câu hỏi sai (1-5)." });
+
+        //            if (correctIdx < 1 || correctIdx > 4)
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đáp án đúng sai (1-4)." });
+
+        //            int validAnsCount = 0;
+        //            for (int i = 0; i < 4; i++)
+        //            {
+        //                if (!string.IsNullOrEmpty(ws.Cells[row, 5 + i].Text?.Trim())) validAnsCount++;
+        //            }
+
+        //            if (validAnsCount < 2)
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi trắc nghiệm phải có ít nhất 2 đáp án." });
+
+        //            if (correctIdx >= 1 && correctIdx <= 4)
+        //            {
+        //                if (string.IsNullOrEmpty(ws.Cells[row, 5 + (correctIdx - 1)].Text?.Trim()))
+        //                    errors.Add(new ImportError { Row = row, ErrorMessage = $"Bạn chọn đáp án đúng là vị trí {correctIdx} nhưng ô đó lại rỗng." });
+        //            }
+
+        //            if (!errors.Any(e => e.Row == row))
+        //            {
+        //                if (save)
+        //                {
+        //                    if (isSelected && currentPassage != null)
+        //                    {
+        //                        string explanation = ws.Cells[row, 10].Text?.Trim();
+        //                        var q = new Question
+        //                        {
+        //                            Content = qContent,
+        //                            SkillType = ExamSkill.Reading,
+        //                            QuestionType = QuestionType.SingleChoice,
+        //                            Level = level,
+        //                            Explaination = explanation,
+        //                            Answers = new List<Answer>()
+        //                        };
+        //                        for (int i = 0; i < 4; i++)
+        //                        {
+        //                            string ans = ws.Cells[row, 5 + i].Text?.Trim();
+        //                            if (!string.IsNullOrEmpty(ans))
+        //                                q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+        //                        }
+        //                        currentPassage.Questions.Add(q);
+        //                        count++;
+        //                    }
+        //                }
+        //                else { count++; }
+        //            }
+        //        }
+        //        // TRƯỜNG HỢP B: KHAI BÁO BÀI ĐỌC MỚI (CHA)
+        //        else
+        //        {
+        //            bool isPassageValid = true;
+
+        //            if (!hasTitle)
+        //            {
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng khai báo bài đọc mới nhưng THIẾU TIÊU ĐỀ." });
+        //                isPassageValid = false;
+        //            }
+
+        //            if (hasTitle && await _context.ReadingPassages.AnyAsync(p => p.Title == title))
+        //            {
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = $"Tên bài đọc '{title}' đã tồn tại trong hệ thống." });
+        //                isPassageValid = false;
+        //            }
+
+        //            if (!hasContent)
+        //            {
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng khai báo bài đọc mới nhưng THIẾU NỘI DUNG." });
+        //                isPassageValid = false;
+        //            }
+        //            else if (content.Length < 10)
+        //            {
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung bài đọc quá ngắn (phải > 10 ký tự)." });
+        //                isPassageValid = false;
+        //            }
+
+        //            if (isPassageValid)
+        //            {
+        //                if (save && !errors.Any(e => e.Row == row))
+        //                {
+        //                    if (isSelected)
+        //                    {
+        //                        currentPassage = new ReadingPassage
+        //                        {
+        //                            Title = title,
+        //                            Content = content,
+        //                            Questions = new List<Question>()
+        //                        };
+        //                        _context.ReadingPassages.Add(currentPassage);
+        //                    }
+        //                    else
+        //                    {
+        //                        // Bị bỏ tick -> Vứt luôn bài đọc để các câu con bên dưới không có chỗ bấu víu
+        //                        currentPassage = null;
+        //                    }
+        //                }
+        //            }
+        //            else
+        //            {
+        //                currentPassage = null;
+        //            }
+        //        }
+        //    }
+        //    return (count, errors);
+        //}
+
+        //private async Task<(int count, List<ImportError> errors)> ProcessListening(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+        //{
+        //    var errors = new List<ImportError>();
+        //    int count = 0;
+        //    int rowCount = ws.Dimension.Rows;
+        //    ListeningResource currentResource = null;
+
+        //    for (int row = 8; row <= rowCount; row++)
+        //    {
+        //        string title = ws.Cells[row, 1].Text?.Trim();
+        //        string transcript = ws.Cells[row, 2].Text?.Trim();
+        //        string qContent = ws.Cells[row, 3].Text?.Trim();
+
+        //        bool hasTitle = !string.IsNullOrEmpty(title);
+        //        bool hasTranscript = !string.IsNullOrEmpty(transcript);
+        //        bool hasQuestion = !string.IsNullOrEmpty(qContent);
+
+        //        if (!hasTitle && !hasTranscript && !hasQuestion) continue;
+
+        //        bool isSelected = selectedIndices.Contains(row - 1);
+
+        //        if (hasQuestion)
+        //        {
+        //            if (currentResource == null && save)
+        //            {
+        //                if (!hasTitle && isSelected)
+        //                    errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi này không thuộc bài nghe hợp lệ nào." });
+        //            }
+
+        //            if (qContent.Length < 5)
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi quá ngắn." });
+
+        //            int level = ws.Cells[row, 4].GetValue<int>();
+        //            int correctIdx = ws.Cells[row, 9].GetValue<int>();
+
+        //            if (level < 1 || level > 5) errors.Add(new ImportError { Row = row, ErrorMessage = "Level sai." });
+        //            if (correctIdx < 1 || correctIdx > 4) errors.Add(new ImportError { Row = row, ErrorMessage = "Vị trí đúng sai." });
+
+        //            int validAnsCount = 0;
+        //            for (int i = 0; i < 4; i++) if (!string.IsNullOrEmpty(ws.Cells[row, 5 + i].Text?.Trim())) validAnsCount++;
+
+        //            if (validAnsCount < 2) errors.Add(new ImportError { Row = row, ErrorMessage = "Thiếu đáp án." });
+
+        //            if (correctIdx >= 1 && correctIdx <= 4)
+        //            {
+        //                if (string.IsNullOrEmpty(ws.Cells[row, 5 + (correctIdx - 1)].Text?.Trim()))
+        //                    errors.Add(new ImportError { Row = row, ErrorMessage = $"Đáp án đúng bị rỗng." });
+        //            }
+
+        //            if (!errors.Any(e => e.Row == row))
+        //            {
+        //                if (save)
+        //                {
+        //                    if (isSelected && currentResource != null)
+        //                    {
+        //                        string explanation = ws.Cells[row, 10].Text?.Trim();
+        //                        var q = new Question
+        //                        {
+        //                            Content = qContent,
+        //                            SkillType = ExamSkill.Listening,
+        //                            QuestionType = QuestionType.SingleChoice,
+        //                            Level = level,
+        //                            Explaination = explanation,
+        //                            Answers = new List<Answer>()
+        //                        };
+        //                        for (int i = 0; i < 4; i++)
+        //                        {
+        //                            string ans = ws.Cells[row, 5 + i].Text?.Trim();
+        //                            if (!string.IsNullOrEmpty(ans))
+        //                                q.Answers.Add(new Answer { Content = ans, IsCorrect = (i + 1) == correctIdx });
+        //                        }
+        //                        currentResource.Questions.Add(q);
+        //                        count++;
+        //                    }
+        //                }
+        //                else { count++; }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            bool isResourceValid = true;
+
+        //            if (!hasTitle)
+        //            {
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = "Dòng khai báo bài nghe mới THIẾU TIÊU ĐỀ." });
+        //                isResourceValid = false;
+        //            }
+
+        //            if (hasTitle && await _context.ListeningResources.AnyAsync(r => r.Title == title))
+        //            {
+        //                errors.Add(new ImportError { Row = row, ErrorMessage = $"Tên bài nghe '{title}' đã tồn tại trong hệ thống." });
+        //                isResourceValid = false;
+        //            }
+
+        //            if (isResourceValid)
+        //            {
+        //                if (save && !errors.Any(e => e.Row == row))
+        //                {
+        //                    if (isSelected)
+        //                    {
+        //                        currentResource = new ListeningResource
+        //                        {
+        //                            Title = title,
+        //                            Transcript = transcript,
+        //                            AudioUrl = "/uploads/audio/placeholder.mp3",
+        //                            Questions = new List<Question>()
+        //                        };
+        //                        _context.ListeningResources.Add(currentResource);
+        //                    }
+        //                    else
+        //                    {
+        //                        currentResource = null;
+        //                    }
+        //                }
+        //            }
+        //            else
+        //            {
+        //                currentResource = null;
+        //            }
+        //        }
+        //    }
+        //    return (count, errors);
+        //}
+
+        //private async Task<(int count, List<ImportError> errors)> ProcessWriting(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+        //{
+        //    var errors = new List<ImportError>();
+        //    int count = 0;
+        //    int rowCount = ws.Dimension.Rows;
+
+        //    for (int row = 8; row <= rowCount; row++)
+        //    {
+        //        string content = ws.Cells[row, 1].Text?.Trim();
+
+        //        if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 3].Text)) continue;
+
+        //        if (string.IsNullOrEmpty(content))
+        //        {
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Đề bài không được để trống." });
+        //        }
+        //        else if (content.Length < 10)
+        //        {
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Đề bài quá ngắn (tối thiểu 10 ký tự)." });
+        //        }
+
+        //        int level = ws.Cells[row, 3].GetValue<int>();
+        //        if (level < 1 || level > 5)
+        //        {
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Level phải từ 1-5" });
+        //        }
+
+        //        if (errors.Any(e => e.Row == row)) continue;
+
+        //        bool isSelected = selectedIndices.Contains(row - 1);
+
+        //        if (save)
+        //        {
+        //            if (isSelected)
+        //            {
+        //                string hint = ws.Cells[row, 2].Text?.Trim();
+        //                string explanation = ws.Cells[row, 4].Text?.Trim();
+
+        //                string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
+
+        //                var q = new Question
+        //                {
+        //                    Content = finalContent,
+        //                    SkillType = ExamSkill.Writing,
+        //                    QuestionType = QuestionType.Essay,
+        //                    Level = level,
+        //                    Explaination = explanation,
+        //                    CreatedDate = DateTime.Now
+        //                };
+        //                _context.Questions.Add(q);
+        //                count++;
+        //            }
+        //        }
+        //        else { count++; }
+        //    }
+        //    return (count, errors);
+        //}
+
+        //private async Task<(int count, List<ImportError> errors)> ProcessSpeaking(ExcelWorksheet ws, bool save, List<int> selectedIndices)
+        //{
+        //    var errors = new List<ImportError>();
+        //    int count = 0;
+        //    int rowCount = ws.Dimension.Rows;
+
+        //    for (int row = 8; row <= rowCount; row++)
+        //    {
+        //        string content = ws.Cells[row, 1].Text?.Trim();
+
+        //        if (string.IsNullOrEmpty(content) && string.IsNullOrEmpty(ws.Cells[row, 3].Text)) continue;
+
+        //        if (string.IsNullOrEmpty(content))
+        //        {
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Câu hỏi Speaking không được để trống." });
+        //        }
+        //        else if (content.Length < 5)
+        //        {
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Nội dung quá ngắn." });
+        //        }
+
+        //        int level = ws.Cells[row, 3].GetValue<int>();
+        //        if (level < 1 || level > 5)
+        //        {
+        //            errors.Add(new ImportError { Row = row, ErrorMessage = "Level phải từ 1-5" });
+        //        }
+
+        //        if (errors.Any(e => e.Row == row)) continue;
+
+        //        bool isSelected = selectedIndices.Contains(row - 1);
+
+        //        if (save)
+        //        {
+        //            if (isSelected)
+        //            {
+        //                string hint = ws.Cells[row, 2].Text?.Trim();
+        //                string sampleAnswer = ws.Cells[row, 4].Text?.Trim();
+
+        //                string finalContent = content + (string.IsNullOrEmpty(hint) ? "" : $"\n\n(Gợi ý: {hint})");
+
+        //                var q = new Question
+        //                {
+        //                    Content = finalContent,
+        //                    SkillType = ExamSkill.Speaking,
+        //                    QuestionType = QuestionType.SpeakingRecording,
+        //                    Level = level,
+        //                    Explaination = sampleAnswer,
+        //                    CreatedDate = DateTime.Now
+        //                };
+        //                _context.Questions.Add(q);
+        //                count++;
+        //            }
+        //        }
+        //        else { count++; }
+        //    }
+        //    return (count, errors);
+        //}
 
         // POST: Admin/Questions/BulkDelete
         [HttpPost]
