@@ -113,10 +113,10 @@ namespace ExamSystem.Web.Areas.Student.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             var userId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
-            string studentName = currentUser.FullName ?? currentUser.UserName ?? "ThiSinh";
+            string studentName = currentUser.FullName?? "ThiSinh";
 
-            // Làm sạch tên sinh viên để dùng làm tên thư mục (thay khoảng trắng bằng dấu gạch dưới, xóa ký tự đặc biệt)
-            string safeStudentName = studentName.Replace(" ", "_");
+            string safeStudentName = RemoveAccents(studentName);
+            safeStudentName = safeStudentName.Replace(" ", "_");
             foreach (var c in Path.GetInvalidFileNameChars())
             {
                 safeStudentName = safeStudentName.Replace(c.ToString(), "");
@@ -211,7 +211,7 @@ namespace ExamSystem.Web.Areas.Student.Controllers
                         }
 
                         // Lưu DB
-                        string relativePath = Path.Combine("uploads", "student_exams", userId, Path.GetFileName(uploadFolder), uniqueFileName).Replace("\\", "/");
+                        string relativePath = Path.Combine("uploads", "student_exams", Path.GetFileName(uploadFolder), uniqueFileName).Replace("\\", "/");
                         result.AudioAnswerUrl = "/" + relativePath;
                         result.IsCorrect = null;
                         hasManualGrading = true;
@@ -243,6 +243,30 @@ namespace ExamSystem.Web.Areas.Student.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Result", new { attemptId = attempt.Id });
+        }
+
+        public static string RemoveAccents(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return text;
+
+            // Chuẩn hóa chuỗi về dạng FormD (tách các dấu ra khỏi chữ cái gốc)
+            text = text.Normalize(System.Text.NormalizationForm.FormD);
+            var sb = new System.Text.StringBuilder();
+
+            foreach (var c in text)
+            {
+                // Chỉ giữ lại các ký tự không phải là dấu (NonSpacingMark)
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    sb.Append(c);
+                }
+            }
+
+            // Xử lý riêng ký tự đ/Đ và trả về chuỗi đã chuẩn hóa lại FormC
+            return sb.ToString().Normalize(System.Text.NormalizationForm.FormC)
+                     .Replace('đ', 'd').Replace('Đ', 'D');
         }
 
         public async Task<IActionResult> History()
@@ -281,10 +305,7 @@ namespace ExamSystem.Web.Areas.Student.Controllers
                         .ThenInclude(q => q.ReadingPassage)
                 .Include(ta => ta.TestResults)
                     .ThenInclude(tr => tr.Question)
-                        .ThenInclude(q => q.ListeningResource)
-
-                // [QUAN TRỌNG] Thêm dòng này để tách query, sửa cảnh báo hiệu năng
-                .AsSplitQuery()
+                        .ThenInclude(q => q.ListeningResource)            
 
                 .FirstOrDefaultAsync(ta => ta.Id == attemptId);
 
