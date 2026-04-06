@@ -90,11 +90,38 @@ setInterval(() => {
 }, 1000);
 
 function submitExam() {
-    if (confirm("Bạn có chắc chắn muốn nộp bài?")) {
-        document.body.style.opacity = '0.5';
-        document.body.style.pointerEvents = 'none';
-        document.getElementById('examForm').submit();
-    }
+    Swal.fire({
+        title: 'Nộp bài thi?',
+        text: "Bạn có chắc chắn muốn kết thúc bài thi và nộp bài ngay bây giờ?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981', // Màu xanh lá giống nút Admin [cite: 18, 19]
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="bi bi-check2-circle me-1"></i> Xác nhận nộp bài',
+        cancelButtonText: 'Tiếp tục làm bài',
+        reverseButtons: true,
+        customClass: {
+            confirmButton: 'rounded-pill px-4 fw-bold',
+            cancelButton: 'rounded-pill px-4'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Hiển thị trạng thái đang xử lý để tránh nhấn nộp nhiều lần
+            Swal.fire({
+                title: 'Đang gửi bài làm...',
+                html: 'Vui lòng chờ trong giây lát, hệ thống đang lưu kết quả và tệp tin âm thanh.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Thực hiện nộp Form
+            document.body.style.opacity = '0.5';
+            document.body.style.pointerEvents = 'none';
+            document.getElementById('examForm').submit();
+        }
+    });
 }
 
 // --- 4. GHI ÂM (SPEAKING) ---
