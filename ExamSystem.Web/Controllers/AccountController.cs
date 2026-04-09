@@ -159,23 +159,36 @@ public class AccountController : Controller
         var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
         if (result.Succeeded)
         {
-            // (Tùy chọn) Cập nhật lại ảnh Google mới nhất nếu user chưa có ảnh riêng
             var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
 
-            // Điều kiện: User tồn tại + Có ảnh từ Google + (User chưa có ảnh HOẶC đang dùng ảnh Google cũ)
             if (user != null && !string.IsNullOrEmpty(googleAvatarUrl))
             {
-                // Chỉ cập nhật nếu user chưa tự upload ảnh riêng (ảnh upload riêng sẽ bắt đầu bằng /uploads/)
+                // Chỉ cập nhật nếu user chưa tự upload ảnh riêng
                 if (string.IsNullOrEmpty(user.AvatarUrl) || !user.AvatarUrl.StartsWith("/uploads/"))
                 {
-                    // Chỉ update nếu link mới khác link cũ (tránh update thừa)
-                    if (user.AvatarUrl != googleAvatarUrl)
+                    // Tải ảnh Google về server
+                    var localAvatarPath = await DownloadAndSaveGoogleAvatarAsync(googleAvatarUrl, user.Id);
+                    if (!string.IsNullOrEmpty(localAvatarPath))
                     {
-                        user.AvatarUrl = googleAvatarUrl;
-                        await _userManager.UpdateAsync(user);
-                        // Refresh lại session để header cập nhật ảnh ngay
-                        await _signInManager.RefreshSignInAsync(user);
+                        // Xóa ảnh cũ nếu có (và là file cục bộ)
+                        if (!string.IsNullOrEmpty(user.AvatarUrl) && user.AvatarUrl.StartsWith("/uploads/"))
+                        {
+                            var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, user.AvatarUrl.TrimStart('/'));
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+                        user.AvatarUrl = localAvatarPath;
                     }
+                    else if (user.AvatarUrl != googleAvatarUrl)
+                    {
+                        // Fallback: không tải được thì lưu URL Google
+                        user.AvatarUrl = googleAvatarUrl;
+                    }
+
+                    await _userManager.UpdateAsync(user);
+                    await _signInManager.RefreshSignInAsync(user);
                 }
             }
             return LocalRedirect(returnUrl);
@@ -201,9 +214,20 @@ public class AccountController : Controller
                         UserName = email,
                         Email = email,
                         FullName = name,
-                        AvatarUrl = googleAvatarUrl // [QUAN TRỌNG] Gán ảnh ngay lúc tạo
                     };
-
+                    if (!string.IsNullOrEmpty(googleAvatarUrl))
+                    {
+                        var localAvatarPath = await DownloadAndSaveGoogleAvatarAsync(googleAvatarUrl, email);
+                        if (!string.IsNullOrEmpty(localAvatarPath))
+                        {
+                            user.AvatarUrl = localAvatarPath; // Lưu đường dẫn nội bộ: /uploads/user_avatars/google_xxx.jpg
+                        }
+                        else
+                        {
+                            // Fallback: nếu tải lỗi thì lưu URL gốc của Google
+                            user.AvatarUrl = googleAvatarUrl;
+                        }
+                    }
                     var resultCreate = await _userManager.CreateAsync(user);
 
                     if (resultCreate.Succeeded)
@@ -216,12 +240,26 @@ public class AccountController : Controller
                 }
                 else
                 {
-                    // TRƯỜNG HỢP B: Đã có User cũ -> Liên kết Google
-                    // Nếu user cũ chưa có ảnh thì lấy ảnh Google đắp vào
-                    if (string.IsNullOrEmpty(user.AvatarUrl) && !string.IsNullOrEmpty(googleAvatarUrl))
+                    bool shouldDownloadAvatar = string.IsNullOrEmpty(user.AvatarUrl) || (user.AvatarUrl != null && user.AvatarUrl.StartsWith("http")); // Còn là link Google
+
+                    if (shouldDownloadAvatar && !string.IsNullOrEmpty(googleAvatarUrl))
                     {
-                        user.AvatarUrl = googleAvatarUrl;
-                        await _userManager.UpdateAsync(user);
+                        var localAvatarPath = await DownloadAndSaveGoogleAvatarAsync(googleAvatarUrl, user.Id);
+                        if (!string.IsNullOrEmpty(localAvatarPath))
+                        {
+                            // [TÙY CHỌN] Nếu muốn xóa ảnh cũ nếu nó là file cục bộ
+                            if (!string.IsNullOrEmpty(user.AvatarUrl) && user.AvatarUrl.StartsWith("/uploads/"))
+                            {
+                                var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, user.AvatarUrl.TrimStart('/'));
+                                if (System.IO.File.Exists(oldFilePath))
+                                {
+                                    System.IO.File.Delete(oldFilePath);
+                                }
+                            }
+
+                            user.AvatarUrl = localAvatarPath;
+                            await _userManager.UpdateAsync(user);
+                        }
                     }
 
                     var resultAddLogin = await _userManager.AddLoginAsync(user, info);
@@ -261,7 +299,7 @@ public class AccountController : Controller
             FullName = user.FullName,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            NewPassword = "", // Khởi tạo rỗng để hiển thị ô nhập
+            NewPassword = "",
             DateOfBirth = user.DateOfBirth,
             AvatarUrl = user.AvatarUrl
         };
@@ -424,7 +462,7 @@ public class AccountController : Controller
         }
 
         try
-        {          
+        {
             // 2. Chạy thẳng vào logic gửi Email luôn, không cần switch case
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = Url.Action("ResetPassword", "Account",
@@ -471,7 +509,7 @@ public class AccountController : Controller
         catch (Exception ex)
         {
             TempData.Remove("SuccessMessage");
-            TempData["ErrorMessage"] = "Lỗi ngoại lệ: "+ex.Message;
+            TempData["ErrorMessage"] = "Lỗi ngoại lệ: " + ex.Message;
             return View(model);
         }
 
@@ -528,9 +566,9 @@ public class AccountController : Controller
         return View();
     }
 
-    [HttpGet]   
+    [HttpGet]
     public async Task<IActionResult> Contact()
-    {     
+    {
         return View();
     }
 
@@ -602,6 +640,43 @@ public class AccountController : Controller
         {
             TempData["ErrorMessage"] = "Có lỗi xảy ra khi gửi mail: " + ex.Message;
             return View(model);
+        }
+    }
+
+    //tải ảnh của người dùng
+    private async Task<string> DownloadAndSaveGoogleAvatarAsync(string googleAvatarUrl, string userId)
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            // User-Agent hợp lệ
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "ExamSystem/1.0");
+
+            var response = await httpClient.GetAsync(googleAvatarUrl);
+            if (!response.IsSuccessStatusCode) return null;
+
+            var imageBytes = await response.Content.ReadAsByteArrayAsync();
+
+            // Đường dẫn thư mục: D:\2025-2026\ExamSystem\ExamSystem.Web\wwwroot\uploads\user_avatars
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "user_avatars");
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+            // Tạo tên file duy nhất: userId + guid
+            string fileExtension = ".jpg"; // Ảnh Google thường là jpg
+            string uniqueFileName = $"google_{userId}_{Guid.NewGuid().ToString()}{fileExtension}";
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            // Ghi file
+            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+            // Trả về đường dẫn web tương đối
+            return $"/uploads/user_avatars/{uniqueFileName}";
+        }
+        catch (Exception ex)
+        {
+            // Log lỗi nếu cần
+            Console.WriteLine($"Lỗi tải ảnh Google: {ex.Message}");
+            return null;
         }
     }
 }
