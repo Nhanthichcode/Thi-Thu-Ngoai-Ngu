@@ -31,37 +31,49 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ReadingPassage readingPassage)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(readingPassage);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Đã thêm bài đọc thành công.";
-                return RedirectToAction(nameof(Index));
+                TempData["ErrorMessage"] = "Vui lòng kiểm tra lại thông tin nhập vào.";
+                return View(readingPassage);
             }
-            return View(readingPassage);
+            bool isDuplicate = await _context.ReadingPassages
+                                     .AnyAsync(r => r.Title.ToLower().Trim() == readingPassage.Title.ToLower().Trim());
+
+            if (isDuplicate)
+            {               
+                ModelState.AddModelError("Title", "Tên bài đọc này đã tồn tại trong hệ thống.");
+                TempData["ErrorMessage"] = "Lỗi! Trùng tên bài đọc";
+                return View(readingPassage);
+            }
+
+            _context.Add(readingPassage);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Đã thêm bài đọc thành công.";
+
+            return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null) return NotFound();
-            var item = await _context.ReadingPassages.FindAsync(id);
-            if (item == null) return NotFound();
-            return View(item);
-        }
+        //public async Task<IActionResult> Edit(int? id)
+        //{
+        //    if (id == null) return NotFound();
+        //    var item = await _context.ReadingPassages.FindAsync(id);
+        //    if (item == null) return NotFound();
+        //    return View(item);
+        //}
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ReadingPassage readingPassage)
-        {
-            if (id != readingPassage.Id) return NotFound();
-            if (ModelState.IsValid)
-            {
-                _context.Update(readingPassage);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(readingPassage);
-        }
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(int id, ReadingPassage readingPassage)
+        //{
+        //    if (id != readingPassage.Id) return NotFound();
+        //    if (ModelState.IsValid)
+        //    {
+        //        _context.Update(readingPassage);
+        //        await _context.SaveChangesAsync();
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    return View(readingPassage);
+        //}
 
 
         [HttpPost, ActionName("Delete")]
@@ -144,6 +156,62 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Lỗi hệ thống khi xóa: " + ex.Message });
                 }
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Clone(int id, string newTitle)
+        {
+            if (string.IsNullOrEmpty(newTitle))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập tên mới cho bài đọc.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 1. Lấy bài đọc gốc cùng với tất cả câu hỏi và đáp án
+            var original = await _context.ReadingPassages
+                .Include(rp => rp.Questions)
+                    .ThenInclude(q => q.Answers)
+                .FirstOrDefaultAsync(rp => rp.Id == id);
+
+            if (original == null) return NotFound();
+
+            // 2. Tạo đối tượng bài đọc mới
+            var clonePassage = new ReadingPassage
+            {
+                Title = newTitle,
+                Content = original.Content, // Giữ nguyên nội dung
+                Questions = new List<Question>()
+            };
+
+            // 3. Sao chép danh sách câu hỏi
+            if (original.Questions != null)
+            {
+                foreach (var q in original.Questions)
+                {
+                    var newQuestion = new Question
+                    {
+                        Content = q.Content,
+                        QuestionType = q.QuestionType,
+                        Level = q.Level,
+                        Explaination = q.Explaination,
+                        SkillType = q.SkillType,
+                        CreatedDate = DateTime.Now,
+                        Answers = q.Answers.Select(a => new Answer
+                        {
+                            Content = a.Content,
+                            IsCorrect = a.IsCorrect
+                        }).ToList()
+                    };
+                    clonePassage.Questions.Add(newQuestion);
+                }
+            }
+
+            _context.ReadingPassages.Add(clonePassage);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Đã sao chép thành công bài đọc mới: {newTitle}";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
