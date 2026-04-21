@@ -70,30 +70,19 @@
                                     <div class="text-muted small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">                                       
                                         @Html.Raw(item.Content?.Length > 150 ? item.Content.Substring(0, 150) + "..." : item.Content)
                                     </div>
-                                </td>                                
-                                @* <td>
-                                    <div class="btn-group">                                     
-
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Sửa thông tin bài đọc">
-                                            <i class="bi bi-gear"></i> Sửa đề
-                                        </a>
-
-                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
-                                              onsubmit="return confirm('CẢNH BÁO: Xóa bài đọc \n- @item.Title\n\nSẽ xóa toàn bộ câu hỏi đi kèm. Bạn có chắc chắn không?');">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger border-start-0 rounded-0 rounded-end">
-                                                <i class="bi bi-trash"></i> Xóa
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td> *@
+                                </td>                                                              
                                 <td class="text-end pe-4">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1" title="Sửa thông tin file">
-                                        <i class="bi bi-pencil-square"></i> Sửa đề
-                                    </a>
-
+                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 me-1 " title="Tạo bản sao mới"
+                                            onclick="openCloneModal(@item.Id, '@item.Title')">
+                                        <i class="bi bi-copy"></i>
+                                    </button>                                               
+                                        <a asp-controller="Questions" asp-action="BatchEdit" asp-route-id="@item.Id" asp-route-type="Reading"
+                                           class="btn btn-sm btn-outline-warning rounded-pill shadow-sm px-3 fw-bold hover-up me-1" title="Sửa nội dung">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>                                    
                                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold"
                                             onclick="confirmDelete(@item.Id, '@item.Title', 'ReadingPassages')">
-                                        <i class="bi bi-trash3"></i> Xóa
+                                        <i class="bi bi-trash3"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -119,4 +108,30 @@
     <button type="button" class="btn btn-danger rounded-pill fw-bold shadow-sm px-4 hover-up" onclick="confirmDeleteMultiple('bài đọc', '/Admin/ReadingPassages/DeleteMultiple')">
         <i class="bi bi-trash3-fill me-1"></i> Xóa tất cả
     </button>
+</div>
+<div class="modal fade" id="cloneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <form asp-action="Clone" method="post">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold text-primary"><i class="bi bi-copy me-2"></i>Sao chép bài mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <input type="hidden" id="originalId" name="id" />
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Tên bài mới</label>
+                        <input type="text" name="newTitle" id="newTitleInput" class="form-control rounded-pill border shadow-sm px-3" required placeholder="Nhập tiêu đề mới..." />
+                        <div class="form-text mt-2 small text-info">
+                            <i class="bi bi-info-circle me-1"></i> Nội dung và tất cả câu hỏi sẽ được giữ nguyên.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Xác nhận tạo bản sao</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>

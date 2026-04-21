@@ -114,7 +114,11 @@
                                         <td class="fw-bold ps-4 border-end-0">
                                             <div class="d-flex align-items-center text-dark ">
                                                 <div class="rounded-circle d-flex justify-content-center align-items-center me-2 fw-bold shadow-sm" style="width: 32px; height: 32px; background-color: var(--bs-primary, #f47b25); font-size: 0.8rem;">
-                                                    @item.StudentName.Substring(0, 1).ToUpper()
+                                                    <img src="@(string.IsNullOrEmpty(item.AvatarUrl) ? "/images/default-avatar.png" : item.AvatarUrl)"
+                                                         alt="Avatar"
+                                                         class="rounded-circle shadow-sm border border-2 border-white"
+                                                         style="width: 45px; height: 45px; object-fit: cover;"
+                                                         onerror="this.src='https://ui-avatars.com/api/?name=H+V&background=random';" />
                                                 </div>
                                                 @item.StudentName
                                             </div>

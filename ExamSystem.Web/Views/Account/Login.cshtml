@@ -93,7 +93,23 @@
 @{
     ViewData["Title"] = "Đăng nhập hệ thống";
 }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+         style="top: 60px; z-index: 1050;" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
+         style="top: 60px; z-index: 1050;" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
 <div class="auth-page-wrapper d-flex align-items-center">
     <div class="container-fluid max-w-1200 mx-auto">
         <div class="row w-100 align-items-center justify-content-center m-0">
@@ -131,14 +147,14 @@
 
                         <div class="mb-3">
                             <label class="fw-bold small mb-2">Tên đăng nhập hoặc Email</label>
-                            <input asp-for="Email" autocomplete="new-password" class="form-control auth-input py-2 px-3" placeholder="name@company.com" />
+                            <input asp-for="Email" autocomplete="email" class="form-control auth-input py-2 px-3" placeholder="name@company.com" />
                             <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold small mb-2">Mật khẩu</label>
                             <div class="position-relative">
-                                <input asp-for="Password" type="password" autocomplete="new-password" class="form-control auth-input py-2 px-3" placeholder="••••••••" id="Password" />
+                                <input asp-for="Password" type="password" name="Password" autocomplete="current-password" class="form-control auth-input py-2 px-3" placeholder="••••••••" id="Password" />
                                 <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 text-muted cursor-pointer" id="togglePass" onclick="togglePassword('Password', 'togglePass')"></i>
                             </div>
                             <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>

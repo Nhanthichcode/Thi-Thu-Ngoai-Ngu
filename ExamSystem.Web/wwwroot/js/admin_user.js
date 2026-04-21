@@ -55,7 +55,7 @@
 
                     tr.innerHTML = `
                                     <td class="text-center">
-                                        <input class="form-check-input row-checkbox shadow-sm" type="checkbox" value="${parsedData.length - 1}" ${isValid ? 'checked' : 'disabled'}>
+                                        <input class="form-check-input checkbox-xl row-checkbox shadow-sm" type="checkbox" value="${parsedData.length - 1}" ${isValid ? 'checked' : 'disabled'}>
                                     </td>
                                     <td class="text-center fw-bold">${i + 1}</td>
     

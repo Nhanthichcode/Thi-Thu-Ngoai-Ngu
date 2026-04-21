@@ -278,3 +278,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+function openCloneModal(id, currentTitle) {
+    document.getElementById('originalId').value = id;
+    document.getElementById('newTitleInput').value = currentTitle + " (Bản sao)";
+    var myModal = new bootstrap.Modal(document.getElementById('cloneModal'));
+    myModal.show();
+}

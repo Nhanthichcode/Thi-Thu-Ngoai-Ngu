@@ -6,6 +6,7 @@ namespace ExamSystem.Core.Entities
     public class ReadingPassage
     {
         public int Id { get; set; }
+        [Required]
         public string? Title { get; set; }
         [Required]
         public string Content { get; set; } = string.Empty;

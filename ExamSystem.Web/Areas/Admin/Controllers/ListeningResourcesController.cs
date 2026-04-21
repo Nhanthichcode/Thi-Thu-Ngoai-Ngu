@@ -45,75 +45,94 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ListeningResource listeningResource, IFormFile? audioFile)
         {
-            // BƯỚC 1: Bỏ qua lỗi validate AudioUrl (vì ta sẽ tự gán giá trị sau khi upload)
             ModelState.Remove("AudioUrl");
-
-            // BƯỚC 2: Xử lý Upload file
-            if (audioFile != null && audioFile.Length > 0)
+            if (!ModelState.IsValid)
             {
-                listeningResource.AudioUrl = await UploadFile(audioFile);
-                TempData["SuccessMessage"] = "Đã thêm file âm thanh thành công.";
+                TempData["ErrorMessage"] = "Vui lòng kiểm tra lại thông tin nhập vào.";
+                return View(listeningResource);
             }
-            else { TempData["ErrorMessage"] = "Vui Lòng chọn file âm thanh hợp lệ"; }
 
-            // BƯỚC 3: Lưu vào DB
-            if (ModelState.IsValid)
+            bool isDuplicate = await _context.ListeningResources
+                                             .AnyAsync(r => r.Title.ToLower().Trim() == listeningResource.Title.ToLower().Trim());
+            if (isDuplicate)
             {
-                _context.Add(listeningResource);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("Title", "Tên bài nghe này đã tồn tại trong hệ thống.");
+                TempData["ErrorMessage"] = "Trùng tên bài nghe!";
+                return View(listeningResource);
             }
-            return View(listeningResource);
+
+            if (audioFile == null || audioFile.Length == 0)
+            {
+                // Có thể thêm báo lỗi vào thuộc tính giả để hiện đỏ trên View (nếu View có span asp-validation)
+                ModelState.AddModelError("", "Vui lòng chọn file âm thanh hợp lệ.");
+                TempData["ErrorMessage"] = "Thiếu file âm thanh!";
+                return View(listeningResource);
+            }
+
+            listeningResource.AudioUrl = await UploadFile(audioFile);
+
+            _context.Add(listeningResource);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Đã thêm bài nghe và file âm thanh thành công.";
+            return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null) return NotFound();
-            var item = await _context.ListeningResources.FindAsync(id);
-            if (item == null) return NotFound();
-            return View(item);
-        }
+        //public async Task<IActionResult> Edit(int? id)
+        //{
+        //    if (id == null) return NotFound();
+        //    var item = await _context.ListeningResources.FindAsync(id);
+        //    if (item == null) return NotFound();
+        //    return View(item);
+        //}
 
-        // --- SỬA HÀM EDIT ---
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ListeningResource listeningResource, IFormFile? audioFile)
-        {
-            if (id != listeningResource.Id) return NotFound();
+        //// --- SỬA HÀM EDIT ---
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(int id, ListeningResource listeningResource, IFormFile? audioFile)
+        //{
+        //    if (id != listeningResource.Id) return NotFound();
 
-            // Bỏ qua validate AudioUrl để xử lý logic tay
-            ModelState.Remove("AudioUrl");
+        //    // Bỏ qua validate AudioUrl để xử lý logic tay
+        //    ModelState.Remove("AudioUrl");
+        //    bool isDuplicate = await _context.ListeningResources
+        //                                     .AnyAsync(r => r.Title.ToLower().Trim() == listeningResource.Title.ToLower().Trim());
+        //    if (isDuplicate)
+        //    {
+        //        ModelState.AddModelError("Title", "Tên bài nghe này đã tồn tại trong hệ thống.");
+        //        TempData["ErrorMessage"] = "Trùng tên bài nghe!";
+        //        return View(listeningResource);
+        //    }
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            // Lấy dữ liệu cũ để giữ lại AudioUrl nếu người dùng không upload file mới
+        //            var oldItem = await _context.ListeningResources.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    // Lấy dữ liệu cũ để giữ lại AudioUrl nếu người dùng không upload file mới
-                    var oldItem = await _context.ListeningResources.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+        //            if (audioFile != null && audioFile.Length > 0)
+        //            {
+        //                // Nếu có file mới -> Upload và cập nhật link mới
+        //                listeningResource.AudioUrl = await UploadFile(audioFile);
+        //            }
+        //            else
+        //            {
+        //                // Nếu không có file mới -> Giữ nguyên link cũ
+        //                listeningResource.AudioUrl = oldItem?.AudioUrl;
+        //            }
 
-                    if (audioFile != null && audioFile.Length > 0)
-                    {
-                        // Nếu có file mới -> Upload và cập nhật link mới
-                        listeningResource.AudioUrl = await UploadFile(audioFile);
-                    }
-                    else
-                    {
-                        // Nếu không có file mới -> Giữ nguyên link cũ
-                        listeningResource.AudioUrl = oldItem?.AudioUrl;
-                    }
-
-                    _context.Update(listeningResource);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!_context.ListeningResources.Any(e => e.Id == id)) return NotFound();
-                    else throw;
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(listeningResource);
-        }
+        //            _context.Update(listeningResource);
+        //            await _context.SaveChangesAsync();
+        //        }
+        //        catch (DbUpdateConcurrencyException)
+        //        {
+        //            if (!_context.ListeningResources.Any(e => e.Id == id)) return NotFound();
+        //            else throw;
+        //        }
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //    return View(listeningResource);
+        //}
 
         // --- HÀM PHỤ ĐỂ UPLOAD FILE (TÁI SỬ DỤNG) ---
         private async Task<string> UploadFile(IFormFile file)
@@ -226,6 +245,59 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
                 }
             }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Clone(int id, string newTitle)
+        {
+            if (string.IsNullOrEmpty(newTitle))
+            {
+                TempData["ErrorMessage"] = "Vui lòng nhập tên mới cho bài nghe.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var original = await _context.ListeningResources
+                .Include(lr => lr.Questions)
+                    .ThenInclude(q => q.Answers)
+                .FirstOrDefaultAsync(lr => lr.Id == id);
+
+            if (original == null) return NotFound();
+
+            var cloneResource = new ListeningResource
+            {
+                Title = newTitle,
+                AudioUrl = original.AudioUrl,     // Copy link âm thanh
+                Transcript = original.Transcript, // Copy nội dung transcript
+                Questions = new List<Question>()
+            };
+
+            if (original.Questions != null)
+            {
+                foreach (var q in original.Questions)
+                {
+                    var newQuestion = new Question
+                    {
+                        Content = q.Content,
+                        QuestionType = q.QuestionType,
+                        Level = q.Level,
+                        Explaination = q.Explaination,
+                        SkillType = q.SkillType,
+                        CreatedDate = DateTime.Now,
+                        Answers = q.Answers.Select(a => new Answer
+                        {
+                            Content = a.Content,
+                            IsCorrect = a.IsCorrect
+                        }).ToList()
+                    };
+                    cloneResource.Questions.Add(newQuestion);
+                }
+            }
+
+            _context.ListeningResources.Add(cloneResource);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Đã sao chép thành công bài nghe mới: {newTitle}";
+            return RedirectToAction(nameof(Index));
         }
 
     }
