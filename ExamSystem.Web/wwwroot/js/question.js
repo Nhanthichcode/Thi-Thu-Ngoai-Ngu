@@ -237,92 +237,6 @@ function deleteCurrentMedia() {
 }
 
 // =========================================================================
-// 3. TRANG BATCH EDIT (SỬA HÀNG LOẠT)
-// =========================================================================
-var deletedIds = [];
-function markDelete(btn, id) {
-    if (confirm("Bạn muốn xóa câu hỏi này khỏi bài?")) {
-        deletedIds.push(id);
-        document.getElementById('DeletedIdsInput').value = deletedIds.join(',');
-        $(btn).closest('.q-item').fadeOut(300, function () { $(this).remove(); });
-    }
-}
-
-function addBlankQuestion() {
-    var template = document.getElementById('new-q-template');
-    if (!template) return;
-
-    var batchCurrentIndex = document.querySelectorAll('#questions-container .q-item').length + deletedIds.length + 100; // Cộng dồn để né ID cũ
-    var html = template.innerHTML.replace(/{INDEX}/g, batchCurrentIndex);
-    document.getElementById('questions-container').insertAdjacentHTML('beforeend', html);
-}
-
-function showError(element, message) {
-    var errorAlert = document.getElementById('error-alert');
-    if (errorAlert) {
-        document.getElementById('error-message').innerText = message;
-        errorAlert.classList.remove('d-none');
-    }
-
-    if (element) {
-        element.classList.add('is-invalid');
-        element.focus();
-        var headerOffset = 150;
-        var elementPosition = element.getBoundingClientRect().top;
-        var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth"
-        });
-
-        element.oninput = function () {
-            element.classList.remove('is-invalid');
-            if (errorAlert) errorAlert.classList.add('d-none');
-        };
-    }
-}
-
-function submitForm() {
-    var errorAlert = document.getElementById('error-alert');
-    if (errorAlert) errorAlert.classList.add('d-none');
-    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-
-    var title = document.getElementById('ResourceTitle');
-    if (title && !title.value.trim()) {
-        showError(title, "Vui lòng nhập Tiêu đề bài!");
-        return;
-    }
-
-    var content = document.getElementById('ResourceContent');
-    if (content && !content.value.trim()) {
-        showError(content, "Vui lòng nhập Nội dung hoặc Transcript!");
-        return;
-    }
-
-    var questions = document.querySelectorAll('.q-item');
-    if (questions.length === 0) {
-        showError(null, "Bài này chưa có câu hỏi nào. Vui lòng thêm ít nhất 1 câu hỏi!");
-        return;
-    }
-
-    var isValidQuestions = true;
-    for (var i = 0; i < questions.length; i++) {
-        if (questions[i].style.display === 'none') continue;
-        var qContent = questions[i].querySelector('.q-content-input');
-        if (qContent && !qContent.value.trim()) {
-            showError(qContent, "Nội dung câu hỏi không được để trống!");
-            isValidQuestions = false;
-            break;
-        }
-    }
-
-    if (isValidQuestions) {
-        document.getElementById('batchEditForm').submit();
-    }
-}
-
-// =========================================================================
 // 4. TRANG IMPORT EXCEL (CẬP NHẬT LOAD LẠI FILE VÀ THU GỌN CHA/CON)
 // =========================================================================
 const fileInput = document.getElementById('fileInput');
@@ -648,3 +562,4 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 });
+
