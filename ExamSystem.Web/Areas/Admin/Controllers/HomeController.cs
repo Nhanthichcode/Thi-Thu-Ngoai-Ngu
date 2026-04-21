@@ -52,8 +52,9 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     .Take(5)
                     .Select(ta => new RecentAttempt
                     {
-                        Id = ta.Id,
+                        Id = ta.Id,                        
                         StudentName = ta.User.FullName,
+                        AvatarUrl = ta.User.AvatarUrl,
                         ExamTitle = ta.Exam.Title,
                         SubmitTime = ta.SubmitTime ?? DateTime.Now,
                         Score = ta.Score,
