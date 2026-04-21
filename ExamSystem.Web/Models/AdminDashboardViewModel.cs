@@ -15,6 +15,7 @@
     {
         public int Id { get; set; }
         public string StudentName { get; set; }
+        public string? AvatarUrl { get; set; }
         public string ExamTitle { get; set; }
         public DateTime SubmitTime { get; set; }
         public double? Score { get; set; }
