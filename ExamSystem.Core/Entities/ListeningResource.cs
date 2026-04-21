@@ -6,6 +6,7 @@ namespace ExamSystem.Core.Entities
     public class ListeningResource
     {
         public int Id { get; set; }
+        [Required]
         public string? Title { get; set; }
         [Required]
         public string AudioUrl { get; set; } = string.Empty;
