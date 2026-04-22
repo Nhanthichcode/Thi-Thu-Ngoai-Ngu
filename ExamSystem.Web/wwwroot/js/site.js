@@ -191,19 +191,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const currentTheme = localStorage.getItem('theme') || 'light';
 
-    // 1. Áp dụng theme ngay khi load trang
-    applyTheme(currentTheme);
+    // KHÔNG CẦN gọi applyTheme ở đây nữa vì <head> đã làm rồi
 
-    // 2. Đồng bộ trạng thái cho nút Bóng đèn
     if (themeToggle) {
-        // Nếu là dark thì tích chọn checkbox để "bật đèn"
+        // Đồng bộ trạng thái checkbox
         themeToggle.checked = (currentTheme === 'dark');
         updateBulbUI(currentTheme);
 
-        // Bắt sự kiện thay đổi trạng thái (Gạt công tắc)
         themeToggle.addEventListener('change', () => {
             const newTheme = themeToggle.checked ? 'dark' : 'light';
 
+            // Áp dụng và lưu
             applyTheme(newTheme);
             localStorage.setItem('theme', newTheme);
             updateBulbUI(newTheme);
@@ -211,7 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Hàm áp dụng thuộc tính theme vào hệ thống
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-bs-theme', theme);
@@ -285,3 +282,46 @@ function openCloneModal(id, currentTitle) {
     var myModal = new bootstrap.Modal(document.getElementById('cloneModal'));
     myModal.show();
 }
+
+// Khởi tạo mức zoom mặc định
+let currentScale = parseFloat(localStorage.getItem('dashboard-scale')) || 1.0;
+
+function scaleContent(type) {
+    const content = document.getElementById('zoomable-content');
+    const display = document.getElementById('scale-level');
+
+    if (!content) return;
+
+    // Tính toán mức zoom mới
+    if (type === 'in' && currentScale < 1.5) {
+        currentScale += 0.1;
+    } else if (type === 'out' && currentScale > 0.5) {
+        currentScale -= 0.1;
+    } else if (type === 'reset') {
+        currentScale = 1.0;
+    }
+
+    // Làm tròn số để tránh lỗi phẩy thập phân (vd: 0.900000001)
+    currentScale = Math.round(currentScale * 10) / 10;
+
+    // 1. Cập nhật con số hiển thị trên giao diện
+    if (display) display.innerText = Math.round(currentScale * 100) + '%';
+
+    // 2. Thực hiện thu phóng (Ưu tiên thuộc tính zoom để không lệch layout)
+    if (typeof content.style.zoom !== "undefined") {
+        content.style.zoom = currentScale;
+    } else {
+        // Fallback cho Firefox: Dùng transform và ép lề trái
+        content.style.transform = `scale(${currentScale})`;
+        content.style.transformOrigin = 'top left';
+        content.style.width = (100 / currentScale) + '%';
+    }
+
+    // 3. Lưu vào máy để khi load trang khác không bị mất
+    localStorage.setItem('dashboard-scale', currentScale);
+}
+
+// Khi vừa load trang, áp dụng ngay mức zoom đã lưu
+document.addEventListener("DOMContentLoaded", function () {
+    scaleContent('apply-saved');
+});

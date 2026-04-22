@@ -24,6 +24,14 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" /> 
     @await RenderSectionAsync("Styles", required: false)
+    <script>
+        // Lệnh này chạy ngay lập tức, không đợi DOMContentLoaded
+        (function () {
+            const theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
     @if (TempData["SuccessMessage"] != null)
@@ -116,12 +124,34 @@
         <div id="page-content-wrapper" class="d-flex flex-column min-vh-100">
 
             <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top">
+                
                 <div class="container-fluid">
                     <button class="btn btn-outline-secondary text-dark" id="sidebarToggle">
                         <i class="bi bi-list fs-5"></i>
                     </button>
 
                     <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+                        <div class="d-none d-lg-flex align-items-center bg-light rounded-pill px-2 py-1 me-4 shadow-sm border">
+                            <span class="text-muted small fw-bold me-2 ps-2"><i class="bi bi-display"></i> Giao diện:</span>
+
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle border shadow-sm"
+                                    onclick="scaleContent('out')" title="Thu nhỏ (-10%)">
+                                <i class="bi bi-dash"></i>
+                            </button>
+
+                            <span id="scale-level" class="mx-2 fw-bolder text-primary small" style="min-width: 45px; text-align: center;">100%</span>
+
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle border shadow-sm"
+                                    onclick="scaleContent('in')" title="Phóng to (+10%)">
+                                <i class="bi bi-plus"></i>
+                            </button>
+
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle border shadow-sm ms-1"
+                                    onclick="scaleContent('reset')" title="Trở về Mặc định">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+
                         <li class="nav-item d-flex align-items-center me-3">
                             <div class="theme-switch-wrapper">
                                 <label class="button-bulb" for="theme-toggle">
@@ -169,7 +199,7 @@
                 </div>
             </nav>
 
-            <div class="container-fluid p-4">               
+            <div id="zoomable-content" class="container-fluid p-4 transition-zoom">
                 @RenderBody()
             </div>
 

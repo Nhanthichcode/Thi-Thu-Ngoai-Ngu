@@ -53,7 +53,7 @@ body {
     font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;   
 }
 
 .card, .bg-white, .bg-light {
@@ -67,6 +67,31 @@ body {
 
 .text-muted {
     color: var(--bs-text-muted) !important;
+}
+
+#zoomable-content {
+    transition: transform 0.2s ease-in-out;
+    /* Luôn giữ tâm ở góc TRÊN - TRÁI để bám sát Sidebar */
+    transform-origin: top left;
+    width: 100%;
+    display: block;
+}
+
+body {
+    /* Chống hiện thanh cuộn ngang khi phóng to */
+    overflow-x: hidden;
+}
+
+/* Làm đẹp nút bấm một chút */
+.btn-white {
+    background: white;
+    padding: 0px 6px;
+    line-height: 1;
+    height: 24px;
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 /*
 .border, .border-bottom, .border-top, .border-end, .border-start {
