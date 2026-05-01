@@ -11,13 +11,7 @@
                 <i class="bi bi-grid-1x2-fill me-2"></i>Bảng điều khiển
             </h3>
             <p class="text-muted mb-0">Xin chào Quản trị viên! Dưới đây là tổng quan hệ thống hôm nay.</p>
-        </div>
-        <div class="card shadow-sm border-0 rounded-pill px-4 py-2" style="background: linear-gradient(90deg, var(--bs-primary, #f47b25) 0%, #e0691b 100%);">
-            <div class="d-flex align-items-center text-white fw-bold small">
-                <i class="bi bi-clock-history me-2 fs-5"></i>
-                <span id="liveClock">@DateTime.Now.ToString("HH:mm - dd/MM/yyyy")</span>
-            </div>
-        </div>
+        </div>        
     </div>
 
     <!-- 4 Thẻ Thống Kê -->
@@ -227,14 +221,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        // Cập nhật đồng hồ thời gian thực ở góc phải Dashboard
-        setInterval(() => {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + now.toLocaleDateString('vi-VN');
-            document.getElementById('liveClock').innerText = timeString;
-        }, 60000); // Cập nhật mỗi 1 phút
-    </script>
-}
