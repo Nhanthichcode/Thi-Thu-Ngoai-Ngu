@@ -222,7 +222,10 @@
                 sb.Write($"<div class='mb-3 text-center'><img src='{eq.Question.MediaUrl}' class='img-fluid rounded border' style='max-height: 600px;'/></div>");
             }
 
-            sb.Write($"<div class='q-title'><span class='q-number'>Câu {qIdx}:</span> <span class='fw-normal'>{eq.Question.Content}</span></div>");
+            sb.Write($@"<div class='q-title'>
+        <span class='q-number'>Câu {qIdx}:</span>
+        <textarea class='form-control bg-light shadow-none border p-3 valid' rows='3' data-val='true' data-val-required='The Content field is required.' id='Content' name='Content' aria-describedby='Content-error' aria-invalid='false'>{eq.Question.Content}</textarea>
+        </div>\n");
 
             if (skill == ExamSkill.Writing)
             {
