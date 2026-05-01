@@ -114,7 +114,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             return View(model);
         }
 
-        [HttpPost]
+        [HttpPost]       
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UnifiedCreateViewModel model)
         {
@@ -122,7 +122,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             ModelState.Remove("NewListeningFile");
             ModelState.Remove("CommonImageFile");
 
-            // Nếu không phải môn ĐỌC, xóa lỗi của Đọc
             if (model.SkillType != ExamSkill.Reading)
             {
                 ModelState.Remove("NewReadingTitle");
@@ -130,7 +129,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 ModelState.Remove("ReadingPassageId");
             }
 
-            // Nếu không phải môn NGHE, xóa lỗi của Nghe
             if (model.SkillType != ExamSkill.Listening)
             {
                 ModelState.Remove("NewListeningTitle");
@@ -138,22 +136,27 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 ModelState.Remove("ListeningResourceId");
             }
 
-            // Nếu không phải môn NÓI, xóa lỗi của Nói
             if (model.SkillType != ExamSkill.Speaking)
             {
                 ModelState.Remove("NewSpeakingTitle");
             }
-           
+
+            if (model.SkillType != ExamSkill.Writing)
+            {
+                ModelState.Remove("WritingPrompt"); // Thêm trường này vào ViewModel nhé
+            }
+
+            // Xóa lỗi validate của list Questions 
             if (model.Questions != null)
             {
                 for (int i = 0; i < model.Questions.Count; i++)
                 {
-                    // Giao diện ghi "Giải thích" là tùy chọn, nên mình xóa lỗi bắt buộc nhập của nó đi
                     ModelState.Remove($"Questions[{i}].Explaination");
 
-                    // Nếu là môn Tự luận (Nói/Viết) thì KHÔNG CẦN đáp án A, B, C, D
+                    // Viết và Nói không dùng mảng Questions từ cột phải nữa nên xóa sạch lỗi của nó đi
                     if (model.SkillType == ExamSkill.Speaking || model.SkillType == ExamSkill.Writing)
                     {
+                        ModelState.Remove($"Questions[{i}].Content");
                         ModelState.Remove($"Questions[{i}].AnswerA");
                         ModelState.Remove($"Questions[{i}].AnswerB");
                         ModelState.Remove($"Questions[{i}].AnswerC");
@@ -162,31 +165,27 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 }
             }
 
+            // Kiểm tra trùng tên Đọc / Nghe
             if (model.SkillType == ExamSkill.Reading && !string.IsNullOrEmpty(model.NewReadingTitle))
             {
-                // Kiểm tra trong DB xem đã có bài đọc nào trùng tiêu đề chưa
                 if (await _context.ReadingPassages.AnyAsync(p => p.Title == model.NewReadingTitle))
-                {
-                    ModelState.AddModelError("NewReadingTitle", "Tên bài đọc này đã tồn tại. Vui lòng chọn tên khác.");
-                }
+                    ModelState.AddModelError("NewReadingTitle", "Tên bài đọc này đã tồn tại.");
             }
             else if (model.SkillType == ExamSkill.Listening && !string.IsNullOrEmpty(model.NewListeningTitle))
             {
-                // Kiểm tra trong DB xem đã có bài nghe nào trùng tiêu đề chưa
                 if (await _context.ListeningResources.AnyAsync(r => r.Title == model.NewListeningTitle))
-                {
-                    ModelState.AddModelError("NewListeningTitle", "Tên bài nghe này đã tồn tại. Vui lòng chọn tên khác.");
-                }
+                    ModelState.AddModelError("NewListeningTitle", "Tên bài nghe này đã tồn tại.");
             }
 
             // --- 2. KIỂM TRA VALIDATE VÀ DEBUG ---
             if (!ModelState.IsValid)
             {
-                LoadDropdowns(); // Load lại các list Bài nghe/Đọc
-                return View(model); // Bật ngược lại màn hình cũ, kèm theo lỗi
+                // Hàm LoadDropdowns() của bạn (nếu có)
+                // LoadDropdowns(); 
+                return View(model);
             }
 
-            // --- A. Xử lý Tạo Tài nguyên mới (Nếu có) ---
+            // --- A. TẠO TÀI NGUYÊN MỚI (Đọc / Nghe / Ảnh) ---
             if (model.SkillType == ExamSkill.Reading && !string.IsNullOrEmpty(model.NewReadingTitle))
             {
                 var newPassage = new ReadingPassage { Title = model.NewReadingTitle, Content = model.NewReadingContent };
@@ -196,7 +195,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             }
             else if (model.SkillType == ExamSkill.Listening && model.NewListeningFile != null)
             {
-                var audioUrl = await SaveFileAsync(model.NewListeningFile, "audio");
+                var audioUrl = await SaveFileAsync(model.NewListeningFile, "audio"); // Code của bạn
                 var newResource = new ListeningResource
                 {
                     Title = model.NewListeningTitle ?? "Audio " + DateTime.Now.Ticks,
@@ -208,68 +207,93 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 model.ListeningResourceId = newResource.Id;
             }
 
-            // --- B. Xử lý Ảnh chung (Cho Writing/Speaking) ---
             string? uploadedImageUrl = null;
             if (model.SkillType == ExamSkill.Speaking && model.CommonImageFile != null)
             {
-                uploadedImageUrl = await SaveFileAsync(model.CommonImageFile, "images");
+                uploadedImageUrl = await SaveFileAsync(model.CommonImageFile, "images"); // Code của bạn
             }
 
-            // --- C. Lưu Câu hỏi ---
-            if (model.Questions != null && model.Questions.Any())
+            // --- C. LƯU CÂU HỎI VÀO DATABASE ---
+            var questionsToAdd = new List<Question>();
+
+            if (model.SkillType == ExamSkill.Writing)
             {
-                var questionsToAdd = new List<Question>();
-
-                foreach (var item in model.Questions)
+                // 1. Lưu bài VIẾT (Lấy từ trường WritingPrompt)
+                if (!string.IsNullOrWhiteSpace(model.WritingPrompt))
                 {
-                    if (string.IsNullOrWhiteSpace(item.Content)) continue;
-
-                    string finalContent = item.Content;
-                    // Ghép tiêu đề in đậm cho môn Nói
-                    if (model.SkillType == ExamSkill.Speaking && !string.IsNullOrWhiteSpace(model.NewSpeakingTitle))
+                    questionsToAdd.Add(new Question
                     {
-                        finalContent = $"{model.NewSpeakingTitle}";
-                    }
-
-                    var q = new Question
-                    {                        
-                        Content = item.Content,
-                        Explaination = item.Explaination,
-                        SkillType = model.SkillType,
-                        QuestionType = (model.SkillType == ExamSkill.Writing) ? QuestionType.Essay :
-                                       (model.SkillType == ExamSkill.Speaking) ? QuestionType.SpeakingRecording :
-                                       QuestionType.SingleChoice,
+                        Content = model.WritingPrompt, // Đề bài Viết
+                        SkillType = ExamSkill.Writing,
+                        QuestionType = QuestionType.Essay,
                         Level = model.Level,
-                        CreatedDate = DateTime.Now,
-                        ReadingPassageId = (model.SkillType == ExamSkill.Reading) ? model.ReadingPassageId : null,
-                        ListeningResourceId = (model.SkillType == ExamSkill.Listening) ? model.ListeningResourceId : null,
-                        MediaUrl = uploadedImageUrl,
-                        Answers = new List<Answer>()
-                    };
-
-                    // Thêm đáp án nếu là trắc nghiệm
-                    if (model.SkillType != ExamSkill.Speaking && model.SkillType != ExamSkill.Writing)
+                        CreatedDate = DateTime.Now
+                    });
+                }
+            }
+            else if (model.SkillType == ExamSkill.Speaking)
+            {
+                // 2. Lưu bài NÓI (Lấy từ trường NewSpeakingTitle)
+                if (!string.IsNullOrWhiteSpace(model.NewSpeakingTitle))
+                {
+                    questionsToAdd.Add(new Question
                     {
+                        Content = $"<b>{model.NewSpeakingTitle}</b>", // Gán Title làm nội dung câu hỏi
+                        SkillType = ExamSkill.Speaking,
+                        QuestionType = QuestionType.SpeakingRecording,
+                        Level = model.Level,
+                        MediaUrl = uploadedImageUrl,
+                        CreatedDate = DateTime.Now
+                    });
+                }
+            }
+            else
+            {
+                // 3. Lưu bài NGHE & ĐỌC (Lấy từ mảng Questions ở cột bên phải)
+                if (model.Questions != null && model.Questions.Any())
+                {
+                    foreach (var item in model.Questions)
+                    {
+                        if (string.IsNullOrWhiteSpace(item.Content)) continue;
+
+                        var q = new Question
+                        {
+                            Content = item.Content,
+                            Explaination = item.Explaination,
+                            SkillType = model.SkillType,
+                            QuestionType = QuestionType.SingleChoice,
+                            Level = model.Level,
+                            CreatedDate = DateTime.Now,
+                            ReadingPassageId = (model.SkillType == ExamSkill.Reading) ? model.ReadingPassageId : null,
+                            ListeningResourceId = (model.SkillType == ExamSkill.Listening) ? model.ListeningResourceId : null,
+                            Answers = new List<Answer>()
+                        };
+
+                        // Thêm 4 đáp án trắc nghiệm
                         q.Answers.Add(new Answer { Content = item.AnswerA ?? "", IsCorrect = (item.CorrectAnswerIndex == 0) });
                         q.Answers.Add(new Answer { Content = item.AnswerB ?? "", IsCorrect = (item.CorrectAnswerIndex == 1) });
                         q.Answers.Add(new Answer { Content = item.AnswerC ?? "", IsCorrect = (item.CorrectAnswerIndex == 2) });
                         q.Answers.Add(new Answer { Content = item.AnswerD ?? "", IsCorrect = (item.CorrectAnswerIndex == 3) });
+
+                        questionsToAdd.Add(q);
                     }
-
-                    questionsToAdd.Add(q);
-                }
-
-                if (questionsToAdd.Any())
-                {
-                    _context.Questions.AddRange(questionsToAdd);
-                    await _context.SaveChangesAsync();
                 }
             }
 
-            // Form truyền thống thì phải dùng RedirectToAction
+            // Ghi vào DB
+            if (questionsToAdd.Any())
+            {
+                _context.Questions.AddRange(questionsToAdd);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã lưu bộ câu hỏi thành công!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Chưa có nội dung câu hỏi nào được tạo.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
-      
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -521,23 +545,33 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAvailableQuestions(int examId, string type, int? skillType)
         {
-            var usedIds = await _context.ExamQuestions.Where(eq => eq.ExamPart.ExamId == examId).Select(eq => eq.QuestionId).ToListAsync();
+            var usedIds = await _context.ExamQuestions
+                .Where(eq => eq.ExamPart.ExamId == examId)
+                .Select(eq => eq.QuestionId)
+                .ToListAsync();
 
             if (type == "Independent")
             {
-                var query = _context.Questions.AsNoTracking().Where(q => q.ReadingPassageId == null && q.ListeningResourceId == null);
-                if (skillType.HasValue) query = query.Where(q => q.SkillType == (ExamSkill)skillType.Value);
+                var query = _context.Questions.AsNoTracking()
+                    .Where(q => q.ReadingPassageId == null && q.ListeningResourceId == null);
+
+                if (skillType.HasValue)
+                {
+                    query = query.Where(q => q.SkillType == (ExamSkill)skillType.Value);
+                }
 
                 var data = await query.Select(q => new
                 {
                     q.Id,
-                    Content = q.Content.Length > 100 ? q.Content.Substring(0, 100) + "..." : q.Content,
+                    Content = q.Content,
                     Skill = q.SkillType.ToString(),
                     q.Level,
                     IsSelected = usedIds.Contains(q.Id)
                 }).ToListAsync();
+
                 return Json(data);
             }
+
             // Logic cho Reading/Listening tương tự (Giữ nguyên như bạn đã viết)
             return BadRequest();
         }

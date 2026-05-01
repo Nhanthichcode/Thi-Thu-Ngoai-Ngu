@@ -49,6 +49,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 if (exam.StartDate == default) exam.StartDate = DateTime.Now;
+                
 
                 // Lưu Exam trước để có ID
                 _context.Add(exam);

@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function toggleAll(action) {
     var collapseElementList = [].slice.call(document.querySelectorAll('.group-collapse-content'));
+
     collapseElementList.forEach(function (collapseEl) {
         var bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
         if (!bsCollapse) {
@@ -50,20 +51,32 @@ function toggleAll(action) {
         }
     });
 
-    // --- LOGIC MỚI: TRÁO ĐỔI NÚT ẨN/HIỆN ---
+    // LƯU VÀO CACHE: Ghi nhớ trạng thái 'show' hoặc 'hide'
+    localStorage.setItem('exam-collapse-state', action);
+
+    // Xử lý ẩn/hiện nút bấm (nếu bạn có dùng 2 nút Mở rộng/Thu gọn riêng biệt)
     const btnExpand = document.getElementById('btnExpandAll');
     const btnCollapse = document.getElementById('btnCollapseAll');
-
     if (action === 'show') {
-        // Nếu vừa bấm "Mở rộng" -> Ẩn nút "Mở rộng", Hiện nút "Thu gọn"
         if (btnExpand) btnExpand.classList.add('d-none');
         if (btnCollapse) btnCollapse.classList.remove('d-none');
     } else {
-        // Nếu vừa bấm "Thu gọn" -> Ẩn nút "Thu gọn", Hiện nút "Mở rộng"
         if (btnExpand) btnExpand.classList.remove('d-none');
         if (btnCollapse) btnCollapse.classList.add('d-none');
     }
 }
+document.addEventListener("DOMContentLoaded", function () {
+    // Đọc trạng thái từ bộ nhớ cache
+    const savedState = localStorage.getItem('exam-collapse-state');
+
+    // Nếu có dữ liệu lưu trữ (người dùng đã từng bấm nút)
+    if (savedState) {
+        // Delay nhẹ 100ms để đảm bảo HTML và Bootstrap đã render xong rồi mới ép trạng thái
+        setTimeout(() => {
+            toggleAll(savedState);
+        }, 100);
+    }
+});
 
 // =========================================================================
 // 2. TRANG SOẠN THẢO / CHỈNH SỬA (CREATE.CSHTML & EDIT.CSHTML)
@@ -78,34 +91,53 @@ $(document).ready(function () {
         function updateQuestionUI() {
             var skill = skillSelectCreate ? $(skillSelectCreate).val() : $(skillSelectEdit).val();
 
-            // Ẩn tất cả section tài nguyên
+            // 1. Reset trạng thái: Ẩn tất cả các form section
             $(".form-section").hide();
             $("#block-reading").hide();
             $("#block-listening").hide();
             $("#block-image").hide();
 
-            // LOGIC CHO TRANG EDIT
+            // 2. LOGIC QUẢN LÝ CỘT TRÁI & PHẢI 
+            if (skill == "3" || skill == "4") {
+                $("#rightPane").hide(); // Ẩn câu trắc nghiệm phụ 
+                $("#leftPane").show();
+                $("#leftPane").removeClass("col-lg-5").addClass("col-lg-12");
+            } else {
+                $("#rightPane").show();
+                $("#rightPane").removeClass("col-lg-12").addClass("col-lg-7");
+                $("#leftPane").show();
+                $("#leftPane").removeClass("col-lg-12").addClass("col-lg-5");
+            }
+
+            // 3. LOGIC TRANG EDIT (Giữ nguyên)
             if (skillSelectEdit) {
                 $("#block-answers").show();
                 $("#block-no-answers").hide();
+
                 if (skill == "1") $("#block-listening").show();
                 else if (skill == "2") $("#block-reading").show();
-                else if (skill == "3") { $("#block-answers").hide(); $("#block-no-answers").show(); }
-                else if (skill == "4") { $("#block-image").show(); $("#block-answers").hide(); $("#block-no-answers").hide(); }
-            }
-            // LOGIC CHO TRANG CREATE
-            else if (skillSelectCreate) {
-                if (skill == "1" || skill == "2" || skill == "4") {
-                    $("#leftPane").show();
-                    $("#rightPane").removeClass("col-lg-12").addClass("col-lg-7");
-                    if (skill == "1") $("#section-listening").fadeIn(300);
-                    if (skill == "2") $("#section-reading").fadeIn(300);
-                    if (skill == "4") $("#section-image").fadeIn(300);
-                } else {
-                    $("#leftPane").hide();
-                    $("#rightPane").removeClass("col-lg-7").addClass("col-lg-12");
+                else if (skill == "3") {
+                    $("#block-answers").hide();
+                    $("#block-no-answers").show();
                 }
+                else if (skill == "4") {
+                    $("#block-image").show();
+                    $("#block-answers").hide();
+                    $("#block-no-answers").hide();
+                }
+            }
+            // 4. LOGIC TRANG CREATE
+            else if (skillSelectCreate) {
+                // Gọi hiển thị Form Section tương ứng với từng kỹ năng
+                if (skill == "1") $("#section-listening").fadeIn(300);
+                if (skill == "2") $("#section-reading").fadeIn(300);
 
+                // GỌI HIỂN THỊ SECTION VIẾT (Vừa thêm ở HTML)
+                if (skill == "3") $("#section-writing").fadeIn(300);
+
+                if (skill == "4") $("#section-image").fadeIn(300);
+
+                // Quản lý đáp án & Giải thích phụ (Giữ nguyên)
                 if (skill == "3" || skill == "4") {
                     $(".answer-block").addClass("d-none");
                     $(".no-answer-block").removeClass("d-none");
@@ -113,6 +145,7 @@ $(document).ready(function () {
                     $(".answer-block").removeClass("d-none");
                     $(".no-answer-block").addClass("d-none");
                 }
+
                 if (skill == "4") $(".explain-block").addClass("d-none");
                 else $(".explain-block").removeClass("d-none");
             }

@@ -1,6 +1,13 @@
 ﻿using ExamSystem.Infrastructure.Data; // Thay bằng namespace thực tế của bạn
 using Microsoft.EntityFrameworkCore;
 using ExamSystem.Core.Entities;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ExamSystem.Web.Services
 {
@@ -17,9 +24,13 @@ namespace ExamSystem.Web.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Dịch vụ tự động mở đề thi đã khởi động.");
+            // Dùng Console.WriteLine để ép buộc IN CHẮC CHẮN ra Terminal
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("==================================================");
+            Console.WriteLine("[WORKER] Dịch vụ tự động mở đề thi đã KHỞI ĐỘNG.");
+            Console.WriteLine("==================================================");
+            Console.ResetColor();
 
-            // Vòng lặp vô tận cho đến khi ứng dụng tắt
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -27,8 +38,12 @@ namespace ExamSystem.Web.Services
                     using (var scope = _scopeFactory.CreateScope())
                     {
                         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                       
+
+                        // Lấy giờ hiện tại (So sánh trực tiếp kiểu DateTime, bỏ qua mọi lỗi 12h/24h)
                         var now = DateTime.Now;
+
+                        // LƯU Ý QUAN TRỌNG: Tuyệt đối không dùng .ToString() ở đây
+                        // Dùng phép toán <= để nếu server có lag qua phút đó, đề thi vẫn được mở bù
                         var examsToActivate = await context.Exams
                             .Where(e => !e.IsActive && e.StartDate <= now)
                             .ToListAsync();
@@ -37,19 +52,27 @@ namespace ExamSystem.Web.Services
                         {
                             foreach (var exam in examsToActivate)
                             {
-                                exam.IsActive = true; // [cite: 88]
-                                _logger.LogInformation($"Kích hoạt đề thi: {exam.Title} lúc {now}");
+                                exam.IsActive = true;
                             }
 
                             await context.SaveChangesAsync();
+                            //TempData["SuccesMessage"] = "Có đề thi được mở lúc: " + now;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Lỗi khi quét tự động mở đề thi.");
+                    // Ép in lỗi ra màn hình đen bằng màu đỏ để dễ phát hiện
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"[ERROR] Lỗi Worker: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[ERROR CHI TIẾT]: {ex.InnerException.Message}");
+                    }
+                    Console.ResetColor();
                 }
-              
+
+                // Quét 1 phút 1 lần
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
