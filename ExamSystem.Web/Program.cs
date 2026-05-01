@@ -1,5 +1,6 @@
 using ExamSystem.Core.Entities;
 using ExamSystem.Infrastructure.Data;
+using ExamSystem.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -17,6 +18,7 @@ var clientsecret = builder.Configuration["Client_secret"];
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHostedService<ExamActivationWorker>();
 
 // 2. Cấu hình Identity (Đăng nhập/Đăng ký)
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>

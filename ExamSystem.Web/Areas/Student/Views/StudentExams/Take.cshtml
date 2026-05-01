@@ -215,27 +215,63 @@
             var sb = new System.IO.StringWriter();
             var qIdx = globalIndex++;
 
-            sb.Write($"<div class='question-card' id='q-wrapper-{qIdx}'>");
-
-            if (skill == ExamSkill.Speaking && !string.IsNullOrEmpty(eq.Question.MediaUrl))
-            {
-                sb.Write($"<div class='mb-3 text-center'><img src='{eq.Question.MediaUrl}' class='img-fluid rounded border' style='max-height: 600px;'/></div>");
-            }
-
-            sb.Write($"<div class='q-title'><span class='q-number'>Câu {qIdx}:</span> <span class='fw-normal'>{eq.Question.Content}</span></div>");
-
             if (skill == ExamSkill.Writing)
             {
-                sb.Write($"<textarea class='form-control bg-light mb-2' rows='8' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' oninput=\"handleWritingInput({eq.QuestionId}, {qIdx}, this.value)\"></textarea>");
-                // Thêm thẻ hiển thị bộ đếm từ nằm góc phải bên dưới
+                // ==========================================
+                // 1. KHU VỰC DÀNH RIÊNG CHO BÀI VIẾT (WRITING)
+                // ==========================================
+                sb.Write($"<div class='question-card' id='q-wrapper-{qIdx}'>");
+
+                // Đề bài Viết
+                sb.Write($@"<div class='q-title'>
+        <span class='q-number'>Câu {qIdx}:</span>
+        <textarea class='form-control bg-light shadow-none border p-3 valid' rows='8' data-val='true' data-val-required='The Content field is required.' name='Content' aria-describedby='Content-error' aria-invalid='false'>{eq.Question.Content}</textarea>
+        </div>");
+
+                // Khung nhập câu trả lời & Đếm từ
+                sb.Write($"<textarea class='form-control bg-light mb-2' rows='15' name='essayAnswers[{eq.QuestionId}]' placeholder='Nhập bài làm của bạn vào đây...' oninput=\"handleWritingInput({eq.QuestionId}, {qIdx}, this.value)\"></textarea>");
                 sb.Write($"<div class='text-end small fw-bold text-muted'>Số từ: <span id='wordcount-{eq.QuestionId}' class='text-primary fs-6'>0</span></div>");
+
+                sb.Write("</div>");
             }
             else if (skill == ExamSkill.Speaking)
             {
+                // ==========================================
+                // 2. KHU VỰC DÀNH RIÊNG CHO BÀI NÓI (SPEAKING)
+                // ==========================================
+                sb.Write($"<div class='question-card' id='q-wrapper-{qIdx}'>");
+
+                // Hình ảnh minh họa (nếu có)
+                if (!string.IsNullOrEmpty(eq.Question.MediaUrl))
+                {
+                    sb.Write($"<div class='mb-3 text-center'><img src='{eq.Question.MediaUrl}' class='img-fluid rounded border' style='max-height: 600px;'/></div>");
+                }
+
+                // Đề bài Nói
+                sb.Write($@"<div class='q-title'>
+        <span class='q-number'>Câu {qIdx}:</span>
+        <textarea class='form-control bg-light shadow-none border p-3 valid' rows='10' data-val='true' data-val-required='The Content field is required.' name='Content' aria-describedby='Content-error' aria-invalid='false'>{eq.Question.Content}</textarea>
+        </div>");
+
+                // Giao diện ghi âm
                 sb.Write(RenderRecorderUI(eq.QuestionId, qIdx).ToString());
+
+                sb.Write("</div>");
             }
-            else // Multiple Choice
+            else
             {
+                // ==========================================
+                // 3. KHU VỰC DÀNH RIÊNG CHO TRẮC NGHIỆM (READING, LISTENING, GRAMMAR)
+                // ==========================================
+                sb.Write($"<div class='question-card' id='q-wrapper-{qIdx}'>");
+
+                // Đề bài Trắc nghiệm
+                sb.Write($@"<div class='q-title'>
+        <span class='q-number'>Câu {qIdx}:</span>
+        <textarea class='form-control bg-light shadow-none border p-3 valid' rows='3' data-val='true' data-val-required='The Content field is required.' name='Content' aria-describedby='Content-error' aria-invalid='false'>{eq.Question.Content}</textarea>
+        </div>");
+
+                // Các lựa chọn đáp án A, B, C, D
                 if (eq.Question.Answers != null)
                 {
                     char alpha = 'A';
@@ -248,8 +284,10 @@
                         alpha++;
                     }
                 }
+
+                sb.Write("</div>");
             }
-            sb.Write("</div>");
+
             return Html.Raw(sb.ToString());
         }
     }

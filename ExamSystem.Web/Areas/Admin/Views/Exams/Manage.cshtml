@@ -8,15 +8,7 @@
     <div>
         <h2 class="fw-bold text-primary mb-0">@Model.Title</h2>
         <span class="text-muted">Cấu trúc: @Model.ExamParts.Count phần thi</span>
-    </div>  
-    <div class="btn-group bg-white rounded-pill shadow-sm p-1 border">
-        <button type="button" id="btnExpandAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary d-none" onclick="toggleAll('show')" title="Mở tất cả">
-            <i class="bi bi-arrows-expand"></i> <span class="ms-1">Mở rộng</span>
-        </button>
-        <button type="button" id="btnCollapseAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary" onclick="toggleAll('hide')" title="Thu gọn tất cả">
-            <i class="bi bi-arrows-collapse"></i> <span class="ms-1">Thu gọn</span>
-        </button>
-    </div>
+    </div>    
 </div>
 
 <div class="card shadow-sm border-0 rounded-pill highlight-card sticky-result-tabs mb-4">
@@ -64,6 +56,14 @@
 
             <!-- Nút Quay lại (Đẩy sang phải) -->
             <li class="ms-auto d-flex align-items-center">
+                <div class="btn-group bg-white rounded-pill shadow-sm p-1 border">
+                    <button type="button" id="btnExpandAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary d-none" onclick="toggleAll('show')" title="Mở tất cả">
+                        <i class="bi bi-arrows-expand"></i> <span class="ms-1">Mở rộng</span>
+                    </button>
+                    <button type="button" id="btnCollapseAll" class="btn btn-sm rounded-pill px-3 fw-bold text-primary" onclick="toggleAll('hide')" title="Thu gọn tất cả">
+                        <i class="bi bi-arrows-collapse"></i> <span class="ms-1">Thu gọn</span>
+                    </button>
+                </div>
                 <a asp-action="TestTake" asp-route-id="@Model.Id" target="_blank" class="btn btn-sm btn-info text-white rounded-pill px-3 mx-1  fw-bold hover-up shadow-sm">
                     <i class="bi bi-eye-fill"></i> Xem trước đề
                 </a>
@@ -360,25 +360,50 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Modal Xem Trước Chi Tiết (Z-index 1060 để nổi lên trên Modal thêm câu hỏi) -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="bi bi-eye"></i> Xem trước Nội dung</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="previewModalBody">
+                <!-- Nội dung sẽ được đổ bằng AJAX -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
 </div>
+
 @section Scripts {
     <script src="~/js/question.js" asp-append-version="true"></script>
     <script>
-            var examId = @Model.Id;
+        var examId = @Model.Id;
+        var currentBankData = []; // Biến toàn cục lưu dữ liệu để dùng cho hàm Preview
 
         // --- 1. LOGIC GIỮ TAB SAU KHI RELOAD ---
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Lấy tab đã lưu từ LocalStorage
             var activeTab = localStorage.getItem('activeExamTab');
-        if (activeTab) {
+            if (activeTab) {
                 // Kích hoạt lại tab đó
                 var tabTrigger = new bootstrap.Tab(document.querySelector('#' + activeTab + '-tab'));
-        tabTrigger.show();
+                tabTrigger.show();
             }
         });
 
@@ -387,94 +412,98 @@
         }
 
         // --- 2. CÁC HÀM MODAL & AJAX ---
-
         function openCreatePartModal(skillId) {
             $('#newPartName').val('');
-        $('#newPartDesc').val('');
-        $('#newPartSkill').val(skillId);
-        $('#createPartModal').modal('show');
+            $('#newPartDesc').val('');
+            $('#newPartSkill').val(skillId);
+            $('#createPartModal').modal('show');
             setTimeout(() => $('#newPartName').focus(), 500);
         }
 
         function submitNewPart() {
             var name = $('#newPartName').val();
-        var skill = $('#newPartSkill').val();
-        var desc = $('#newPartDesc').val();
+            var skill = $('#newPartSkill').val();
+            var desc = $('#newPartDesc').val();
 
-        if (!name) {alert("Nhập tên!"); return; }
+            if (!name) { alert("Nhập tên!"); return; }
 
-        var btn = event.target;
-        btn.disabled = true;
-        btn.innerText = "Đang tạo...";
+            var btn = event.target;
+            btn.disabled = true;
+            btn.innerText = "Đang tạo...";
 
-        $.post('/Admin/Exams/QuickAddPart', { // Nhớ thêm /Admin nếu có Area
-            examId: examId, name: name, skill: skill, description: desc
-            }, function(res) {
+            $.post('/Admin/Exams/QuickAddPart', {
+                examId: examId, name: name, skill: skill, description: desc
+            }, function (res) {
                 if (res.success) window.location.reload();
-        else {alert(res.message); btn.disabled = false; btn.innerText = "Lưu và Tạo"; }
+                else { alert(res.message); btn.disabled = false; btn.innerText = "Lưu và Tạo"; }
             });
         }
 
         function openAddModal(partId, type, skillType) {
             $('#currentPartId').val(partId);
-        $('#currentType').val(type);
-        $('#addQuestionModal').modal('show');
-        $('#modalLoading').removeClass('d-none');
-        $('#modalContent').addClass('d-none');
+            $('#currentType').val(type);
+            $('#addQuestionModal').modal('show');
+            $('#modalLoading').removeClass('d-none');
+            $('#modalContent').addClass('d-none');
 
-        // Dùng Url.Action để đảm bảo đúng Area
-        var url = '@Url.Action("GetAvailableQuestions", "Exams", new {area = "Admin"})';
-        var fullUrl = url + '?examId=' + examId + '&type=' + type + '&skillType=' + skillType;
-        console.log("Calling API:", fullUrl);
+            // Dùng Url.Action để đảm bảo đúng Area
+            var url = '@Url.Action("GetAvailableQuestions", "Exams", new { area = "Admin" })';
+            var fullUrl = url + '?examId=' + examId + '&type=' + type + '&skillType=' + skillType;
 
-        $.get(fullUrl, function(data) {
-            renderTable(data, type);
-        $('#modalLoading').addClass('d-none');
-        $('#modalContent').removeClass('d-none');
-            }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error("Lỗi API:", textStatus, errorThrown);
-        alert("Lỗi tải dữ liệu. Mã lỗi: " + jqXHR.status);
-        $('#modalLoading').addClass('d-none');
+            $.get(fullUrl, function (data) {
+                renderTable(data, type);
+                $('#modalLoading').addClass('d-none');
+                $('#modalContent').removeClass('d-none');
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                console.error("Lỗi API:", textStatus, errorThrown);
+                alert("Lỗi tải dữ liệu. Mã lỗi: " + jqXHR.status);
+                $('#modalLoading').addClass('d-none');
             });
         }
 
-                function renderTable(data, type) {
+        // HÀM RENDER BẢNG VÀ NÚT XEM TRƯỚC
+        function renderTable(data, type) {
+            currentBankData = data; // Lưu dữ liệu vào biến toàn cục
             var html = '';
+
             if (!data || data.length === 0) {
-                // Thông báo khi ngân hàng dữ liệu trống
                 html = '<tr><td colspan="2" class="text-center py-5 text-dark">' +
                        '<i class="bi bi-database-exclamation fs-1 d-block mb-2 text-muted"></i>' +
                        'Chưa có dữ liệu nào trong ngân hàng câu hỏi phù hợp.</td></tr>';
             } else {
                 data.forEach(item => {
-                    // Kiểm tra trạng thái nút bấm [cite: 120, 121]
-                    var btn = item.isSelected
-                        ? '<button disabled class="btn btn-secondary btn-sm rounded-pill px-3"><i class="bi bi-check2"></i> Đã chọn</button>'
-                        : `<button class="btn btn-success btn-sm rounded-pill px-3 shadow-sm" onclick="addItem(${item.id})"><i class="bi bi-plus-lg"></i> Thêm</button>`;
+                    // Nút Thêm / Đã chọn
+                    var btnAdd = item.isSelected
+                        ? '<button disabled class="btn btn-secondary btn-sm rounded-pill w-100 mb-1"><i class="bi bi-check2"></i> Đã chọn</button>'
+                        : `<button class="btn btn-success btn-sm rounded-pill w-100 mb-1 shadow-sm" onclick="addItem(${item.id})"><i class="bi bi-plus-lg"></i> Thêm vào đề</button>`;
+
+                    // Nút Xem chi tiết
+                    var btnPreview = `<button class="btn btn-outline-info btn-sm rounded-pill w-100 shadow-sm fw-bold" onclick="previewItem(${item.id}, '${type}')"><i class="bi bi-eye"></i> Xem chi tiết</button>`;
 
                     var content = '';
                     if (type === 'Independent') {
-                        // Hiển thị cho Writing/Speaking [cite: 122]
-                        content = `<div class="text-dark fw-bold">${item.content}</div>
-                                   <small class="text-muted">Độ khó: ${item.level} | Kỹ năng: ${item.skill}</small>`;
+                        content = `<div class="text-dark fw-bold mb-1">${item.content}</div>
+                                   <small class="text-muted"><span class="badge bg-secondary">${item.skill}</span> | Độ khó: ${item.level}</small>`;
                     } else {
-                        // Hiển thị cho Reading/Listening (có kèm số lượng câu hỏi trong ngân hàng) [cite: 122]
-                        content = `<div class="fw-bold text-dark">${item.title}</div>
+                        content = `<div class="fw-bold text-dark mb-1">${item.title}</div>
                                    <div class="small text-primary">
-                                       <i class="bi bi-layers-half"></i> Hiện có: <strong>${item.questionCount} câu hỏi</strong>
+                                       <i class="bi bi-layers-half"></i> Hiện có: <strong>${item.questionCount} câu hỏi phụ</strong>
                                    </div>`;
                     }
 
                     html += `<tr>
-                                <td class="ps-3">${content}</td>
-                                <td class="text-center align-middle pe-3" style="width: 120px;">${btn}</td>
+                                <td class="ps-3 py-2">${content}</td>
+                                <td class="text-center align-middle pe-3" style="width: 140px;">
+                                    ${btnAdd}
+                                    ${btnPreview}
+                                </td>
                              </tr>`;
                 });
             }
 
             $('#modalTableBody').html(html);
 
-            // Cập nhật gợi ý cho người dùng dựa trên loại dữ liệu [cite: 124, 125]
+            // Cập nhật text gợi ý
             if (type === 'Independent') {
                 $('#modalHint').html(`<i class="bi bi-info-circle-fill me-1"></i> Chọn câu hỏi đơn lẻ để thêm vào phần thi này.`);
             } else {
@@ -482,74 +511,124 @@
             }
         }
 
+        // HÀM XỬ LÝ NÚT XEM CHI TIẾT
+        function previewItem(itemId, type) {
+            var item = currentBankData.find(x => x.id === itemId);
+            if (!item) return;
+
+            var modalBody = $('#previewModalBody');
+            $('#previewModal').modal('show');
+
+            // Reset modal loading
+            modalBody.html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Đang tải chi tiết...</p></div>');
+
+            if (type === 'Independent') {
+                var html = `<div class="mb-3">
+                                <span class="badge bg-primary fs-6 me-2"><i class="bi bi-bar-chart"></i> Độ khó: ${item.level}</span>
+                                <span class="badge bg-secondary fs-6"><i class="bi bi-tag"></i> ${item.skill}</span>
+                            </div>
+                            <div class="p-4 bg-light border rounded text-dark" style="font-size: 1.1rem; line-height: 1.6;">
+                                ${item.content}
+                            </div>`;
+                modalBody.html(html);
+            } else {
+                var rType = type.toLowerCase();
+                var apiUrl = '/Admin/Questions/GetResourceDetails?type=' + rType + '&id=' + itemId;
+
+                $.get(apiUrl, function (d) {
+                    if (d.success) {
+                        if (rType === 'reading') {
+                            modalBody.html(`
+                                <h4 class="fw-bold text-info mb-3"><i class="bi bi-book"></i> ${item.title}</h4>
+                                <div class="p-4 bg-light border rounded text-dark" style="font-size: 1.05rem; line-height: 1.7; max-height: 50vh; overflow-y: auto;">
+                                    ${d.content}
+                                </div>
+                            `);
+                        } else if (rType === 'listening') {
+                            modalBody.html(`
+                                <h4 class="fw-bold text-warning mb-3"><i class="bi bi-headphones"></i> ${item.title}</h4>
+                                <div class="p-3 bg-dark border rounded text-center mb-3 shadow-sm">
+                                    <audio controls class="w-100" src="${d.audioUrl}"></audio>
+                                </div>
+                                <h6 class="fw-bold text-secondary text-uppercase mb-2"><i class="bi bi-file-text"></i> Transcript / Bản dịch:</h6>
+                                <div class="p-3 bg-light border rounded text-dark" style="max-height: 40vh; overflow-y: auto;">
+                                    ${d.transcript ? d.transcript : '<i class="text-muted">Chưa có bản dịch cho file nghe này.</i>'}
+                                </div>
+                            `);
+                        }
+                    } else {
+                        modalBody.html(`<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Lỗi: ${d.message}</div>`);
+                    }
+                }).fail(function () {
+                    modalBody.html('<div class="alert alert-danger"><i class="bi bi-wifi-off"></i> Không thể kết nối đến máy chủ để lấy nội dung.</div>');
+                });
+            }
+        }
+
+        // HÀM GỬI LỆNH THÊM CÂU HỎI VÀO ĐỀ THI
         function addItem(itemId) {
             var partId = $('#currentPartId').val();
-        var type = $('#currentType').val();
-        var score = $('#defaultScore').val();
+            var type = $('#currentType').val();
+            var score = $('#defaultScore').val();
 
-        // Sửa URL đúng chuẩn Area
-        var url = type === 'Independent'
-        ? '@Url.Action("AddSingleQuestion", "Exams", new {area = "Admin"})'
-        : '@Url.Action("AddResourceGroup", "Exams", new {area = "Admin"})';
+            var url = type === 'Independent'
+                ? '@Url.Action("AddSingleQuestion", "Exams", new { area = "Admin" })'
+                : '@Url.Action("AddResourceGroup", "Exams", new { area = "Admin" })';
 
-        var data = type === 'Independent'
-        ? {examPartId: partId, questionId: itemId, score: score }
-        : {examPartId: partId, resourceId: itemId, type: type, scorePerQuestion: score };
+            var data = type === 'Independent'
+                ? { examPartId: partId, questionId: itemId, score: score }
+                : { examPartId: partId, resourceId: itemId, type: type, scorePerQuestion: score };
 
-        postForm(url, data);
+            postForm(url, data);
         }
 
         function postForm(path, params) {
             var form = document.createElement("form");
-        form.setAttribute("method", "post");
-        form.setAttribute("action", path);
-        for(var key in params) {
+            form.setAttribute("method", "post");
+            form.setAttribute("action", path);
+            for (var key in params) {
                 var hiddenField = document.createElement("input");
-        hiddenField.setAttribute("type", "hidden");
-        hiddenField.setAttribute("name", key);
-        hiddenField.setAttribute("value", params[key]);
-        form.appendChild(hiddenField);
+                hiddenField.setAttribute("type", "hidden");
+                hiddenField.setAttribute("name", key);
+                hiddenField.setAttribute("value", params[key]);
+                form.appendChild(hiddenField);
             }
-        document.body.appendChild(form);
-        form.submit();
+            document.body.appendChild(form);
+            form.submit();
         }
 
-        // --- 3. AJAX DELETE & CLEAR PART (KHÔNG RELOAD CẢ TRANG NẾU XÓA, RELOAD ĐÚNG TAB NẾU CLEAR) ---
-
+        // --- 3. AJAX DELETE & CLEAR PART ---
         function deletePartAjax(partId) {
             if (!confirm('CẢNH BÁO: Bạn chắc chắn muốn xóa vĩnh viễn phần thi này?')) return;
 
-        // Hiệu ứng mờ dần để người dùng biết đang xử lý
-        const card = document.getElementById('part-card-' + partId);
-        if(card) card.style.opacity = '0.5';
+            const card = document.getElementById('part-card-' + partId);
+            if (card) card.style.opacity = '0.5';
 
-        // Gọi API Xóa (Đảm bảo Controller có hàm DeletePartAjax trả về JSON)
-        $.post('/Admin/ExamParts/DeletePartAjax', {id: partId }, function(res) {
+            $.post('/Admin/ExamParts/DeletePartAjax', { id: partId }, function (res) {
                 if (res.success) {
-            // Thành công: Xóa element khỏi giao diện ngay lập tức
-            $(card).fadeOut(300, function () { $(this).remove(); });
+                    $(card).fadeOut(300, function () { $(this).remove(); });
                 } else {
-            alert(res.message);
-        if(card) card.style.opacity = '1'; // Khôi phục nếu lỗi
+                    alert(res.message);
+                    if (card) card.style.opacity = '1';
                 }
-            }).fail(function() {
-            alert("Lỗi kết nối server!");
-        if(card) card.style.opacity = '1';
+            }).fail(function () {
+                alert("Lỗi kết nối server!");
+                if (card) card.style.opacity = '1';
             });
         }
 
-        // 2. Clear dữ liệu câu hỏi (Cần reload để hiện lại nút thêm câu hỏi)
         function clearPartData(partId) {
             if (!confirm('Bạn muốn gỡ bỏ tất cả câu hỏi trong phần này (Giữ lại cấu trúc Part)?')) return;
 
-        $.post('/Admin/ExamParts/ClearPartQuestionsAjax', {id: partId }, function(res) {
-                if (res.success) {          
-            window.location.reload();
+            $.post('/Admin/ExamParts/ClearPartQuestionsAjax', { id: partId }, function (res) {
+                if (res.success) {
+                    window.location.reload();
                 } else {
-            alert(res.message);
+                    alert(res.message);
                 }
-            }).fail(function() {
-            alert("Lỗi kết nối server!");
+            }).fail(function () {
+                alert("Lỗi kết nối server!");
             });
-        }</script>
+        }
+    </script>
 }
