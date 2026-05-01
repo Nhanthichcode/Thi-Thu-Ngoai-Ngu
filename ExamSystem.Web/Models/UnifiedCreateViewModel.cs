@@ -13,6 +13,7 @@ namespace ExamSystem.Web.Models
         public int? ReadingPassageId { get; set; } // Chọn bài cũ
         public string? NewReadingTitle { get; set; } // Tạo bài mới
         public string? NewReadingContent { get; set; }
+        public string? WritingPrompt { get; set; }
 
         // 3. Dành cho LISTENING (Nghe)
         public int? ListeningResourceId { get; set; } // Chọn bài cũ
