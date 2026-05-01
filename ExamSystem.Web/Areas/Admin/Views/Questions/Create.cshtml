@@ -124,7 +124,7 @@
                             </div>
                             <div class="card-body bg-light p-3">
 
-                                <label class="fw-bold small mb-1 text-success">Tiêu đề bài Nói <span class="text-danger">*</span></label>
+                                <label class="fw-bold small mb-1 text-success">Tiêu đề bài/Nội dung bài Nói <span class="text-danger">*</span></label>
                                 <input asp-for="NewSpeakingTitle" class="form-control mb-3 fw-bold border-success shadow-sm" placeholder="Nhập tiêu đề phần thi Nói (VD: Speaking Part 1)..." />
 
                                 <label class="fw-bold small mb-1 text-success">Hình ảnh minh họa (Nếu có)</label>
@@ -138,6 +138,22 @@
                         </div>
                     </div>
 
+                    <!-- THÊM MỚI: Khối hiển thị form cho Writing -->
+                    <div id="section-writing" class="form-section" style="display:none;">
+                        <div class="card border-primary shadow-sm mb-3">
+                            <div class="card-header bg-primary text-white fw-bold">
+                                <i class="bi bi-pencil-fill"></i> Thông tin Bài Viết (Writing)
+                            </div>
+                            <div class="card-body bg-light p-3">
+                                <label class="fw-bold small mb-1 text-primary">Nội dung bài Viết (Writing Prompt) <span class="text-danger">*</span></label>
+                                <textarea name="WritingPrompt" class="form-control fw-bold border-primary shadow-sm" rows="12" placeholder="Nhập đề bài luận hoặc chủ đề viết vào đây..."></textarea>
+
+                                <div class="mt-3 text-muted small">
+                                    <i class="bi bi-info-circle me-1"></i> Sinh viên sẽ đọc đề bài này và nộp bài luận (tự luận) vào ô tương ứng.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
