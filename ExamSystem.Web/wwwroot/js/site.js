@@ -189,9 +189,16 @@ function toggleTheme() {
 
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
+  
     const currentTheme = localStorage.getItem('theme') || 'light';
 
-    // KHÔNG CẦN gọi applyTheme ở đây nữa vì <head> đã làm rồi
+    //    // Áp dụng theme ngay khi load
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        document.documentElement.setAttribute('data-bs-theme', currentTheme);
+
+        if (typeof updateThemeIcon === 'function') {
+            updateThemeIcon(currentTheme);
+        }
 
     if (themeToggle) {
         // Đồng bộ trạng thái checkbox
@@ -325,3 +332,9 @@ function scaleContent(type) {
 document.addEventListener("DOMContentLoaded", function () {
     scaleContent('apply-saved');
 });
+
+setInterval(() => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + now.toLocaleDateString('vi-VN');
+    document.getElementById('liveClock').innerText = timeString;    
+}, 60000); // Cập nhật mỗi 1 phút
