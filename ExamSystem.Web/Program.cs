@@ -114,6 +114,5 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "Đã xảy ra lỗi khi nạp dữ liệu mẫu (Seeding).");
     }
 }
-//
 
 app.Run();
