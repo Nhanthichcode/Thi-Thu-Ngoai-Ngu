@@ -108,8 +108,7 @@ namespace ExamSystem.Web.Areas.Student.Controllers
             int examId,
             Dictionary<int, int> answers,
             Dictionary<int, string> essayAnswers)
-        // Lưu ý: Tôi đã bỏ tham số audioAnswers ở đây để tự xử lý bên dưới cho chắc chắn
-        {
+                {
             var currentUser = await _userManager.GetUserAsync(User);
             var userId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
@@ -155,10 +154,7 @@ namespace ExamSystem.Web.Areas.Student.Controllers
 
             // Đường dẫn gốc trên server
             string uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "student_exams", folderName);
-
-            // ==========================================================================================
-            // [FIX QUAN TRỌNG]: LẤY FILE THỦ CÔNG TỪ REQUEST
-            // ==========================================================================================
+          
             var uploadedFiles = Request.Form.Files; // Lấy toàn bộ file được gửi lên
             if (uploadedFiles.Count > 0)
             {
