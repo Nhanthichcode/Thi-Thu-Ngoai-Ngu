@@ -11,24 +11,6 @@
     }
 </style>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
-         style="top: 60px; z-index: 1050;" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show auto-hide-alert position-fixed end-0 m-3 shadow"
-         style="top: 60px; z-index: 1050;" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
 <div class="d-flex justify-content-between mb-3 align-items-center">
     <h3>Chỉnh sửa: @Model.Name</h3>   
 </div>
