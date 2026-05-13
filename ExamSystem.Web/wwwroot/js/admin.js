@@ -191,3 +191,10 @@ function confirmDeleteMultiple(itemType, apiUrl) {
         }
     });
 }
+
+
+setInterval(() => {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + now.toLocaleDateString('vi-VN');
+    document.getElementById('liveClock').innerText = timeString;
+}, 60000); // Cập nhật mỗi 1 phút

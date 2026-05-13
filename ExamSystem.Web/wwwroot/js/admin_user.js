@@ -4,7 +4,14 @@
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+            const fileName = file.name;
+            const extension = fileName.split('.').pop().toLowerCase();
 
+            if (extension !== 'xlsx') {
+                alert("Lỗi: Chỉ chấp nhận file định dạng .xlsx");
+                event.target.value = ""; // Reset input
+                return;
+            }
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);

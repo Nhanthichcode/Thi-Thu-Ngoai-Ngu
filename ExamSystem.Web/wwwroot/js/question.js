@@ -596,3 +596,88 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
+    document.addEventListener("DOMContentLoaded", function () {
+            const selectAll = document.getElementById('selectAllTable');
+    const rowMasters = document.querySelectorAll('.row-master-checkbox');
+
+    // Xử lý Checkbox "Chọn tất cả" trên Header
+    if(selectAll) {
+        selectAll.addEventListener('change', function () {
+            const isChecked = this.checked;
+            rowMasters.forEach(cb => {
+                cb.checked = isChecked;
+                toggleHiddenChildren(cb, isChecked);
+            });
+            triggerBulkUpdate();
+        });
+            }
+
+            // Xử lý Checkbox từng dòng
+            rowMasters.forEach(master => {
+        master.addEventListener('change', function () {
+            toggleHiddenChildren(this, this.checked);
+
+            if (selectAll) {
+                const total = rowMasters.length;
+                const checked = document.querySelectorAll('.row-master-checkbox:checked').length;
+                selectAll.checked = (total === checked && total > 0);
+                selectAll.indeterminate = (checked > 0 && checked < total);
+            }
+            triggerBulkUpdate();
+        });
+            });
+
+            // Đồng bộ trạng thái vào các thẻ <input> ẩn để question.js bắt được ID
+        function toggleHiddenChildren(masterCb, isChecked) {
+                const hiddenContainer = masterCb.nextElementSibling;
+        if(hiddenContainer && hiddenContainer.classList.contains('hidden-checkboxes-container')) {
+            hiddenContainer.querySelectorAll('.question-checkbox').forEach(qCb => {
+                qCb.checked = isChecked;
+            });
+                }
+            }
+
+        // Gọi hàm đếm số lượng để hiện/ẩn nút Bulk Delete đỏ ở dưới cùng
+        function triggerBulkUpdate() {
+                const totalChecked = document.querySelectorAll('.question-checkbox:checked').length;
+        const bulkContainer = document.getElementById('bulkDeleteContainer');
+        const countSpan = document.getElementById('bulkDeleteCount');
+
+        if (bulkContainer && countSpan) {
+                    if (totalChecked > 0) {
+            bulkContainer.classList.remove('d-none');
+        countSpan.innerText = totalChecked;
+                    } else {
+            bulkContainer.classList.add('d-none');
+                    }
+                }
+            }
+        });
+
+        function zoomImage(url, title) {
+            if (!url) return;
+
+        Swal.fire({
+            title: title || 'Xem chi tiết ảnh',
+        imageUrl: url,
+        imageAlt: title,
+        width: 'auto',
+        padding: '10px',
+        showCloseButton: true,
+        showConfirmButton: false, // Ẩn nút OK để giao diện sạch sẽ
+        background: 'var(--bs-card-bg)', // Đồng bộ theo theme sáng/tối của hệ thống
+        color: 'var(--bs-body-color)',
+        customClass: {
+            popup: 'rounded-4 shadow-lg border-0',
+        image: 'img-fluid rounded-3'
+                },
+        showClass: {
+            popup: 'animate__animated animate__zoomIn animate__faster'
+                },
+        hideClass: {
+            popup: 'animate__animated animate__zoomOut animate__faster'
+                }
+            });
+        }
+
+

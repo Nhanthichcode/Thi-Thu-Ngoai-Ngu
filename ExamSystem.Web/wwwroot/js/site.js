@@ -333,8 +333,28 @@ document.addEventListener("DOMContentLoaded", function () {
     scaleContent('apply-saved');
 });
 
-setInterval(() => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + now.toLocaleDateString('vi-VN');
-    document.getElementById('liveClock').innerText = timeString;    
-}, 60000); // Cập nhật mỗi 1 phút
+document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById('sidebar-wrapper');
+    const storageKey = 'sidebar-scroll-position';
+
+    if (sidebar) {
+        // 1. KHÔI PHỤC: Ngay khi trang load xong, lấy vị trí cũ và áp dụng ngay
+        const savedPosition = sessionStorage.getItem(storageKey);
+        if (savedPosition) {
+            sidebar.scrollTop = savedPosition;
+        }
+
+        // 2. LƯU TRẠNG THÁI: Mỗi khi người dùng cuộn sidebar, lưu lại vị trí mới nhất
+        sidebar.addEventListener('scroll', function () {
+            sessionStorage.setItem(storageKey, sidebar.scrollTop);
+        });
+
+        // 3. ĐẢM BẢO: Khi click vào link menu, lưu lại một lần cuối trước khi chuyển trang
+        const sidebarLinks = sidebar.querySelectorAll('.list-group-item');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                sessionStorage.setItem(storageKey, sidebar.scrollTop);
+            });
+        });
+    }
+});
