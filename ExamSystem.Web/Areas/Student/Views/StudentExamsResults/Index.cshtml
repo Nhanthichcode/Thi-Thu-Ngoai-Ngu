@@ -44,8 +44,8 @@
                     <div class="col-md-3 d-flex gap-2">
                         @if (ViewBag.StatusFilter != null || ViewBag.DaysFilter != null || !string.IsNullOrEmpty(ViewBag.ScoreSort))
                         {
-                            <a asp-action="Index" class="btn btn-light border rounded-pill text-muted w-100 shadow-sm hover-up">
-                                <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc
+                            <a asp-action="Index" class="btn btn-danger border rounded-pill text-muted shadow-sm hover-up" title="Xóa bộ lộc">
+                                <i class="bi bi-x-circle me-1"></i>
                             </a>
                         }
                     </div>
