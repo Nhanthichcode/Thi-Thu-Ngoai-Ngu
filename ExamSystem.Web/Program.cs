@@ -23,7 +23,7 @@ builder.Services.AddHostedService<ExamActivationWorker>();
 // 2. Cấu hình Identity (Đăng nhập/Đăng ký)
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
-    // Cấu hình password đơn giản cho dễ test (Tùy chọn)
+    // Cấu hình password đơn giản
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
@@ -41,7 +41,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminAndTeacher", policy =>
         policy.RequireRole("Admin", "Teacher"));
 
-    // 2. Quyền tự do (Vào thi)
     options.AddPolicy("Freedom", policy =>
         policy.RequireRole("Admin", "Student", "Teacher"));
 });
@@ -68,7 +67,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Home/Index");
     app.UseHsts();
 }
 
@@ -79,6 +78,7 @@ app.UseRouting();
 
 app.UseAuthentication(); // Bắt buộc có dòng này để đăng nhập
 app.UseAuthorization();  // Bắt buộc có dòng này để phân quyền
+
 app.UseMiddleware<CheckLockoutMiddleware>();
 // Route cho Area Admin
 app.MapControllerRoute(
@@ -93,7 +93,7 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 var provider = new FileExtensionContentTypeProvider();
-provider.Mappings[".webm"] = "audio/webm"; // Đảm bảo server hiểu file .webm
+provider.Mappings[".webm"] = "audio/webm"; // server hiểu file .webm
 
 app.UseStaticFiles(new StaticFileOptions
 {
