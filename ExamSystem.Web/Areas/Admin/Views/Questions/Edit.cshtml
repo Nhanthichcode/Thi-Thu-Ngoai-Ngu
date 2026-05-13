@@ -233,15 +233,24 @@
                                 <input type="hidden" id="deleteImageFlag" name="DeleteImageFlag" value="false" />
 
                                 <div class="row g-3">
-                                    <div class="col-md-6 text-center" id="current-image-container">
+                                    <div class="col-md-6 text-center">
                                         @if (!string.IsNullOrEmpty(Model.MediaUrl))
                                         {
                                             <div class="p-2 bg-white border rounded-3 shadow-sm h-100 d-flex flex-column justify-content-center align-items-center" id="current-image-wrapper">
                                                 <img src="@Model.MediaUrl" class="img-fluid rounded border shadow" style="max-height: @imageHeight;" id="current-image-tag" />
                                                 <div class="small text-muted mt-2 fw-bold">Ảnh hiện tại</div>
-                                                <button type="button" class="btn btn-sm btn-outline-danger mt-2 rounded-pill px-3" onclick="deleteCurrentMedia()">
-                                                    <i class="bi bi-trash3-fill"></i> Xóa ảnh này
-                                                </button>
+
+                                                <div class="d-flex gap-2 mt-2">
+                                                    <!-- Nút Zoom cho ảnh hiện tại -->
+                                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3"
+                                                            onclick='zoomImage("@Model.MediaUrl", "Ảnh hiện tại")'>
+                                                        <i class="bi bi-search"></i> Phóng to
+                                                    </button>
+
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="deleteCurrentMedia()">
+                                                        <i class="bi bi-trash3-fill"></i> Xóa ảnh này
+                                                    </button>
+                                                </div>
                                             </div>
                                         }
                                         else
@@ -256,6 +265,12 @@
                                         <div class="p-2 bg-white border border-success border-2 rounded-3 shadow-sm h-100 d-flex flex-column justify-content-center align-items-center d-none" id="preview-container">
                                             <img id="img-preview" src="#" class="img-fluid rounded border shadow" style="max-height: @imageHeight;" />
                                             <div class="small text-success fw-bold mt-2"><i class="bi bi-check-circle-fill"></i> Ảnh sẽ thay thế</div>
+
+                                            <!-- Nút Zoom cho ảnh preview (lấy src trực tiếp từ thẻ img bằng JS) -->
+                                            <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 mt-2"
+                                                    onclick='zoomImage(document.getElementById("img-preview").src, "Ảnh xem trước")'>
+                                                <i class="bi bi-search"></i> Phóng to
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

@@ -431,7 +431,7 @@ else
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     @* Hiển thị Thumbnail cho bài Nghe nếu có ảnh *@
-                                    @if (group.GroupType == "Listening")
+                                    @if (group.GroupType == "Speaking")
                                     {
                                         // Lấy ảnh đầu tiên tìm thấy trong các câu hỏi của nhóm
                                         var firstImage = group.Questions.FirstOrDefault(q => !string.IsNullOrEmpty(q.MediaUrl))?.MediaUrl;
@@ -442,7 +442,7 @@ else
                                                 <img src="@firstImage"
                                                      class="rounded border shadow-sm hover-zoom-btn"
                                                      style="width: 50px; height: 50px; object-fit: cover; cursor: pointer;"
-                                                     onclick="zoomImage('@firstImage', @Html.Raw(Json.Serialize(group.GroupTitle)))"
+                                                     onclick='zoomImage("@firstImage", @Html.Raw(Json.Serialize(group.GroupTitle)))'
                                                      title="Phóng to ảnh" />
                                                 <div class="zoom-icon-overlay">
                                                     <i class="bi bi-search"></i>
@@ -473,7 +473,7 @@ else
                                 {
                                     <a asp-controller="@controllerName" asp-action="@actionName" asp-route-id="@routeId" asp-route-type="@group.GroupType"
                                        class="btn btn-sm btn-outline-warning rounded-pill shadow-sm px-3 fw-bold hover-up me-1" title="Sửa nội dung">
-                                        <i class="bi bi-pencil-square"></i> Sửa
+                                        <i class="bi bi-pencil-square"></i>
                                     </a>
 
                                     @if (group.GroupType == "Reading") { controllerName = "ReadingPassages"; routeId = group.GroupId; }
@@ -518,64 +518,4 @@ else
 
 @section Scripts {
     <script src="~/js/question.js" asp-append-version="true"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const selectAll = document.getElementById('selectAllTable');
-            const rowMasters = document.querySelectorAll('.row-master-checkbox');
-
-            // Xử lý Checkbox "Chọn tất cả" trên Header
-            if(selectAll) {
-                selectAll.addEventListener('change', function() {
-                    const isChecked = this.checked;
-                    rowMasters.forEach(cb => {
-                        cb.checked = isChecked;
-                        toggleHiddenChildren(cb, isChecked);
-                    });
-                    triggerBulkUpdate();
-                });
-            }
-
-            // Xử lý Checkbox từng dòng
-            rowMasters.forEach(master => {
-                master.addEventListener('change', function() {
-                    toggleHiddenChildren(this, this.checked);
-
-                    if(selectAll) {
-                        const total = rowMasters.length;
-                        const checked = document.querySelectorAll('.row-master-checkbox:checked').length;
-                        selectAll.checked = (total === checked && total > 0);
-                        selectAll.indeterminate = (checked > 0 && checked < total);
-                    }
-                    triggerBulkUpdate();
-                });
-            });
-
-            // Đồng bộ trạng thái vào các thẻ <input> ẩn để question.js bắt được ID
-            function toggleHiddenChildren(masterCb, isChecked) {
-                const hiddenContainer = masterCb.nextElementSibling;
-                if(hiddenContainer && hiddenContainer.classList.contains('hidden-checkboxes-container')) {
-                    hiddenContainer.querySelectorAll('.question-checkbox').forEach(qCb => {
-                        qCb.checked = isChecked;
-                    });
-                }
-            }
-
-            // Gọi hàm đếm số lượng để hiện/ẩn nút Bulk Delete đỏ ở dưới cùng
-            function triggerBulkUpdate() {
-                const totalChecked = document.querySelectorAll('.question-checkbox:checked').length;
-                const bulkContainer = document.getElementById('bulkDeleteContainer');
-                const countSpan = document.getElementById('bulkDeleteCount');
-
-                if (bulkContainer && countSpan) {
-                    if (totalChecked > 0) {
-                        bulkContainer.classList.remove('d-none');
-                        countSpan.innerText = totalChecked;
-                    } else {
-                        bulkContainer.classList.add('d-none');
-                    }
-                }
-            }
-        });
-    </script>
 }
