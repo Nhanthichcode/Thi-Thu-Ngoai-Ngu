@@ -52,8 +52,8 @@
                             <input class="form-check-input checkbox-xl shadow-sm" type="checkbox" id="checkAll_Users">
                         </th>
                         <th style="width: 25%;">Tiêu đề</th>
-                        <th style="width: 55%;">Nội dung</th>                      
-                        <th style="width: 20%;">Thao tác</th>
+                        <th style="width: 50%;">Nội dung</th>                      
+                        <th style="width: 25%;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,18 +72,19 @@
                                     </div>
                                 </td>                                                              
                                 <td class="text-end pe-4">
-                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 me-1 " title="Tạo bản sao mới"
+                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 me-1" title="Tạo bản sao mới"
                                             onclick="openCloneModal(@item.Id, '@item.Title')">
                                         <i class="bi bi-copy"></i>
-                                    </button>                                               
-                                        <a asp-controller="Questions" asp-action="BatchEdit" asp-route-id="@item.Id" asp-route-type="Reading"
-                                           class="btn btn-sm btn-outline-warning rounded-pill shadow-sm px-3 fw-bold hover-up me-1" title="Sửa nội dung">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>                                    
+                                    </button>
+                                    <a asp-controller="Questions" asp-action="BatchEdit" asp-route-id="@item.Id" asp-route-type="Listening"
+                                       class="btn btn-sm btn-outline-warning rounded-pill shadow-sm px-3 fw-bold hover-up me-1" title="Sửa nội dung">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
                                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold"
                                             onclick="confirmDelete(@item.Id, '@item.Title', 'ReadingPassages')">
                                         <i class="bi bi-trash3"></i>
-                                    </button>
+                                    </button>                                    
                                 </td>
                             </tr>
                         }
