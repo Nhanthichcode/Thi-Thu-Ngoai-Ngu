@@ -1273,7 +1273,7 @@ input:-ms-input-placeholder {
     text-transform: uppercase;
     color: var(--bs-text-muted);
     letter-spacing: 1px;
-    margin: 1.5rem 0 0.5rem 0.5rem;
+    margin: 0.5rem 0 0.5rem 0.5rem;
     opacity: 0.8;
 }
 
@@ -1286,7 +1286,7 @@ input:-ms-input-placeholder {
     margin-bottom: 1rem;
 }
 
-/* Từng dòng Menu */
+ Từng dòng Menu 
 #sidebar-wrapper .list-group-item {
     background-color: transparent;
     border: none;
@@ -1301,14 +1301,14 @@ input:-ms-input-placeholder {
     gap: 12px;
 }
 
-    /* Hiệu ứng rê chuột (Hover) */
+/*     Hiệu ứng rê chuột (Hover) */
     #sidebar-wrapper .list-group-item:hover {
         background-color: rgba(var(--bs-primary-rgb), 0.08);
         color: var(--bs-primary);
-        transform: translateX(4px); /* Nhích nhẹ sang phải */
+        transform: translateX(4px);  /*Nhích nhẹ sang phải */
     }
 
-    /* Hiệu ứng khi đang ở trang đó (Active) */
+/*     Hiệu ứng khi đang ở trang đó (Active) */
     #sidebar-wrapper .list-group-item.active {
         background-color: var(--bs-primary) !important;
         color: white !important;
@@ -1316,14 +1316,14 @@ input:-ms-input-placeholder {
         transform: translateY(-1px);
     }
 
-    /* Chỉnh icon trong Menu */
+/*     Chỉnh icon trong Menu */
     #sidebar-wrapper .list-group-item i {
         font-size: 1.1rem;
         transition: transform 0.2s ease;
     }
 
     #sidebar-wrapper .list-group-item:hover i {
-        transform: scale(1.15); /* Phóng to nhẹ icon khi hover */
+        transform: scale(1.15);  /*Phóng to nhẹ icon khi hover */
     }
 
 /* Tinh chỉnh cho Dark Mode */
