@@ -166,7 +166,7 @@
                                             }
 
                                             <form asp-action="Delete" asp-route-path="@item.Path" method="post" class="d-inline"
-                                                  onsubmit="return confirm('Cảnh báo: Bạn có chắc chắn muốn xóa @(item.IsDirectory ? "thư mục" : "tệp") này?');">
+                                                  onsubmit="return confirm('Cảnh báo: Bạn có chắc chắn muốn xóa @(item.IsDirectory ? "thư mục" : "tệp") @item.Name.ToUpper() này?');">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
