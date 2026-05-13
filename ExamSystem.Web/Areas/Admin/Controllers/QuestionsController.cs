@@ -567,7 +567,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     Skill = q.SkillType.ToString(),
                     q.Level,
                     IsSelected = usedIds.Contains(q.Id)
-                }).ToListAsync();
+                }).ToListAsync();                                                   
 
                 return Json(data);
             }
@@ -741,10 +741,20 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
             var result = new ImportResultViewModel();
             bool isSaveMode = mode == "save";
 
+            // 1. Kiểm tra file null hoặc rỗng
             if (file == null || file.Length <= 0)
             {
                 result.IsSuccess = false;
                 result.Message = "Vui lòng chọn file Excel.";
+                return Json(result);
+            }
+
+            // 2. KIỂM TRA ĐỊNH DẠNG FILE (CHỈ CHO PHÉP .XLSX)
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            if (extension != ".xlsx")
+            {
+                result.IsSuccess = false;
+                result.Message = "Hệ thống chỉ hỗ trợ định dạng file .xlsx (Excel hiện đại).";
                 return Json(result);
             }
 
@@ -763,7 +773,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 {
                     var ws = package.Workbook.Worksheets[0];
                     string typeCode = ws.Cells[6, 1].Text?.Trim();
-                    result.DetectedType = typeCode; // Trả về mã loại để hiện Badge
+                    result.DetectedType = typeCode;
 
                     if (string.IsNullOrEmpty(typeCode) || !typeCode.StartsWith("TYPE_"))
                     {
@@ -780,7 +790,6 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                             List<ImportError> errors = new List<ImportError>();
                             List<ImportRowPreview> previews = new List<ImportRowPreview>();
 
-                            // Gọi các hàm xử lý và nhận thêm danh sách previews
                             switch (typeCode)
                             {
                                 case "TYPE_READING": (count, errors, previews) = await ProcessReading(ws, isSaveMode, selectedIndices); break;
@@ -792,7 +801,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                             }
 
                             result.ValidCount = count;
-                            result.RowPreviews = previews; // QUAN TRỌNG: Gửi dữ liệu để vẽ bảng
+                            result.RowPreviews = previews;
                             result.Errors = errors;
                             result.InvalidCount = previews.Count(p => !p.IsValid && !p.IsParent);
 
@@ -812,7 +821,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                             }
                             else
                             {
-                                result.IsSuccess = true; // Luôn Success để hiện bảng preview
+                                result.IsSuccess = true;
                                 result.Message = errors.Any() ? $"Tìm thấy {errors.Count} lỗi." : "File hợp lệ.";
                             }
                         }

@@ -90,7 +90,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                 try
                 {
                     System.IO.File.Delete(fullPath);
-                    TempData["SuccessMessage"] = "Đã xóa file thành công.";
+                    TempData["SuccessMessage"] = "Đã xóa tệp thành công.";
                 }
                 catch (Exception) // Thêm Try-Catch cho File
                 {

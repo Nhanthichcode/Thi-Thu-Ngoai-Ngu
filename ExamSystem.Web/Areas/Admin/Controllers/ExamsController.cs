@@ -213,7 +213,7 @@ namespace ExamSystem.Web.Areas.Admin.Controllers
                     .Select(q => new
                     {
                         q.Id,
-                        Content = q.Content.Length > 100 ? q.Content.Substring(0, 100) + "..." : q.Content,
+                        Content = q.Content,
                         Skill = q.SkillType.ToString(),
                         q.Level,
                         IsSelected = usedQuestionIds.Contains(q.Id)
