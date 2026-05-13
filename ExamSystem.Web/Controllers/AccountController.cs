@@ -220,11 +220,11 @@ public class AccountController : Controller
                         var localAvatarPath = await DownloadAndSaveGoogleAvatarAsync(googleAvatarUrl, email);
                         if (!string.IsNullOrEmpty(localAvatarPath))
                         {
-                            user.AvatarUrl = localAvatarPath; // Lưu đường dẫn nội bộ: /uploads/user_avatars/google_xxx.jpg
+                            user.AvatarUrl = localAvatarPath;
                         }
                         else
                         {
-                            // Fallback: nếu tải lỗi thì lưu URL gốc của Google
+                            
                             user.AvatarUrl = googleAvatarUrl;
                         }
                     }
@@ -235,7 +235,8 @@ public class AccountController : Controller
                         await _userManager.AddToRoleAsync(user, "Student");
                         await _userManager.AddLoginAsync(user, info);
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+                        TempData["SuccessMessage"] = "Đăng nhập thành công, hãy tạo mật khẩu cho những lần đăng nhập tiếp theo!!!";
+                        return RedirectToAction("Profile", "Account");
                     }
                 }
                 else
@@ -247,7 +248,7 @@ public class AccountController : Controller
                         var localAvatarPath = await DownloadAndSaveGoogleAvatarAsync(googleAvatarUrl, user.Id);
                         if (!string.IsNullOrEmpty(localAvatarPath))
                         {
-                            // [TÙY CHỌN] Nếu muốn xóa ảnh cũ nếu nó là file cục bộ
+                            
                             if (!string.IsNullOrEmpty(user.AvatarUrl) && user.AvatarUrl.StartsWith("/uploads/"))
                             {
                                 var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, user.AvatarUrl.TrimStart('/'));
@@ -312,6 +313,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Profile(UserProfileVM model)
     {
+        ModelState.Remove("PhoneNumber");
         if (!ModelState.IsValid) return View(model);
 
         var user = await _userManager.GetUserAsync(User);
@@ -505,6 +507,7 @@ public class AccountController : Controller
             await _emailSender.SendEmailAsync(user.Email, subject, message);
 
             TempData["SuccessMessage"] = "Liên kết đặt lại mật khẩu đã được gửi vào Email của bạn.";
+            return RedirectToAction("Login", "Account");
         }
         catch (Exception ex)
         {
@@ -518,7 +521,7 @@ public class AccountController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult ResetPassword(string token = null, string email = null)
+    public async Task<IActionResult> ResetPassword(string token = null, string email = null)
     {
         if (User.Identity.IsAuthenticated)
         {
@@ -529,13 +532,20 @@ public class AccountController : Controller
         {
             return RedirectToAction("Error", "Home");
         }
-
-        var model = new ResetPasswordVM
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
         {
-            Token = token,
-            Email = email
-        };
+            return RedirectToAction("Error", "Home");
+        }
+        bool isValidToken = await _userManager.VerifyUserTokenAsync(user,_userManager.Options.Tokens.PasswordResetTokenProvider,UserManager<AppUser>.ResetPasswordTokenPurpose,token);
 
+        if (!isValidToken)
+        {
+            // Nếu Token đã dùng rồi hoặc quá hạn -> Chặn không cho hiện View
+            TempData["ErrorMessage"] = "Đường dẫn đặt lại mật khẩu đã hết hạn hoặc đã được sử dụng.";
+            return RedirectToAction("Login");
+        }
+        var model = new ResetPasswordVM { Email = email, Token = token };
         return View(model);
     }
 
@@ -557,6 +567,8 @@ public class AccountController : Controller
 
         if (result.Succeeded)
         {
+            // Gửi thông báo thành công sang trang Login
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.";
             return RedirectToAction("Login");
         }
 
